@@ -2,16 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export default function Dashboard() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient()
 
   useEffect(() => {
     checkUser()
@@ -19,21 +16,18 @@ export default function Dashboard() {
 
   const checkUser = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        console.error('Auth error:', error)
+        router.push('/auth/login')
+        return
+      }
+      
       if (user) {
         setUser(user)
-
-        // Check if user completed onboarding
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_completed')
-          .eq('id', user.id)
-          .single()
-
-        if (!profile?.onboarding_completed) {
-          router.push('/onboarding')
-          return
-        }
+        // Skip database check for now to prevent logout loops
+        // TODO: Add profile check later when database is properly set up
       } else {
         router.push('/auth/login')
       }

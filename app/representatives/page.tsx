@@ -16,7 +16,14 @@ export default function Representatives() {
 
   const checkUser = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        console.error('Auth error:', error)
+        router.push('/auth/login')
+        return
+      }
+      
       if (user) {
         setUser(user)
       } else {

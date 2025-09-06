@@ -1,0 +1,16 @@
+{
+  "name": "Be The Change",
+  "short_name": "BeTheChange",
+  "description": "Democracy Starts With You - AI-powered advocacy platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

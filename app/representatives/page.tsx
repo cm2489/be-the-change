@@ -12,6 +12,8 @@ export default function Representatives() {
   const [manualAddress, setManualAddress] = useState('')
   const [locationError, setLocationError] = useState('')
   const [fetchingLocation, setFetchingLocation] = useState(false)
+  const [representatives, setRepresentatives] = useState<any[]>([])
+  const [searchingReps, setSearchingReps] = useState(false)
   const router = useRouter()
   const supabase = createClientComponentClient()
 
@@ -60,12 +62,13 @@ export default function Representatives() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords
-        // Here you would normally convert lat/long to an address
-        // For now, we'll just store the coordinates
         setManualAddress(`Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`)
         setUseCurrentLocation(true)
         setShowLocationPrompt(false)
         setFetchingLocation(false)
+        
+        // Automatically search for representatives
+        await searchRepresentatives(null, latitude, longitude)
       },
       (error) => {
         setLocationError('Unable to get your location. Please enter your address manually.')
@@ -79,9 +82,36 @@ export default function Representatives() {
     setUseCurrentLocation(false)
   }
 
+  const searchRepresentatives = async (address?: string | null, lat?: number, lng?: number) => {
+    setSearchingReps(true)
+    setRepresentatives([])
+    
+    try {
+      const params = new URLSearchParams()
+      if (address || manualAddress) {
+        params.append('address', address || manualAddress)
+      }
+      if (lat && lng) {
+        params.append('lat', lat.toString())
+        params.append('lng', lng.toString())
+      }
+      
+      const response = await fetch(`/api/representatives?${params}`)
+      const data = await response.json()
+      
+      if (data.representatives) {
+        setRepresentatives(data.representatives)
+      }
+    } catch (error) {
+      console.error('Error fetching representatives:', error)
+      setLocationError('Failed to fetch representatives. Please try again.')
+    } finally {
+      setSearchingReps(false)
+    }
+  }
+
   const handleSearchReps = () => {
-    // This would trigger the actual representative search
-    console.log('Searching for representatives with:', manualAddress)
+    searchRepresentatives(manualAddress)
   }
 
   if (loading) {
@@ -213,53 +243,126 @@ export default function Representatives() {
           </div>
         )}
 
+        {/* Loading State */}
+        {searchingReps && (
+          <div className="text-center py-12">
+            <div className="animate-spin text-4xl mb-4">🔍</div>
+            <p className="text-gray-600">Finding your representatives...</p>
+          </div>
+        )}
+
         {/* Representatives Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Federal Representatives */}
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h3 className="text-lg font-semibold mb-4 text-blue-600">Federal</h3>
-            <div className="space-y-4">
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h4 className="font-semibold">U.S. Senators</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find your senators</p>
-              </div>
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h4 className="font-semibold">U.S. Representative</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find your representative</p>
+        {!searchingReps && representatives.length > 0 && (
+          <div className="space-y-8">
+            {/* Federal Representatives */}
+            <div>
+              <h3 className="text-2xl font-bold text-blue-600 mb-4">Federal Representatives</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {representatives
+                  .filter(rep => rep.level === 'federal')
+                  .map(rep => (
+                    <div key={rep.id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex items-start gap-4">
+                        <img 
+                          src={rep.image || `https://ui-avatars.com/api/?name=${rep.name}&background=3B82F6&color=fff&size=100`}
+                          alt={rep.name}
+                          className="w-16 h-16 rounded-full"
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-bold text-lg">{rep.name}</h4>
+                          <p className="text-sm text-gray-600">{rep.title}</p>
+                          <p className="text-xs text-gray-500 mt-1">{rep.party}</p>
+                          <div className="mt-3 space-y-1">
+                            <a href={`tel:${rep.phone}`} className="text-blue-600 hover:underline text-sm block">
+                              📞 {rep.phone}
+                            </a>
+                            <a href={`mailto:${rep.email}`} className="text-blue-600 hover:underline text-sm block">
+                              ✉️ Contact
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
-          </div>
 
-          {/* State Representatives */}
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h3 className="text-lg font-semibold mb-4 text-green-600">State</h3>
-            <div className="space-y-4">
-              <div className="border-l-4 border-green-500 pl-4">
-                <h4 className="font-semibold">State Senator</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find your state senator</p>
-              </div>
-              <div className="border-l-4 border-green-500 pl-4">
-                <h4 className="font-semibold">State Representative</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find your state rep</p>
+            {/* State Representatives */}
+            <div>
+              <h3 className="text-2xl font-bold text-green-600 mb-4">State Representatives</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {representatives
+                  .filter(rep => rep.level === 'state')
+                  .map(rep => (
+                    <div key={rep.id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex items-start gap-4">
+                        <img 
+                          src={rep.image || `https://ui-avatars.com/api/?name=${rep.name}&background=10B981&color=fff&size=100`}
+                          alt={rep.name}
+                          className="w-16 h-16 rounded-full"
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-bold text-lg">{rep.name}</h4>
+                          <p className="text-sm text-gray-600">{rep.title}</p>
+                          <p className="text-xs text-gray-500 mt-1">{rep.party}</p>
+                          <div className="mt-3 space-y-1">
+                            <a href={`tel:${rep.phone}`} className="text-green-600 hover:underline text-sm block">
+                              📞 {rep.phone}
+                            </a>
+                            <a href={`mailto:${rep.email}`} className="text-green-600 hover:underline text-sm block">
+                              ✉️ Contact
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
-          </div>
 
-          {/* Local Representatives */}
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h3 className="text-lg font-semibold mb-4 text-purple-600">Local</h3>
-            <div className="space-y-4">
-              <div className="border-l-4 border-purple-500 pl-4">
-                <h4 className="font-semibold">Mayor</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find your mayor</p>
-              </div>
-              <div className="border-l-4 border-purple-500 pl-4">
-                <h4 className="font-semibold">City Council</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find council members</p>
+            {/* Local Representatives */}
+            <div>
+              <h3 className="text-2xl font-bold text-purple-600 mb-4">Local Representatives</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {representatives
+                  .filter(rep => rep.level === 'local')
+                  .map(rep => (
+                    <div key={rep.id} className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex items-start gap-4">
+                        <img 
+                          src={rep.image || `https://ui-avatars.com/api/?name=${rep.name}&background=A855F7&color=fff&size=100`}
+                          alt={rep.name}
+                          className="w-16 h-16 rounded-full"
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-bold text-lg">{rep.name}</h4>
+                          <p className="text-sm text-gray-600">{rep.title}</p>
+                          <p className="text-xs text-gray-500 mt-1">{rep.party}</p>
+                          <div className="mt-3 space-y-1">
+                            <a href={`tel:${rep.phone}`} className="text-purple-600 hover:underline text-sm block">
+                              📞 {rep.phone}
+                            </a>
+                            <a href={`mailto:${rep.email}`} className="text-purple-600 hover:underline text-sm block">
+                              ✉️ Contact
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Empty State */}
+        {!searchingReps && representatives.length === 0 && !showLocationPrompt && (
+          <div className="text-center py-12 bg-gray-50 rounded-xl">
+            <div className="text-5xl mb-4">🏛️</div>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">No Representatives Found</h3>
+            <p className="text-gray-600">Enter your address above to find your representatives</p>
+          </div>
+        )}
 
         {/* How It Works Section */}
         <div className="mt-12 bg-gray-50 rounded-xl p-8">

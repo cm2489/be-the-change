@@ -1,51 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-export default function Representatives() {
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+export default function RepresentativesDemo() {
   const [showLocationPrompt, setShowLocationPrompt] = useState(true)
   const [useCurrentLocation, setUseCurrentLocation] = useState(false)
   const [manualAddress, setManualAddress] = useState('')
   const [locationError, setLocationError] = useState('')
   const [fetchingLocation, setFetchingLocation] = useState(false)
   const router = useRouter()
-  const supabase = createClientComponentClient()
-
-  useEffect(() => {
-    checkUser()
-  }, [])
-
-  const checkUser = async () => {
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      
-      if (error) {
-        console.error('Auth error:', error)
-        router.push('/auth/login')
-        return
-      }
-      
-      if (user) {
-        setUser(user)
-      } else {
-        router.push('/auth/login')
-      }
-    } catch (error) {
-      console.error('Error:', error)
-      router.push('/auth/login')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/auth/login')
-  }
 
   const handleUseCurrentLocation = async () => {
     setFetchingLocation(true)
@@ -60,8 +24,6 @@ export default function Representatives() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords
-        // Here you would normally convert lat/long to an address
-        // For now, we'll just store the coordinates
         setManualAddress(`Location: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`)
         setUseCurrentLocation(true)
         setShowLocationPrompt(false)
@@ -80,16 +42,7 @@ export default function Representatives() {
   }
 
   const handleSearchReps = () => {
-    // This would trigger the actual representative search
     console.log('Searching for representatives with:', manualAddress)
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
-      </div>
-    )
   }
 
   return (
@@ -99,21 +52,12 @@ export default function Representatives() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <h1 className="text-2xl font-bold text-blue-600">Be The Change</h1>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="text-blue-600 hover:text-blue-700"
-              >
-                Dashboard
-              </button>
-              <span className="text-gray-600">{user?.email}</span>
-              <button
-                onClick={handleSignOut}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                Sign Out
-              </button>
-            </div>
+            <button
+              onClick={() => router.push('/')}
+              className="text-blue-600 hover:text-blue-700"
+            >
+              Back to Home
+            </button>
           </div>
         </div>
       </header>
@@ -213,80 +157,35 @@ export default function Representatives() {
           </div>
         )}
 
-        {/* Representatives Grid */}
+        {/* Representatives Grid (Sample) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Federal Representatives */}
           <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-lg font-semibold mb-4 text-blue-600">Federal</h3>
             <div className="space-y-4">
               <div className="border-l-4 border-blue-500 pl-4">
                 <h4 className="font-semibold">U.S. Senators</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find your senators</p>
-              </div>
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h4 className="font-semibold">U.S. Representative</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find your representative</p>
+                <p className="text-gray-600 text-sm">Your senators will appear here</p>
               </div>
             </div>
           </div>
-
-          {/* State Representatives */}
+          
           <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-lg font-semibold mb-4 text-green-600">State</h3>
             <div className="space-y-4">
               <div className="border-l-4 border-green-500 pl-4">
-                <h4 className="font-semibold">State Senator</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find your state senator</p>
-              </div>
-              <div className="border-l-4 border-green-500 pl-4">
-                <h4 className="font-semibold">State Representative</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find your state rep</p>
+                <h4 className="font-semibold">State Representatives</h4>
+                <p className="text-gray-600 text-sm">Your state reps will appear here</p>
               </div>
             </div>
           </div>
-
-          {/* Local Representatives */}
+          
           <div className="bg-white rounded-xl shadow-md p-6">
             <h3 className="text-lg font-semibold mb-4 text-purple-600">Local</h3>
             <div className="space-y-4">
               <div className="border-l-4 border-purple-500 pl-4">
-                <h4 className="font-semibold">Mayor</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find your mayor</p>
-              </div>
-              <div className="border-l-4 border-purple-500 pl-4">
                 <h4 className="font-semibold">City Council</h4>
-                <p className="text-gray-600 text-sm">Enter your location to find council members</p>
+                <p className="text-gray-600 text-sm">Your local reps will appear here</p>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* How It Works Section */}
-        <div className="mt-12 bg-gray-50 rounded-xl p-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            How It Works
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="text-4xl mb-4">📍</div>
-              <h4 className="text-lg font-semibold mb-2">1. Enter Your Location</h4>
-              <p className="text-gray-600">
-                Provide your address or ZIP code to identify your electoral districts
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl mb-4">🔍</div>
-              <h4 className="text-lg font-semibold mb-2">2. Find Representatives</h4>
-              <p className="text-gray-600">
-                We'll show you all your representatives at federal, state, and local levels
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl mb-4">📞</div>
-              <h4 className="text-lg font-semibold mb-2">3. Make Contact</h4>
-              <p className="text-gray-600">
-                Get contact information and AI-generated scripts for effective advocacy
-              </p>
             </div>
           </div>
         </div>

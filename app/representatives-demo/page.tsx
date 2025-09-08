@@ -84,7 +84,7 @@ export default function RepresentativesDemo() {
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 We can use your current location to find your representatives instantly! 
                 <span className="block mt-2 text-sm font-semibold text-purple-600">
-                  (But only if you're chilling at your actual home address, not at the coffee shop! ☕)
+                  (But only if you&apos;re chilling at your actual home address, not at the coffee shop! ☕)
                 </span>
               </p>
               

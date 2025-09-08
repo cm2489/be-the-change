@@ -381,7 +381,7 @@ export default function Representatives() {
               <div className="text-4xl mb-4">🔍</div>
               <h4 className="text-lg font-semibold mb-2">2. Find Representatives</h4>
               <p className="text-gray-600">
-                We'll show you all your representatives at federal, state, and local levels
+                We&apos;ll show you all your representatives at federal, state, and local levels
               </p>
             </div>
             <div className="text-center">

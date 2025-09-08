@@ -1,6 +1,23 @@
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+interface Representative {
+  full_name: string
+  title: string
+  party?: string
+  office_phone?: string
+  email?: string
+  website_url?: string
+  photo_url?: string
+  source: string
+}
+
 // Get representatives from multiple sources
 export async function findRepresentatives(zipCode: string, state: string) {
-  const representatives = []
+  const representatives: Representative[] = []
 
   // 1. Get Federal Representatives (ProPublica or static data)
   const federalReps = await getFederalReps(state)
@@ -14,7 +31,7 @@ export async function findRepresentatives(zipCode: string, state: string) {
 }
 
 // Federal Representatives (ProPublica Congress API)
-async function getFederalReps(state: string) {
+async function getFederalReps(state: string): Promise<Representative[]> {
   try {
     // Get Senators for the state
     const senatorsResponse = await fetch(
@@ -50,7 +67,7 @@ async function getFederalReps(state: string) {
 }
 
 // State Representatives (OpenStates API)
-async function getStateReps(zipCode: string, state: string) {
+async function getStateReps(zipCode: string, state: string): Promise<Representative[]> {
   try {
     // First, convert ZIP to lat/lng
     const geoResponse = await fetch(
@@ -96,7 +113,7 @@ async function getStateReps(zipCode: string, state: string) {
 }
 
 // Fallback to database
-async function getFederalRepsFromDatabase(state: string) {
+async function getFederalRepsFromDatabase(state: string): Promise<Representative[]> {
   // Use your Supabase data as fallback
   const { data } = await supabase
     .from('representatives')

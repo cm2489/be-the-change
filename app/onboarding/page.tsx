@@ -141,7 +141,7 @@ export default function Onboarding() {
             Welcome to Be The Change! 👋
           </h2>
           <p className="text-gray-600 mb-8">
-            Let's personalize your experience. First, what issues matter most to you?
+            Let&apos;s personalize your experience. First, what issues matter most to you?
             Select at least 3 topics you care about.
           </p>
 
@@ -257,11 +257,11 @@ export default function Onboarding() {
         <div className="bg-white rounded-xl shadow-lg p-8 text-center">
           <div className="text-5xl mb-4">🎉</div>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            You're all set!
+            You&apos;re all set!
           </h2>
           <p className="text-gray-600 mb-8">
-            You've selected {selectedInterests.length} issues you care about.
-            We'll use this to personalize your scripts and find the most relevant actions for you.
+            You&apos;ve selected {selectedInterests.length} issues you care about.
+            We&apos;ll use this to personalize your scripts and find the most relevant actions for you.
           </p>
 
           <div className="bg-blue-50 rounded-lg p-6 mb-8">

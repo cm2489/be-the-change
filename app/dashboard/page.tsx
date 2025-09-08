@@ -86,9 +86,11 @@ export default function Dashboard() {
 
         {/* Quick Actions Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {/* Call Your Rep Card */}
           <div 
             onClick={() => router.push('/representatives')}
-            className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer">
+            className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          >
             <div className="text-3xl mb-4">📞</div>
             <h3 className="text-lg font-semibold mb-2">Call Your Rep</h3>
             <p className="text-gray-600 text-sm">
@@ -96,6 +98,7 @@ export default function Dashboard() {
             </p>
           </div>
 
+          {/* Generate Script Card */}
           <div 
             onClick={() => router.push('/scripts/new')}
             className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
@@ -107,6 +110,7 @@ export default function Dashboard() {
             </p>
           </div>
 
+          {/* Find Representatives Card */}
           <div 
             onClick={() => router.push('/representatives')}
             className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
@@ -17,11 +17,7 @@ export default function Representatives() {
   const router = useRouter()
   const supabase = createClientComponentClient()
 
-  useEffect(() => {
-    checkUser()
-  }, [])
-
-  const checkUser = async () => {
+  const checkUser = useCallback(async () => {
     try {
       const { data: { user }, error } = await supabase.auth.getUser()
       
@@ -42,7 +38,11 @@ export default function Representatives() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase.auth, router])
+
+  useEffect(() => {
+    checkUser()
+  }, [checkUser])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()

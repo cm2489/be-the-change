@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
@@ -21,12 +21,7 @@ export default function Onboarding() {
   const [zipCode, setZipCode] = useState('')
   const [state, setState] = useState('')
 
-  useEffect(() => {
-    checkUser()
-    loadInterests()
-  }, [])
-
-  const checkUser = async () => {
+  const checkUser = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       router.push('/auth/login')
@@ -43,16 +38,21 @@ export default function Onboarding() {
         router.push('/dashboard')
       }
     }
-  }
+  }, [supabase, router])
 
-  const loadInterests = async () => {
+  const loadInterests = useCallback(async () => {
     const { data } = await supabase
       .from('interest_categories')
       .select('*')
       .order('display_order')
 
     if (data) setInterests(data)
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    checkUser()
+    loadInterests()
+  }, [checkUser, loadInterests])
 
   const toggleInterest = (interestId: string) => {
     setSelectedInterests(prev => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
@@ -11,16 +11,16 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export default function Home() {
   const router = useRouter()
 
-  useEffect(() => {
-    checkUser()
-  }, [])
-
-  const checkUser = async () => {
+  const checkUser = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       router.push('/dashboard')
     }
-  }
+  }, [supabase.auth, router])
+
+  useEffect(() => {
+    checkUser()
+  }, [checkUser])
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gradient-to-b from-blue-50 to-white">

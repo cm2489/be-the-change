@@ -31,7 +31,16 @@ export async function GET(request: Request) {
   }
 
   try {
-    const representatives = []
+    const representatives: Array<{
+      id: string;
+      name: string;
+      title: string;
+      level: string;
+      party: string;
+      phone: string;
+      email: string;
+      image: string;
+    }> = []
     
     // Extract state from address if possible
     let state = 'CA' // Default to CA for demo

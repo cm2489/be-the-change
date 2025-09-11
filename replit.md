@@ -57,6 +57,6 @@ Preferred communication style: Simple, everyday language.
 - **Tailwind CSS**: Utility-first CSS framework for rapid UI development
 
 ## Hosting & Environment
-- **Replit Deployment**: Configured for Replit's hosting environment with custom headers and CORS settings
+- **Replit Deployment**: Configured for Replit's autoscale deployment with proper port mapping resolution
 - **Environment Variables**: Supabase connection strings and API keys managed through environment configuration
-- **Port Configuration**: Custom port 5000 with hostname binding for Replit compatibility
+- **Port Configuration**: Development uses port 5000, production deployment uses port 3000 with single external port mapping to resolve Cloud Run conflicts

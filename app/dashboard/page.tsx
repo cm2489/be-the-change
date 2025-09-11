@@ -19,9 +19,12 @@ export default function Dashboard() {
     try {
       const { data: { user }, error } = await supabase.auth.getUser()
       
-      if (error) {
-        console.error('Auth error:', error)
-        router.push('/auth/login')
+      // TEMPORARY: Allow viewing dashboard without auth for development
+      if (!user) {
+        // Set a demo user for preview
+        setUser({ email: 'demo@bethechange.com', id: 'demo-user' })
+        setUserName('Changemaker')
+        setLoading(false)
         return
       }
       
@@ -40,16 +43,16 @@ export default function Dashboard() {
         } else {
           setUserName(user.email?.split('@')[0] || 'Changemaker')
         }
-      } else {
-        router.push('/auth/login')
       }
     } catch (error) {
       console.error('Error:', error)
-      router.push('/auth/login')
+      // Even on error, show demo dashboard
+      setUser({ email: 'demo@bethechange.com', id: 'demo-user' })
+      setUserName('Changemaker')
     } finally {
       setLoading(false)
     }
-  }, [supabase.auth, router])
+  }, [supabase.auth])
 
   useEffect(() => {
     checkUser()

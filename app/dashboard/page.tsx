@@ -52,7 +52,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }, [supabase.auth])
+  }, [supabase])
 
   useEffect(() => {
     checkUser()
@@ -186,7 +186,7 @@ export default function Dashboard() {
             Welcome back, {userName}!
           </h2>
           <p className="text-gray-600">
-            Your voice matters. Let's make an impact together.
+            Your voice matters. Let&apos;s make an impact together.
           </p>
         </div>
 

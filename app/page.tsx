@@ -161,7 +161,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Sign Up & Set Your Interests</h3>
                 <p className="text-gray-600">
-                  Tell us what issues matter to you and we'll personalize your experience
+                  Tell us what issues matter to you and we&apos;ll personalize your experience
                 </p>
               </div>
             </div>
@@ -206,7 +206,7 @@ export default function LandingPage() {
             onClick={handleGetStarted}
             className="bg-white text-purple-600 text-lg px-8 py-4 rounded-xl font-semibold hover:bg-gray-50 transition-all transform hover:scale-105 shadow-xl"
           >
-            Start Now - It's Free
+            Start Now - It&apos;s Free
           </button>
         </div>
       </section>

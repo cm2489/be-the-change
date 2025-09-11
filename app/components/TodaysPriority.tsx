@@ -91,7 +91,7 @@ export default function TodaysPriority() {
               </span>
             </div>
             <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
-              Today's Priority: {action.title}
+              Today&apos;s Priority: {action.title}
             </h3>
           </div>
           

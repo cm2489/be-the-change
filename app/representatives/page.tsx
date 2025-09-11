@@ -170,7 +170,7 @@ export default function Representatives() {
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 We can use your current location to find your representatives instantly! 
                 <span className="block mt-2 text-sm font-semibold text-purple-600">
-                  (But only if you&rsquo;re chilling at your actual home address, not at the coffee shop! ☕)
+                  (But only if you&apos;re chilling at your actual home address, not at the coffee shop! ☕)
                 </span>
               </p>
               
@@ -191,7 +191,7 @@ export default function Representatives() {
                       <span className="animate-spin mr-2">🌍</span> Getting location...
                     </span>
                   ) : (
-                    "Yes! I&rsquo;m home 🏠 Use my location"
+                    "Yes! I&apos;m home 🏠 Use my location"
                   )}
                 </button>
                 <button

@@ -108,8 +108,8 @@ export default function Resources() {
             Want to contribute resources?
           </h3>
           <p className="text-purple-100 mb-6 max-w-2xl mx-auto">
-            We're building a comprehensive library of advocacy resources. 
-            If you have materials that could help others make their voices heard, we'd love to hear from you.
+            We&apos;re building a comprehensive library of advocacy resources. 
+            If you have materials that could help others make their voices heard, we&apos;d love to hear from you.
           </p>
           <button className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors">
             Get In Touch

@@ -156,7 +156,7 @@ export default function Login() {
         </div>
 
         <p className="mt-6 text-center text-sm text-gray-600">
-          {isSignUp ? 'Already have an account?' : "Don&rsquo;t have an account?"}{' '}
+          {isSignUp ? 'Already have an account?' : "Don&apos;t have an account?"}{' '}
           <button
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-purple-600 hover:text-purple-700 font-semibold"

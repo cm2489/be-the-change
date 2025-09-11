@@ -105,7 +105,7 @@ export default function RepresentativesDemo() {
                       <span className="animate-spin mr-2">🌍</span> Getting location...
                     </span>
                   ) : (
-                    "Yes! I'm home 🏠 Use my location"
+                    "Yes! I&apos;m home 🏠 Use my location"
                   )}
                 </button>
                 <button

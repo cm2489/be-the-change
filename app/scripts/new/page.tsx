@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
@@ -22,19 +22,19 @@ export default function NewScript() {
   const [personalStory, setPersonalStory] = useState('')
   const [tone, setTone] = useState('professional')
 
-  useEffect(() => {
-    checkUser()
-    loadSelectedRep()
-  }, [])
-
-  const checkUser = async () => {
+  const checkUser = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       router.push('/auth/login')
     } else {
       setUser(user)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    checkUser()
+    loadSelectedRep()
+  }, [checkUser])
 
   const loadSelectedRep = () => {
     // Check if a rep was selected from the representatives page

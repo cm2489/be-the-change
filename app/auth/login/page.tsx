@@ -26,7 +26,12 @@ export default function Login() {
           password,
         })
         if (error) throw error
-        setMessage('Check your email to confirm your account!')
+        // Auto sign in after signup for better UX
+        if (data.user) {
+          router.push('/onboarding')
+        } else {
+          setMessage('Check your email to confirm your account!')
+        }
       } else {
         // Sign in
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -34,7 +39,18 @@ export default function Login() {
           password,
         })
         if (error) throw error
-        router.push('/dashboard')
+        // Check if user needs onboarding
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', data.user?.id)
+          .single()
+        
+        if (profile?.onboarding_completed) {
+          router.push('/dashboard')
+        } else {
+          router.push('/onboarding')
+        }
       }
     } catch (error: any) {
       setMessage(error.message)
@@ -58,11 +74,11 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
+            {isSignUp ? 'Create Your Account' : 'Welcome Back'}
           </h1>
           <p className="text-gray-600">
             {isSignUp ? 'Join the movement for democracy' : 'Continue making your voice heard'}
@@ -78,7 +94,7 @@ export default function Login() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="you@example.com"
               required
             />
@@ -92,7 +108,7 @@ export default function Login() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="••••••••"
               required
             />
@@ -109,7 +125,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all disabled:opacity-50"
           >
             {isLoading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
           </button>
@@ -143,7 +159,7 @@ export default function Login() {
           {isSignUp ? 'Already have an account?' : "Don&rsquo;t have an account?"}{' '}
           <button
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-blue-600 hover:text-blue-700 font-semibold"
+            className="text-purple-600 hover:text-purple-700 font-semibold"
           >
             {isSignUp ? 'Sign In' : 'Sign Up'}
           </button>

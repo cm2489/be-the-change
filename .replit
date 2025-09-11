@@ -12,7 +12,7 @@ NEXT_TELEMETRY_DISABLED = "1"
 [deployment]
 build = ["npm", "run", "build"]
 deploymentTarget = "autoscale"
-run = ["npm"]
+run = ["npm start"]
 
 [[ports]]
 externalport = 80

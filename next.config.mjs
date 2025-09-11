@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Replit-specific configuration
-  allowedDevOrigins: process.env.NODE_ENV === 'development' ? ['*'] : [],
   async headers() {
     return [
       {
@@ -24,11 +22,7 @@ const nextConfig = {
     ]
   },
   // Disable strict mode for development
-  reactStrictMode: false,
-  // Ensure proper hostname binding
-  devIndicators: {
-    buildActivity: false
-  }
+  reactStrictMode: false
 }
 
 export default nextConfig

@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 5000 --hostname 0.0.0.0 --turbo",
-    "build": "next build",
-    "start": "next start --hostname 0.0.0.0 -p 3000",
+    "build": "rm -rf .next && rm -rf out && next build",
+    "start": "next start --hostname 0.0.0.0 -p 5000",
     "lint": "next lint"
   },
   "dependencies": {

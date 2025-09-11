@@ -152,8 +152,8 @@ export default function Onboarding() {
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome! Let's get to know you</h2>
-              <p className="text-gray-600">We'll personalize your experience based on your location</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome! Let&apos;s get to know you</h2>
+              <p className="text-gray-600">We&apos;ll personalize your experience based on your location</p>
             </div>
             
             <div>
@@ -281,14 +281,14 @@ export default function Onboarding() {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">How often would you like to take action?</h2>
-              <p className="text-gray-600">We'll remind you about important issues at your preferred frequency</p>
+              <p className="text-gray-600">We&apos;ll remind you about important issues at your preferred frequency</p>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-4">Call Frequency</label>
               <div className="space-y-3">
                 {[
-                  { value: 'daily', label: 'Daily - I'm ready to make a difference every day' },
+                  { value: 'daily', label: "Daily - I'm ready to make a difference every day" },
                   { value: 'weekly', label: 'Weekly - A few times a week works for me' },
                   { value: 'biweekly', label: 'Bi-weekly - Every couple of weeks' },
                   { value: 'monthly', label: 'Monthly - Once a month is good' }
@@ -342,7 +342,7 @@ export default function Onboarding() {
           <div className="space-y-6 text-center">
             <div className="mb-8">
               <div className="text-5xl mb-4">🎉</div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">You're all set!</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">You&apos;re all set!</h2>
               <p className="text-gray-600">Ready to make your voice heard?</p>
             </div>
             

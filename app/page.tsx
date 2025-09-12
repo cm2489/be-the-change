@@ -32,9 +32,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      <div className="bg-red-500 text-white p-8 text-4xl font-bold">
-        TAILWIND TEST - THIS SHOULD BE BIG RED TEXT
-      </div>
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-indigo-600/10" />

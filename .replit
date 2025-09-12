@@ -15,9 +15,9 @@ deploymentTarget = "autoscale"
 run = ["npm", "start"]
 
 [[ports]]
-externalport = 80
-
 localPort = 3000
+externalPort = 80
+
 [agent]
 expertMode = true
 

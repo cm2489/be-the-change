@@ -59,4 +59,4 @@ Preferred communication style: Simple, everyday language.
 ## Hosting & Environment
 - **Replit Deployment**: Configured for Replit's autoscale deployment with proper port mapping resolution
 - **Environment Variables**: Supabase connection strings and API keys managed through environment configuration
-- **Port Configuration**: Development uses port 5000, production deployment uses port 3000 with single external port mapping to resolve Cloud Run conflicts
+- **Port Configuration**: Development uses port 3000, production deployment uses port 3000 with single external port mapping to resolve Cloud Run conflicts

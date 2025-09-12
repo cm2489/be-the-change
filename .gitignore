@@ -128,3 +128,23 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Node/Next.js
+node_modules/
+.next/
+out/
+.vercel/
+.turbo/
+dist/
+*.log
+.DS_Store
+
+# Env & local config
+.env
+.env.*
+*.local
+
+# Replit/IDE cruft
+.replit
+*.replit
+.vscode/

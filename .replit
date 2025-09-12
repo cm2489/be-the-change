@@ -16,11 +16,7 @@ run = ["npm", "start"]
 
 [[ports]]
 localPort = 3000
-externalPort = 80
-
-[[ports]]
-localPort = 5000
-externalPort = 80
+externalPort = 3000
 
 [[ports]]
 localPort = 41183
@@ -46,9 +42,9 @@ name = "Next.js App"
 author = "agent"
 
 [workflows.workflow.metadata]
-outputType = "webview"
+outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev -- --port 5000 --hostname 0.0.0.0 --turbo"
-waitForPort = 5000
+args = "npm run dev -- --port 3000 --hostname 0.0.0.0 --turbo"
+waitForPort = 3000

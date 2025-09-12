@@ -1,7 +1,7 @@
 run = "npm run dev"
 entrypoint = "index.js"
 hidden = [".config", "package-lock.json", ".next", ".swc"]
-modules = ["nodejs-22"]
+modules = ["nodejs-22", "postgresql-16"]
 
 [nix]
 channel = "stable-24_11"
@@ -17,6 +17,14 @@ run = ["npm", "start"]
 [[ports]]
 localPort = 3000
 externalPort = 80
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 41183
+externalPort = 3000
 
 [agent]
 expertMode = true
@@ -38,9 +46,9 @@ name = "Next.js App"
 author = "agent"
 
 [workflows.workflow.metadata]
-outputType = "console"
+outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
-waitForPort = 3000
+args = "npm run dev -- --port 5000 --hostname 0.0.0.0 --turbo"
+waitForPort = 5000

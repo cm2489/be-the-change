@@ -18,6 +18,10 @@ run = ["npm", "start"]
 localPort = 3000
 externalPort = 80
 
+[[ports]]
+localPort = 37223
+externalPort = 3000
+
 [agent]
 expertMode = true
 

@@ -189,6 +189,12 @@ export default function SettingsPage() {
           {saving ? 'Saving…' : saved ? '✅ Saved!' : 'Save changes'}
         </Button>
 
+        {/* Admin: Seed bills */}
+        <div className="border-t border-slate-200 pt-4">
+          <p className="text-xs text-slate-400 mb-2">Admin</p>
+          <SyncBillsButton />
+        </div>
+
         {/* Sign out */}
         <div className="border-t border-slate-200 pt-4">
           <Button variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={handleSignOut}>
@@ -196,6 +202,48 @@ export default function SettingsPage() {
           </Button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function SyncBillsButton() {
+  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const [result, setResult] = useState<string | null>(null)
+
+  async function handleSync() {
+    setStatus('loading')
+    setResult(null)
+    try {
+      const res = await fetch('/api/admin/sync-bills', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        setStatus('done')
+        setResult(`Synced ${data.results?.federal ?? 0} federal bills`)
+      } else {
+        setStatus('error')
+        setResult(data.error ?? 'Sync failed')
+      }
+    } catch {
+      setStatus('error')
+      setResult('Network error — try again')
+    }
+  }
+
+  return (
+    <div>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleSync}
+        disabled={status === 'loading'}
+      >
+        {status === 'loading' ? 'Syncing bills…' : 'Sync bills now'}
+      </Button>
+      {result && (
+        <p className={`text-xs mt-1 ${status === 'done' ? 'text-green-600' : 'text-red-500'}`}>
+          {result}
+        </p>
+      )}
     </div>
   )
 }

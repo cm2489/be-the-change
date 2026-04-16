@@ -1,9 +1,29 @@
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Be The Change',
-  description: 'Empowering civic engagement',
+  title: 'Be The Change — Make Your Voice Heard',
+  description:
+    'Hyper-personalized civic engagement. Track legislation you care about and call your representatives in one tap.',
+  keywords: ['civic engagement', 'representatives', 'legislation', 'voting', 'democracy'],
+  authors: [{ name: 'Be The Change' }],
+  openGraph: {
+    title: 'Be The Change',
+    description: 'Make your voice heard. One call at a time.',
+    type: 'website',
+  },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Be The Change',
+  },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#1d4ed8',
 }
 
 export default function RootLayout({
@@ -13,16 +33,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#3b82f6" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Be The Change" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </head>
       <body>{children}</body>
     </html>
   )

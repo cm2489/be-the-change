@@ -19,10 +19,21 @@ const US_STATES = [
   'VA','WA','WV','WI','WY',
 ]
 
+function validateSecret(request: Request): boolean {
+  const headerSecret = request.headers.get('x-cron-secret')
+  const urlSecret = new URL(request.url).searchParams.get('secret')
+  return (headerSecret ?? urlSecret) === process.env.CRON_SECRET
+}
+
+export async function GET(request: Request) {
+  if (!validateSecret(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  return POST(request)
+}
+
 export async function POST(request: Request) {
-  // Validate cron secret
-  const secret = request.headers.get('x-cron-secret')
-  if (secret !== process.env.CRON_SECRET) {
+  if (!validateSecret(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

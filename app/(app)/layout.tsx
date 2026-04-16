@@ -3,7 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { NavBar } from '@/components/NavBar'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()

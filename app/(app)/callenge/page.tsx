@@ -7,7 +7,7 @@ import { formatDate } from '@/lib/utils'
 export const dynamic = 'force-dynamic'
 
 export default async function CallengePage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()

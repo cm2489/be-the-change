@@ -3,7 +3,7 @@ import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import { generateScript } from '@/lib/anthropic'
 
 export async function POST(request: Request) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()

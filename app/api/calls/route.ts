@@ -4,7 +4,7 @@ import { getDailyCallCount } from '@/lib/freemium'
 
 // POST — initiate or update a call log
 export async function POST(request: Request) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
 
 // GET — return today's call count
 export async function GET() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()

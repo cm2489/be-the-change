@@ -1,23 +1,11 @@
-interface CivicOfficial {
+interface WimrResult {
   name: string
-  party?: string
-  phones?: string[]
-  emails?: string[]
-  urls?: string[]
-  photoUrl?: string
-}
-
-interface CivicOffice {
-  name: string
-  levels: string[]
-  roles: string[]
-  officialIndices: number[]
-  divisionId: string
-}
-
-interface CivicResponse {
-  officials: CivicOfficial[]
-  offices: CivicOffice[]
+  party: string
+  state: string
+  district: string
+  phone: string
+  office: string
+  link: string
 }
 
 export interface NormalizedRepresentative {
@@ -29,58 +17,45 @@ export interface NormalizedRepresentative {
   email: string | null
   website_url: string | null
   photo_url: string | null
-  source: 'google_civic'
+  source: string
   external_id: string
-}
-
-function mapLevel(civicLevels: string[]): 'federal' | 'state' | 'local' {
-  if (civicLevels.includes('country')) return 'federal'
-  if (civicLevels.includes('administrativeArea1')) return 'state'
-  return 'local'
 }
 
 export async function getRepresentativesByAddress(
   address: string
 ): Promise<NormalizedRepresentative[]> {
-  const apiKey = process.env.GOOGLE_CIVIC_API_KEY
-  if (!apiKey) throw new Error('GOOGLE_CIVIC_API_KEY not set')
+  const zipMatch = address.match(/\b(\d{5})\b/)
+  const zip = zipMatch?.[1] ?? address.trim()
 
-  const url = new URL(
-    'https://civicinfo.googleapis.com/civicinfo/v2/representatives'
-  )
-  url.searchParams.set('address', address)
-  url.searchParams.set('key', apiKey)
-
-  const res = await fetch(url.toString(), {
-    next: { revalidate: 86400 }, // 24-hour cache at the Next.js layer
-  })
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(
-      `Google Civic API error ${res.status}: ${err?.error?.message ?? 'Unknown error'}`
-    )
+  if (!zip.match(/^\d{5}$/)) {
+    throw new Error('Valid 5-digit ZIP code required')
   }
 
-  const data: CivicResponse = await res.json()
-
-  if (!data.offices || !data.officials) return []
-
-  return data.offices.flatMap(office =>
-    office.officialIndices.map(idx => {
-      const official = data.officials[idx]
-      return {
-        full_name: official.name,
-        title: office.name,
-        level: mapLevel(office.levels),
-        party: official.party ?? null,
-        phone: official.phones?.[0] ?? null,
-        email: official.emails?.[0] ?? null,
-        website_url: official.urls?.[0] ?? null,
-        photo_url: official.photoUrl ?? null,
-        source: 'google_civic' as const,
-        external_id: `${office.divisionId}::${idx}`,
-      }
-    })
+  const res = await fetch(
+    `https://whoismyrepresentative.com/getall_mems.php?zip=${zip}&output=json`,
+    { next: { revalidate: 86400 } }
   )
+
+  if (!res.ok) {
+    throw new Error(`Representative lookup failed: ${res.status}`)
+  }
+
+  const data = await res.json()
+  const results: WimrResult[] = data.results ?? []
+
+  return results.map((r, i) => {
+    const isSenator = !r.district || r.district === '00'
+    return {
+      full_name: r.name,
+      title: isSenator ? 'U.S. Senator' : `U.S. Representative (District ${r.district})`,
+      level: 'federal' as const,
+      party: r.party || null,
+      phone: r.phone || null,
+      email: null,
+      website_url: r.link || null,
+      photo_url: null,
+      source: 'whoismyrepresentative',
+      external_id: `wimr-${r.state}-${r.district}-${i}`,
+    }
+  })
 }

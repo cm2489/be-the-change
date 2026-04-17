@@ -30,9 +30,8 @@ async function runSync() {
   const results = { federal: 0, skipped: 0, errors: 0 }
 
   try {
-    const fromDate = new Date(Date.now() - 30 * 86_400_000).toISOString()
-    const bills = await getRecentBills(fromDate)
-    const batch = bills.slice(0, 50)
+    const bills = await getRecentBills()
+    const batch = bills.slice(0, 20)
 
     // Upsert all bills in parallel for speed
     await Promise.allSettled(

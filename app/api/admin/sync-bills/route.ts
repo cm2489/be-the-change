@@ -20,20 +20,25 @@ export async function POST() {
     const fromDate = new Date(Date.now() - 30 * 86_400_000).toISOString()
     const bills = await getRecentBills(fromDate)
 
-    await Promise.allSettled(
+    const settled = await Promise.allSettled(
       bills.slice(0, 50).map(async bill => {
         const normalized = mapCongressBill(bill)
         const tags = tagBill(normalized.title, normalized.summary ?? '')
         const { error } = await admin
           .from('bills')
           .upsert({ ...normalized, tags, synced_at: new Date().toISOString() }, { onConflict: 'external_id' })
-        if (error) results.errors++
+        if (error) { results.errors++; throw error }
         else results.federal++
       })
     )
-  } catch (err) {
+
+    const firstError = settled.find(s => s.status === 'rejected') as PromiseRejectedResult | undefined
+    if (firstError && results.federal === 0) {
+      return NextResponse.json({ error: String(firstError.reason) }, { status: 500 })
+    }
+  } catch (err: any) {
     console.error('Sync error:', err)
-    return NextResponse.json({ error: 'Sync failed' }, { status: 500 })
+    return NextResponse.json({ error: String(err?.message ?? err) }, { status: 500 })
   }
 
   return NextResponse.json({ success: true, results })

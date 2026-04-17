@@ -6,9 +6,12 @@ import { tagBill } from '@/lib/bill-tagger'
 export const maxDuration = 60
 
 function validateSecret(request: Request): boolean {
+  const cronSecret = process.env.CRON_SECRET
   const headerSecret = request.headers.get('x-cron-secret')
   const urlSecret = new URL(request.url).searchParams.get('secret')
-  return (headerSecret ?? urlSecret) === process.env.CRON_SECRET
+  const authHeader = request.headers.get('authorization')
+  const bearerSecret = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+  return [headerSecret, urlSecret, bearerSecret].some(s => s === cronSecret)
 }
 
 export async function GET(request: Request) {

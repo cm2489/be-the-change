@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient, createAdminClient } from '@/lib/supabase/server'
-import { getRecentBills, mapCongressBill } from '@/lib/congress'
+import { getRecentBills, mapCongressBill, isActionableBill } from '@/lib/congress'
 import { tagBill } from '@/lib/bill-tagger'
 
 export const maxDuration = 60
@@ -17,7 +17,8 @@ export async function POST() {
   const results = { federal: 0, errors: 0 }
 
   try {
-    const bills = await getRecentBills()
+    const allBills = await getRecentBills()
+    const bills = allBills.filter(b => isActionableBill(b.latestAction?.text ?? ''))
 
     const settled = await Promise.allSettled(
       bills.slice(0, 50).map(async bill => {

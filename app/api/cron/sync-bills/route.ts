@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
-import { getRecentBills, mapCongressBill } from '@/lib/congress'
+import { getRecentBills, mapCongressBill, isActionableBill } from '@/lib/congress'
 import { tagBill } from '@/lib/bill-tagger'
 
 export const maxDuration = 60
@@ -33,8 +33,8 @@ async function runSync() {
   const results = { federal: 0, skipped: 0, errors: 0 }
 
   try {
-    const bills = await getRecentBills()
-    const batch = bills.slice(0, 20)
+    const allBills = await getRecentBills()
+    const batch = allBills.filter(b => isActionableBill(b.latestAction?.text ?? '')).slice(0, 20)
 
     // Upsert all bills in parallel for speed
     await Promise.allSettled(

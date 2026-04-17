@@ -25,29 +25,26 @@ async function congressFetch<T>(
 ): Promise<T> {
   const url = new URL(`${BASE}${path}`)
   url.searchParams.set('format', 'json')
-  url.searchParams.set('limit', '250')
+  url.searchParams.set('limit', '20')
+  url.searchParams.set('api_key', process.env.CONGRESS_API_KEY ?? 'DEMO_KEY')
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
 
-  const res = await fetch(url.toString(), {
-    headers: { 'X-API-Key': process.env.CONGRESS_API_KEY! },
-    next: { revalidate: 3600 },
-  })
+  const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
 
   if (!res.ok) {
-    throw new Error(`Congress.gov API error: ${res.status} ${res.statusText}`)
+    const body = await res.text().catch(() => '')
+    throw new Error(`Congress.gov API error: ${res.status} ${res.statusText} — ${body}`)
   }
 
   return res.json()
 }
 
 // Returns bills updated since fromDate (ISO string)
-export async function getRecentBills(fromDate?: string): Promise<CongressBillSummary[]> {
-  const params: Record<string, string> = {
-    sort: 'updateDate+desc',
-  }
-  if (fromDate) params.fromDateTime = fromDate
-
-  const data = await congressFetch<{ bills: CongressBillSummary[] }>('/bill', params)
+export async function getRecentBills(): Promise<CongressBillSummary[]> {
+  const data = await congressFetch<{ bills: CongressBillSummary[] }>('/bill', {
+    sort: 'updateDate',
+    direction: 'desc',
+  })
   return data.bills ?? []
 }
 

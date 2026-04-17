@@ -17,8 +17,7 @@ export async function POST() {
   const results = { federal: 0, errors: 0 }
 
   try {
-    const fromDate = new Date(Date.now() - 30 * 86_400_000).toISOString()
-    const bills = await getRecentBills(fromDate)
+    const bills = await getRecentBills()
 
     const settled = await Promise.allSettled(
       bills.slice(0, 50).map(async bill => {

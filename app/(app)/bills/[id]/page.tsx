@@ -5,8 +5,9 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CallFlow } from '@/components/CallFlow'
 import { Button } from '@/components/ui/button'
-import { urgencyLabel, formatDate } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import { urgencyLabel, formatDate, partyLetter } from '@/lib/utils'
 
 interface Rep {
   id: string
@@ -34,6 +35,30 @@ interface Bill {
   tags: string[] | null
 }
 
+function LevelIcon({ level }: { level: string }) {
+  if (level === 'federal') return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="22" y1="22" x2="2" y2="22"/><path d="M5 22V11l7-9 7 9v11"/><path d="M9 22v-4h6v4"/>
+    </svg>
+  )
+  if (level === 'state') return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>
+    </svg>
+  )
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+    </svg>
+  )
+}
+
+const LEVEL_LABELS: Record<string, string> = {
+  federal: 'Federal',
+  state: 'State',
+  local: 'Local',
+}
+
 export default function BillDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
@@ -49,16 +74,13 @@ export default function BillDetailPage() {
 
   useEffect(() => {
     async function load() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         router.push('/login')
         return
       }
       setUserId(session.user.id)
 
-      // Load bill
       const { data: billData } = await supabase
         .from('bills')
         .select('*')
@@ -67,7 +89,6 @@ export default function BillDetailPage() {
 
       if (billData) setBill(billData)
 
-      // Load user's ZIP code
       const { data: profile } = await supabase
         .from('profiles')
         .select('zip_code')
@@ -101,7 +122,8 @@ export default function BillDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-12 text-center text-slate-400">
+      <div className="max-w-2xl mx-auto px-4 py-10 flex items-center justify-center gap-3 t-small text-fg-3">
+        <span className="w-4 h-4 border-2 border-ink border-t-transparent rounded-full animate-spin flex-shrink-0" />
         Loading…
       </div>
     )
@@ -109,12 +131,9 @@ export default function BillDetailPage() {
 
   if (!bill) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <div className="text-4xl mb-3">😕</div>
-        <p className="text-slate-500">Bill not found.</p>
-        <Button className="mt-4" onClick={() => router.push('/bills')}>
-          Back to issues
-        </Button>
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+        <p className="t-small text-fg-2 mb-4">Bill not found.</p>
+        <Button variant="outline" onClick={() => router.push('/bills')}>Back to issues</Button>
       </div>
     )
   }
@@ -122,7 +141,6 @@ export default function BillDetailPage() {
   const urgency = urgencyLabel(bill.urgency_score)
   const displaySummary = bill.ai_summary || bill.summary
 
-  // Group reps by level
   const repsByLevel = {
     federal: reps.filter(r => r.level === 'federal'),
     state: reps.filter(r => r.level === 'state'),
@@ -130,62 +148,66 @@ export default function BillDetailPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
+
       {/* Back */}
       <button
         onClick={() => router.back()}
-        className="text-sm text-slate-400 hover:text-slate-600 mb-4 flex items-center gap-1"
+        className="flex items-center gap-1.5 t-meta text-fg-3 hover:text-ink transition-colors"
       >
-        ← Back
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        Back
       </button>
 
-      {/* Bill header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
+      {/* Bill card */}
+      <Card>
         <div className="flex items-center gap-2 flex-wrap mb-3">
           <Badge variant={urgency.variant}>{urgency.label}</Badge>
-          <Badge variant="federal">
-            {bill.level === 'federal' ? 'Federal' : bill.state_code}
-          </Badge>
-          <span className="t-mono text-ink-70">{bill.bill_number}</span>
+          <Badge variant="outline">{bill.level === 'federal' ? 'Federal' : bill.state_code}</Badge>
+          <span className="t-mono text-fg-3">{bill.bill_number}</span>
         </div>
 
-        <h1 className="text-xl font-bold text-slate-900 leading-tight mb-4">{bill.title}</h1>
+        <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 22, lineHeight: 1.3, fontWeight: 400 }} className="text-ink mb-3">
+          {bill.title}
+        </h1>
 
         {displaySummary && (
-          <p className="text-sm text-slate-600 leading-relaxed mb-4">{displaySummary}</p>
+          <p className="t-small text-fg-2 leading-relaxed mb-4">{displaySummary}</p>
         )}
 
-        <div className="flex items-center gap-4 text-xs text-slate-400 border-t border-slate-100 pt-4">
+        <div className="flex items-center gap-4 t-meta text-fg-3 border-t border-divider pt-3">
           {bill.vote_date && (
-            <span>Vote scheduled: <strong className="text-slate-600">{formatDate(bill.vote_date)}</strong></span>
+            <span>Vote: <span className="t-mono text-ink">{formatDate(bill.vote_date)}</span></span>
           )}
           {bill.last_action && (
-            <span className="line-clamp-1">Last action: {bill.last_action}</span>
+            <span className="line-clamp-1">{bill.last_action}</span>
           )}
           {bill.full_text_url && (
             <a
               href={bill.full_text_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-civic-600 hover:underline ml-auto flex-shrink-0"
+              className="t-meta font-semibold text-ink hover:text-signal transition-colors ml-auto flex-shrink-0"
             >
               Full text →
             </a>
           )}
         </div>
-      </div>
+      </Card>
 
-      {/* Representatives — call to action */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h2 className="text-lg font-bold text-slate-900 mb-1">Make your call</h2>
-        <p className="text-sm text-slate-500 mb-4">
-          Select a representative to call about this issue.
-        </p>
+      {/* Call to action */}
+      <Card>
+        <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 20, fontWeight: 400 }} className="text-ink mb-1">
+          Make your call
+        </h2>
+        <p className="t-small text-fg-2 mb-4">Select a representative to call about this issue.</p>
 
         {!zipCode && (
-          <div className="text-sm text-slate-500 bg-slate-50 rounded-xl p-4">
+          <div className="t-small text-fg-2 bg-paper-dark rounded-xl p-4">
             Update your ZIP code in{' '}
-            <a href="/settings" className="text-civic-600 underline">
+            <a href="/settings" className="font-semibold text-ink hover:text-signal transition-colors">
               settings
             </a>{' '}
             to see your representatives.
@@ -193,7 +215,10 @@ export default function BillDetailPage() {
         )}
 
         {repsLoading && (
-          <div className="text-sm text-slate-400 py-4 text-center">Loading your representatives…</div>
+          <div className="flex items-center justify-center gap-3 py-6 t-small text-fg-3">
+            <span className="w-4 h-4 border-2 border-ink border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            Loading your representatives…
+          </div>
         )}
 
         {!repsLoading && reps.length > 0 && (
@@ -202,42 +227,51 @@ export default function BillDetailPage() {
               if (levelReps.length === 0) return null
               return (
                 <div key={level}>
-                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
-                    {level === 'federal' ? '🇺🇸 Federal' : level === 'state' ? '🏛️ State' : '🏘️ Local'}
+                  <div className="flex items-center gap-1.5 t-meta font-semibold text-fg-3 mb-2">
+                    <LevelIcon level={level} />
+                    {LEVEL_LABELS[level]}
                   </div>
                   <div className="space-y-2">
-                    {levelReps.map(rep => (
-                      <button
-                        key={rep.id}
-                        onClick={() => setSelectedRep(rep)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-action-400 hover:bg-action-50 transition-all text-left group"
-                      >
-                        <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-semibold text-sm flex-shrink-0 overflow-hidden">
-                          {rep.photo_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={rep.photo_url} alt={rep.full_name} className="w-full h-full object-cover" />
-                          ) : (
-                            rep.full_name.charAt(0)
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold text-slate-900 truncate">{rep.full_name}</div>
-                          <div className="text-xs text-slate-500 truncate">{rep.title}</div>
-                        </div>
-                        {rep.phone && (
-                          <div className="text-xs font-medium text-action-500 group-hover:text-action-600">
-                            📞 Call
+                    {levelReps.map(rep => {
+                      const party = partyLetter(rep.party)
+                      const partyClass = party === 'D' ? 'is-d' : party === 'R' ? 'is-r' : 'is-i'
+                      const initials = rep.full_name.split(' ').filter(Boolean).slice(0, 2).map((n: string) => n[0]).join('')
+                      return (
+                        <button
+                          key={rep.id}
+                          onClick={() => setSelectedRep(rep)}
+                          className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl border border-divider hover:border-signal/40 hover:bg-paper transition-all text-left group"
+                        >
+                          <div className="w-9 h-9 rounded-full bg-paper-dark flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {rep.photo_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={rep.photo_url} alt={rep.full_name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: 14 }} className="text-ink">{initials}</span>
+                            )}
                           </div>
-                        )}
-                      </button>
-                    ))}
+                          <div className="flex-1 min-w-0">
+                            <div className="t-small font-semibold text-ink truncate">{rep.full_name}</div>
+                            <div className="t-meta text-fg-3 truncate">{rep.title}</div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {party && <span className={`party-badge ${partyClass}`}>{party}</span>}
+                            {rep.phone && (
+                              <span className="t-meta font-semibold text-signal group-hover:opacity-70 transition-opacity">
+                                Call →
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )
             })}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* CallFlow overlay */}
       {selectedRep && userId && (

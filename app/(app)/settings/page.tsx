@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { INTEREST_CATEGORIES } from '@/lib/interests'
 import { Button } from '@/components/ui/button'
+import { Input, FieldLabel } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
+import { Chip } from '@/components/ui/chip'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -20,9 +23,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     async function load() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         router.push('/login')
         return
@@ -69,9 +70,7 @@ export default function SettingsPage() {
     setSaving(true)
     setSaved(false)
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
 
     await supabase.from('profiles').upsert({
@@ -81,7 +80,6 @@ export default function SettingsPage() {
       state_code: stateCode,
     })
 
-    // Rebuild interests
     await supabase.from('user_interests').delete().eq('user_id', session.user.id)
 
     const rows = Array.from(selectedSubcats).map((subId, i) => {
@@ -110,97 +108,103 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center text-slate-400">
+      <div className="max-w-2xl mx-auto px-4 py-10 flex items-center justify-center gap-3 t-small text-fg-3">
+        <span className="w-4 h-4 border-2 border-ink border-t-transparent rounded-full animate-spin flex-shrink-0" />
         Loading…
       </div>
     )
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Settings</h1>
+    <div className="max-w-2xl mx-auto px-4 py-5">
 
-      <div className="space-y-6">
+      <header className="mb-5">
+        <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 28, lineHeight: 1.15, fontWeight: 400 }} className="text-ink">
+          Settings
+        </h1>
+      </header>
+
+      <div className="space-y-4">
+
         {/* Profile */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="text-base font-semibold text-slate-900 mb-4">Profile</h2>
+        <Card>
+          <h2 className="t-h3 text-ink mb-4">Profile</h2>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Full name</label>
-              <input
+            <div className="field">
+              <FieldLabel htmlFor="fullName">Full name</FieldLabel>
+              <Input
+                id="fullName"
                 type="text"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-civic-600"
+                placeholder="Your name"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">ZIP code</label>
-              <input
+            <div className="field">
+              <FieldLabel htmlFor="zipCode">ZIP code</FieldLabel>
+              <Input
+                id="zipCode"
                 type="text"
                 inputMode="numeric"
                 maxLength={5}
                 value={zipCode}
                 onChange={e => setZipCode(e.target.value.replace(/\D/g, ''))}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-civic-600"
+                placeholder="e.g. 10001"
               />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Interests */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="text-base font-semibold text-slate-900 mb-1">My Issues</h2>
-          <p className="text-sm text-slate-500 mb-4">
+        <Card>
+          <h2 className="t-h3 text-ink mb-1">My issues</h2>
+          <p className="t-small text-fg-2 mb-4">
             Select the specific topics you want to stay informed about.
           </p>
-          <div className="space-y-4">
+          <div className="space-y-5">
             {INTEREST_CATEGORIES.map(cat => (
               <div key={cat.id}>
-                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                  {cat.icon} {cat.label}
-                </div>
+                <div className="t-meta font-semibold text-fg-2 mb-2.5">{cat.label}</div>
                 <div className="flex flex-wrap gap-2">
                   {cat.subcategories.map(sub => (
-                    <button
+                    <Chip
                       key={sub.id}
+                      selected={selectedSubcats.has(sub.id)}
                       onClick={() => toggleSub(sub.id)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                        selectedSubcats.has(sub.id)
-                          ? 'bg-civic-600 text-white border-civic-600'
-                          : 'bg-white text-slate-600 border-slate-300 hover:border-civic-400'
-                      }`}
                     >
                       {sub.label}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
+        {/* Save */}
         <Button
+          variant="primary"
           size="lg"
           className="w-full"
           onClick={handleSave}
           disabled={saving}
         >
-          {saving ? 'Saving…' : saved ? '✅ Saved!' : 'Save changes'}
+          {saving ? 'Saving…' : saved ? 'Saved' : 'Save changes'}
         </Button>
 
-        {/* Admin: Seed bills */}
-        <div className="border-t border-slate-200 pt-4">
-          <p className="text-xs text-slate-400 mb-2">Admin</p>
+        {/* Admin */}
+        <div className="border-t border-divider pt-4">
+          <p className="t-meta text-fg-3 mb-2">Admin</p>
           <SyncBillsButton />
         </div>
 
         {/* Sign out */}
-        <div className="border-t border-slate-200 pt-4">
-          <Button variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={handleSignOut}>
+        <div className="border-t border-divider pt-4">
+          <Button variant="ghost" className="text-oxblood hover:text-oxblood/80" onClick={handleSignOut}>
             Sign out
           </Button>
         </div>
+
       </div>
     </div>
   )
@@ -240,7 +244,7 @@ function SyncBillsButton() {
         {status === 'loading' ? 'Syncing bills…' : 'Sync bills now'}
       </Button>
       {result && (
-        <p className={`text-xs mt-1 ${status === 'done' ? 'text-green-600' : 'text-red-500'}`}>
+        <p className={`t-meta mt-1.5 ${status === 'done' ? 'text-moss' : 'text-oxblood'}`}>
           {result}
         </p>
       )}

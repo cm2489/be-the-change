@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { INTEREST_CATEGORIES, type InterestCategory } from '@/lib/interests'
 import { Button } from '@/components/ui/button'
+import { Input, FieldLabel } from '@/components/ui/input'
+import { Chip } from '@/components/ui/chip'
 
 type Step = 'location' | 'categories' | 'subcategories' | 'done'
 
@@ -29,6 +31,8 @@ const US_STATES = [
   ['WI','Wisconsin'],['WY','Wyoming'],['DC','Washington D.C.'],
 ]
 
+const STEPS: Step[] = ['location', 'categories', 'subcategories']
+
 export default function OnboardingPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -43,12 +47,9 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const selectedCategoryList = INTEREST_CATEGORIES.filter(c =>
-    selectedCategories.has(c.id)
-  )
+  const selectedCategoryList = INTEREST_CATEGORIES.filter(c => selectedCategories.has(c.id))
   const currentCategory = selectedCategoryList[currentCategoryIndex]
 
-  // --- STEP 1: Location ---
   async function handleLocationNext(e: React.FormEvent) {
     e.preventDefault()
     if (!zipCode.match(/^\d{5}$/) && !stateCode) {
@@ -73,15 +74,11 @@ export default function OnboardingPage() {
     router.push('/dashboard')
   }
 
-  // --- STEP 2: Category selection ---
   function toggleCategory(catId: string) {
     setSelectedCategories(prev => {
       const next = new Set(prev)
-      if (next.has(catId)) {
-        next.delete(catId)
-      } else {
-        next.add(catId)
-      }
+      if (next.has(catId)) next.delete(catId)
+      else next.add(catId)
       return next
     })
   }
@@ -96,15 +93,11 @@ export default function OnboardingPage() {
     setStep('subcategories')
   }
 
-  // --- STEP 3: Subcategory drill-down ---
   function toggleSubcategory(subId: string) {
     setSelectedSubcategories(prev => {
       const next = new Set(prev)
-      if (next.has(subId)) {
-        next.delete(subId)
-      } else {
-        next.add(subId)
-      }
+      if (next.has(subId)) next.delete(subId)
+      else next.add(subId)
       return next
     })
   }
@@ -118,7 +111,6 @@ export default function OnboardingPage() {
   }
 
   function handleSubcategorySkipAll() {
-    // Select all subcategories for this category
     if (currentCategory) {
       const allSubs = currentCategory.subcategories.map(s => s.id)
       setSelectedSubcategories(prev => {
@@ -130,7 +122,6 @@ export default function OnboardingPage() {
     handleSubcategoryNext()
   }
 
-  // --- SAVE ---
   async function handleSave() {
     setLoading(true)
     setError(null)
@@ -141,7 +132,6 @@ export default function OnboardingPage() {
       return
     }
 
-    // Update profile
     const { error: profileError } = await supabase.from('profiles').upsert({
       id: user.id,
       full_name: fullName || user.user_metadata?.full_name || '',
@@ -157,15 +147,11 @@ export default function OnboardingPage() {
       return
     }
 
-    // Build interest rows
     const interests: SelectedInterest[] = []
-
-    selectedCategories.forEach((catId, rank) => {
+    selectedCategories.forEach((catId) => {
       const catSubs = INTEREST_CATEGORIES.find(c => c.id === catId)?.subcategories ?? []
       const chosenSubs = catSubs.filter(s => selectedSubcategories.has(s.id))
-
       if (chosenSubs.length === 0) {
-        // No subcategories selected — add the parent category
         interests.push({ category: catId, subcategory: null })
       } else {
         chosenSubs.forEach(sub => {
@@ -174,7 +160,6 @@ export default function OnboardingPage() {
       }
     })
 
-    // Delete old interests and insert new ones
     await supabase.from('user_interests').delete().eq('user_id', user.id)
 
     if (interests.length > 0) {
@@ -197,86 +182,90 @@ export default function OnboardingPage() {
     router.push('/dashboard')
   }
 
-  // --- RENDER ---
+  const stepIndex = STEPS.indexOf(step)
+
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-paper flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-xl font-bold text-civic-600 mb-1">Be The Change</div>
-          <h1 className="text-2xl font-bold text-slate-900">
+
+        {/* Wordmark + heading */}
+        <div className="text-center mb-6">
+          <div style={{ fontFamily: "'Instrument Serif', serif", fontSize: 20, fontWeight: 400 }} className="text-ink mb-3">
+            Be The Change
+          </div>
+          <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 26, lineHeight: 1.2, fontWeight: 400 }} className="text-ink">
             {step === 'location' && 'Where are you located?'}
             {step === 'categories' && 'What issues matter to you?'}
-            {step === 'subcategories' && `${currentCategory?.icon} ${currentCategory?.label}`}
+            {step === 'subcategories' && (currentCategory?.label ?? '')}
           </h1>
           {step === 'categories' && (
-            <p className="text-slate-500 text-sm mt-2">
-              Pick as many as you like. You can always update these later.
+            <p className="t-small text-fg-2 mt-1.5">
+              Pick as many as you like. You can update these anytime.
             </p>
           )}
-          {step === 'subcategories' && (
-            <p className="text-slate-500 text-sm mt-2">
-              Which specific areas? ({currentCategoryIndex + 1} of{' '}
-              {selectedCategoryList.length})
+          {step === 'subcategories' && currentCategory && (
+            <p className="t-small text-fg-2 mt-1.5">
+              Which specific areas? ({currentCategoryIndex + 1} of {selectedCategoryList.length})
             </p>
           )}
         </div>
 
-        {/* Skip button — always visible */}
+        {/* Skip */}
         <div className="flex justify-end mb-4">
           <button
             onClick={handleSkip}
-            className="text-sm text-slate-400 hover:text-slate-600 underline underline-offset-2"
+            className="t-meta text-fg-3 hover:text-ink transition-colors underline underline-offset-2"
             disabled={loading}
           >
-            Just let me make a call — skip for now
+            Skip for now
           </button>
         </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-            {error}
-          </div>
-        )}
-
-        {/* Step progress */}
-        <div className="flex gap-1.5 mb-6">
-          {['location', 'categories', 'subcategories'].map((s, i) => (
+        {/* Progress dots */}
+        <div className="flex gap-1.5 mb-5">
+          {STEPS.map((s, i) => (
             <div
               key={s}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${
-                step === s
-                  ? 'bg-civic-600'
-                  : ['location', 'categories', 'subcategories'].indexOf(step) > i
-                  ? 'bg-civic-300'
-                  : 'bg-slate-200'
-              }`}
+              className="h-1.5 flex-1 rounded-full transition-colors"
+              style={{
+                background: i === stepIndex
+                  ? 'var(--ink)'
+                  : i < stepIndex
+                  ? 'var(--ink-20)'
+                  : 'var(--divider-strong)',
+              }}
             />
           ))}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        {error && (
+          <div className="mb-4 p-3 rounded-xl border border-oxblood/20 bg-oxblood-10 t-small text-oxblood">
+            {error}
+          </div>
+        )}
+
+        <div className="card">
+
           {/* STEP 1: Location */}
           {step === 'location' && (
-            <form onSubmit={handleLocationNext} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Your name (optional)
-                </label>
-                <input
+            <form onSubmit={handleLocationNext} className="space-y-4">
+              <div className="field">
+                <FieldLabel htmlFor="fullName">Your name (optional)</FieldLabel>
+                <Input
+                  id="fullName"
                   type="text"
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="Jane Smith"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  ZIP code <span className="text-red-500">*</span>
-                </label>
-                <input
+              <div className="field">
+                <FieldLabel htmlFor="zip">
+                  ZIP code <span className="text-signal">*</span>
+                </FieldLabel>
+                <Input
+                  id="zip"
                   type="text"
                   inputMode="numeric"
                   maxLength={5}
@@ -284,33 +273,31 @@ export default function OnboardingPage() {
                   onChange={e => setZipCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="e.g. 10001"
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
                 />
-                <p className="mt-1.5 text-xs text-slate-400">
+                <p className="t-meta text-fg-3 mt-1.5">
                   Used to find your specific representatives. Never shared.
                 </p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  State <span className="text-red-500">*</span>
-                </label>
+              <div className="field">
+                <FieldLabel htmlFor="state">
+                  State <span className="text-signal">*</span>
+                </FieldLabel>
                 <select
+                  id="state"
                   value={stateCode}
                   onChange={e => setStateCode(e.target.value)}
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
+                  className="input"
                 >
                   <option value="">Select your state</option>
                   {US_STATES.map(([code, name]) => (
-                    <option key={code} value={code}>
-                      {name}
-                    </option>
+                    <option key={code} value={code}>{name}</option>
                   ))}
                 </select>
               </div>
 
-              <Button type="submit" size="lg" className="w-full">
+              <Button type="submit" variant="primary" size="lg" className="w-full">
                 Continue
               </Button>
             </form>
@@ -319,33 +306,35 @@ export default function OnboardingPage() {
           {/* STEP 2: Category selection */}
           {step === 'categories' && (
             <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-3">
-                {INTEREST_CATEGORIES.map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => toggleCategory(cat.id)}
-                    className={`p-3 rounded-xl border-2 text-left transition-all ${
-                      selectedCategories.has(cat.id)
-                        ? 'border-civic-600 bg-civic-50 text-civic-900'
-                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                    }`}
-                  >
-                    <div className="text-2xl mb-1">{cat.icon}</div>
-                    <div className="text-xs font-semibold leading-tight">{cat.label}</div>
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-2.5">
+                {INTEREST_CATEGORIES.map(cat => {
+                  const isSelected = selectedCategories.has(cat.id)
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => toggleCategory(cat.id)}
+                      className="p-3.5 rounded-xl border-2 text-left transition-all"
+                      style={{
+                        borderColor: isSelected ? 'var(--ink)' : 'var(--divider)',
+                        background: isSelected ? 'var(--ink)' : 'var(--card)',
+                        color: isSelected ? 'var(--paper)' : 'var(--fg-1)',
+                      }}
+                    >
+                      <div className="t-small font-semibold leading-tight">{cat.label}</div>
+                    </button>
+                  )
+                })}
               </div>
 
               <div className="flex gap-3">
                 <Button
                   variant="ghost"
-                  size="default"
                   onClick={() => setStep('location')}
-                  className="flex-none"
                 >
                   Back
                 </Button>
                 <Button
+                  variant="primary"
                   size="lg"
                   className="flex-1"
                   onClick={handleCategoriesNext}
@@ -360,21 +349,17 @@ export default function OnboardingPage() {
           {/* STEP 3: Subcategory drill-down */}
           {step === 'subcategories' && currentCategory && (
             <div className="space-y-4">
-              <p className="text-sm text-slate-500">{currentCategory.description}</p>
+              <p className="t-small text-fg-2">{currentCategory.description}</p>
 
-              <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
                 {currentCategory.subcategories.map(sub => (
-                  <button
+                  <Chip
                     key={sub.id}
+                    selected={selectedSubcategories.has(sub.id)}
                     onClick={() => toggleSubcategory(sub.id)}
-                    className={`w-full p-3.5 rounded-xl border-2 text-left text-sm font-medium transition-all ${
-                      selectedSubcategories.has(sub.id)
-                        ? 'border-civic-600 bg-civic-50 text-civic-900'
-                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
-                    }`}
                   >
                     {sub.label}
-                  </button>
+                  </Chip>
                 ))}
               </div>
 
@@ -382,11 +367,12 @@ export default function OnboardingPage() {
                 <Button
                   variant="ghost"
                   onClick={handleSubcategorySkipAll}
-                  className="flex-none text-slate-500"
+                  className="flex-none"
                 >
                   All of the above
                 </Button>
                 <Button
+                  variant="primary"
                   size="lg"
                   className="flex-1"
                   onClick={handleSubcategoryNext}
@@ -401,6 +387,7 @@ export default function OnboardingPage() {
               </div>
             </div>
           )}
+
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { CallFlow } from '@/components/CallFlow'
 import { Button } from '@/components/ui/button'
 import { urgencyLabel, formatDate } from '@/lib/utils'
-import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 
 interface Rep {
   id: string
@@ -142,18 +142,11 @@ export default function BillDetailPage() {
       {/* Bill header */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
         <div className="flex items-center gap-2 flex-wrap mb-3">
-          <span
-            className={cn(
-              'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-              urgency.color
-            )}
-          >
-            {urgency.label}
-          </span>
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-            {bill.level === 'federal' ? '🇺🇸 Federal' : `🏛️ ${bill.state_code}`}
-          </span>
-          <span className="text-xs text-slate-400">{bill.bill_number}</span>
+          <Badge variant={urgency.variant}>{urgency.label}</Badge>
+          <Badge variant="federal">
+            {bill.level === 'federal' ? 'Federal' : bill.state_code}
+          </Badge>
+          <span className="t-mono text-ink-70">{bill.bill_number}</span>
         </div>
 
         <h1 className="text-xl font-bold text-slate-900 leading-tight mb-4">{bill.title}</h1>

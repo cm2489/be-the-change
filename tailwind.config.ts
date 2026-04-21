@@ -53,6 +53,12 @@ const config: Config = {
           DEFAULT: '#9A2A2A',
           10: '#F5DDD8',
         },
+        // Semantic fg aliases — matches CSS var(--fg-1/2/3)
+        fg: {
+          1: '#1F2E2A',
+          2: '#556159',
+          3: '#828A83',
+        },
       },
       fontFamily: {
         serif: ['"Instrument Serif"', 'Georgia', 'serif'],

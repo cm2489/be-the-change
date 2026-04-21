@@ -1,3 +1,7 @@
+import { Kpi } from '@/components/ui/kpi'
+import { Progress } from '@/components/ui/progress'
+import { Card } from '@/components/ui/card'
+
 interface ImpactMetricsProps {
   totalCalls: number
   callsToday: number
@@ -15,55 +19,32 @@ export function ImpactMetrics({
   const pct = limit ? (callsToday / limit) * 100 : 0
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5">
-      <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-        Your Impact
-      </h2>
+    <Card>
+      <p className="t-meta text-fg-3 mb-4">Your impact</p>
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-civic-600">{totalCalls}</div>
-          <div className="text-xs text-slate-500 mt-0.5">Total calls</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-slate-900">{callsToday}</div>
-          <div className="text-xs text-slate-500 mt-0.5">Today</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-action-500">
-            {isPremium ? '∞' : callsRemaining}
-          </div>
-          <div className="text-xs text-slate-500 mt-0.5">Remaining</div>
-        </div>
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        <Kpi value={totalCalls} label="Total calls" />
+        <Kpi value={callsToday} label="Today" />
+        <Kpi value={isPremium ? '∞' : callsRemaining} label="Remaining" />
       </div>
 
-      {/* Daily limit bar */}
       {!isPremium && (
-        <div>
-          <div className="flex justify-between text-xs text-slate-400 mb-1.5">
-            <span>Daily calls used</span>
-            <span>
-              {callsToday} / {limit}
-            </span>
+        <div className="mt-2">
+          <div className="flex justify-between t-small text-fg-3 mb-2">
+            <span>Daily usage</span>
+            <span>{callsToday} / {limit}</span>
           </div>
-          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${
-                pct >= 100 ? 'bg-red-400' : pct >= 80 ? 'bg-action-400' : 'bg-civic-500'
-              }`}
-              style={{ width: `${Math.min(100, pct)}%` }}
-            />
-          </div>
+          <Progress value={pct} />
           {callsRemaining === 0 && (
-            <p className="mt-2 text-xs text-slate-500 text-center">
+            <p className="mt-3 t-small text-fg-2 text-center">
               Daily limit reached.{' '}
-              <a href="/upgrade" className="text-civic-600 font-medium hover:underline">
+              <a href="/upgrade" className="font-semibold text-signal hover:underline underline-offset-2">
                 Upgrade for unlimited calls →
               </a>
             </p>
           )}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

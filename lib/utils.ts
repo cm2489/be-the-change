@@ -21,20 +21,22 @@ export function daysUntil(dateStr: string | null | undefined): number | null {
   return Math.ceil(diff / 86_400_000)
 }
 
-export function urgencyLabel(score: number): { label: string; color: string } {
-  if (score >= 0.85) return { label: 'Vote imminent', color: 'text-red-600 bg-red-50' }
-  if (score >= 0.65) return { label: 'Vote soon', color: 'text-orange-600 bg-orange-50' }
-  if (score >= 0.4) return { label: 'In progress', color: 'text-yellow-600 bg-yellow-50' }
-  return { label: 'Introduced', color: 'text-slate-500 bg-slate-100' }
+export type UrgencyVariant = 'urgent' | 'soon' | 'neutral' | 'passed'
+
+export function urgencyLabel(score: number): { label: string; variant: UrgencyVariant } {
+  if (score >= 0.85) return { label: 'Vote imminent', variant: 'urgent' }
+  if (score >= 0.65) return { label: 'Vote soon', variant: 'soon' }
+  if (score >= 0.4) return { label: 'In progress', variant: 'neutral' }
+  return { label: 'Introduced', variant: 'neutral' }
 }
 
-export function partyColor(party: string | null): string {
-  if (!party) return 'bg-slate-200 text-slate-700'
+export function partyLetter(party: string | null): 'D' | 'R' | 'I' | null {
+  if (!party) return null
   const p = party.toLowerCase()
-  if (p.includes('democrat')) return 'bg-blue-100 text-blue-700'
-  if (p.includes('republican')) return 'bg-red-100 text-red-700'
-  if (p.includes('independent')) return 'bg-purple-100 text-purple-700'
-  return 'bg-slate-100 text-slate-700'
+  if (p.includes('democrat')) return 'D'
+  if (p.includes('republican')) return 'R'
+  if (p.includes('independent')) return 'I'
+  return null
 }
 
 export function levelLabel(level: string): string {

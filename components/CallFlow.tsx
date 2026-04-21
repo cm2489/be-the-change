@@ -167,7 +167,7 @@ export function CallFlow({ rep, bill, userId, onClose }: CallFlowProps) {
 
               {rep.phone ? (
                 <a href={`tel:${rep.phone}`} onClick={() => setFlowState('called')}>
-                  <Button variant="action" size="xl" className="w-full text-lg">
+                  <Button variant="signal" size="lg" className="w-full text-lg">
                     📞 Call {rep.full_name.split(' ').pop()}
                   </Button>
                 </a>

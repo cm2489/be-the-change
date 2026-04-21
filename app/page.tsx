@@ -100,12 +100,12 @@ export default function LandingPage() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="/signup">
-            <Button size="xl" className="w-full sm:w-auto">
+            <Button size="lg" className="w-full sm:w-auto">
               Start making calls — it&apos;s free
             </Button>
           </Link>
           <Link href="/login">
-            <Button variant="outline" size="xl" className="w-full sm:w-auto">
+            <Button variant="outline" size="lg" className="w-full sm:w-auto">
               Sign in
             </Button>
           </Link>
@@ -197,7 +197,7 @@ export default function LandingPage() {
           minutes — and it actually works.
         </p>
         <Link href="/signup">
-          <Button size="xl">
+          <Button size="lg">
             Create your free account
           </Button>
         </Link>

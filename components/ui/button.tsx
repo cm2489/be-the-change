@@ -3,24 +3,22 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-civic-600 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap font-sans font-semibold text-[13px] transition-colors duration-[120ms] focus-visible:outline-none focus-visible:shadow-focus disabled:pointer-events-none disabled:opacity-40 active:scale-[0.98] select-none',
   {
     variants: {
       variant: {
-        default: 'bg-civic-600 text-white hover:bg-civic-700 shadow-sm',
-        action: 'bg-action-500 text-white hover:bg-action-600 shadow-sm',
-        outline: 'border-2 border-civic-600 text-civic-600 hover:bg-civic-50',
-        ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-        destructive: 'bg-red-500 text-white hover:bg-red-600',
-        secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200',
-        link: 'text-civic-600 underline-offset-4 hover:underline',
+        default:   'bg-ink text-paper hover:bg-ink-hover rounded-md',
+        signal:    'bg-signal text-white hover:bg-signal-hover rounded-md',
+        outline:   'border border-ink bg-transparent text-ink hover:bg-ink/5 rounded-md',
+        ghost:     'bg-transparent text-ink hover:underline',
+        secondary: 'bg-paper-dark text-ink hover:bg-divider-strong rounded-md',
+        destructive: 'bg-transparent text-oxblood hover:bg-oxblood-10 rounded-md',
       },
       size: {
-        default: 'h-11 px-5 py-2',
-        sm: 'h-9 px-3 text-xs',
-        lg: 'h-14 px-8 text-base',
-        xl: 'h-16 px-10 text-lg',
-        icon: 'h-10 w-10',
+        default: 'h-11 px-[18px]',
+        sm:      'h-9 px-3 text-[12px]',
+        lg:      'h-12 px-6 text-[14px]',
+        icon:    'h-11 w-11 rounded-md border border-divider-strong',
       },
     },
     defaultVariants: {

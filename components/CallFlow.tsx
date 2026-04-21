@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { partyLetter } from '@/lib/utils'
 
 interface CallFlowProps {
   rep: {
@@ -25,15 +26,19 @@ interface CallFlowProps {
 
 type FlowState = 'loading' | 'ready' | 'called' | 'done'
 
-export function CallFlow({ rep, bill, userId, onClose }: CallFlowProps) {
+export function CallFlow({ rep, bill, onClose }: CallFlowProps) {
   const [flowState, setFlowState] = useState<FlowState>('loading')
   const [script, setScript] = useState<string>('')
   const [callLogId, setCallLogId] = useState<string | null>(null)
-  const [scriptId, setScriptId] = useState<string | null>(null)
   const [scriptVisible, setScriptVisible] = useState(true)
+  const [limitReached, setLimitReached] = useState(false)
+
+  const party = partyLetter(rep.party)
+  const partyClass = party === 'D' ? 'is-d' : party === 'R' ? 'is-r' : 'is-i'
+  const repInitials = rep.full_name.split(' ').filter(Boolean).slice(0, 2).map(n => n[0]).join('')
+  const repLastName = rep.full_name.split(' ').pop() ?? rep.full_name
 
   async function loadScript() {
-    // Generate script
     const scriptRes = await fetch('/api/scripts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -47,12 +52,9 @@ export function CallFlow({ rep, bill, userId, onClose }: CallFlowProps) {
         scriptType: 'phone',
       }),
     })
-
     const scriptData = await scriptRes.json()
     setScript(scriptData.script?.content || '')
-    setScriptId(scriptData.script?.id || null)
 
-    // Initiate call log (checks freemium limit)
     const callRes = await fetch('/api/calls', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -64,159 +66,160 @@ export function CallFlow({ rep, bill, userId, onClose }: CallFlowProps) {
         scriptType: 'phone',
       }),
     })
-
     const callData = await callRes.json()
 
-    if (!callRes.ok) {
-      if (callData.error === 'DAILY_LIMIT_REACHED') {
-        // Show limit message
-        setScript(`You've reached your daily limit of ${callData.limit} calls.\n\nUpgrade to premium for unlimited calls.`)
-        setFlowState('ready')
-        return
-      }
+    if (!callRes.ok && callData.error === 'DAILY_LIMIT_REACHED') {
+      setLimitReached(true)
+    } else {
+      setCallLogId(callData.callLogId || null)
     }
-
-    setCallLogId(callData.callLogId || null)
     setFlowState('ready')
   }
 
-  // Load script when component mounts
-  if (flowState === 'loading' && !script) {
-    loadScript()
-  }
+  if (flowState === 'loading' && !script) loadScript()
 
   async function handleCallComplete(status: 'completed' | 'skipped' | 'abandoned') {
     if (callLogId) {
       await fetch('/api/calls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'complete',
-          callLogId,
-          status,
-        }),
+        body: JSON.stringify({ action: 'complete', callLogId, status }),
       })
     }
     setFlowState('done')
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-civic-600 text-white px-6 py-5">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-medium opacity-80">Calling about:</span>
+    <div className="fixed inset-0 z-50 bg-ink/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+      <div className="w-full max-w-lg bg-card rounded-2xl shadow-lg overflow-hidden">
+
+        {/* Header — ink background */}
+        <div className="bg-ink text-paper px-6 py-5">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <p className="t-meta text-paper/60">Calling about</p>
             <button
               onClick={onClose}
-              className="text-white/60 hover:text-white text-2xl leading-none"
+              aria-label="Close"
+              className="text-paper/50 hover:text-paper transition-colors leading-none text-xl mt-0.5"
             >
               ×
             </button>
           </div>
-          <h2 className="text-lg font-bold leading-tight line-clamp-2">{bill.title}</h2>
+          <h2 className="t-h3 text-paper leading-snug line-clamp-2">{bill.title}</h2>
+          <p className="t-mono text-paper/50 mt-1">{bill.bill_number}</p>
         </div>
 
-        {/* Rep info */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-lg font-semibold overflow-hidden flex-shrink-0">
+        {/* Rep row */}
+        <div className="px-6 py-4 border-b border-divider flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-paper-dark flex items-center justify-center overflow-hidden flex-shrink-0">
             {rep.photo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={rep.photo_url} alt={rep.full_name} className="w-full h-full object-cover" />
             ) : (
-              rep.full_name.charAt(0)
+              <span className="t-small font-semibold text-ink">{repInitials}</span>
             )}
           </div>
-          <div>
-            <div className="font-semibold text-slate-900 text-sm">{rep.full_name}</div>
-            <div className="text-xs text-slate-500">{rep.title}</div>
+          <div className="flex-1 min-w-0">
+            <div className="t-small font-semibold text-ink truncate">{rep.full_name}</div>
+            <div className="t-meta text-fg-3 truncate">{rep.title}</div>
           </div>
-          {rep.phone && (
-            <div className="ml-auto text-sm text-slate-500 font-mono">{rep.phone}</div>
-          )}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {party && <span className={`party-badge ${partyClass}`}>{party}</span>}
+            {rep.phone && <span className="t-mono text-fg-2">{rep.phone}</span>}
+          </div>
         </div>
 
-        {/* Script area */}
-        <div className="px-6 py-4">
+        {/* Body */}
+        <div className="px-6 py-5">
+
+          {/* Loading */}
           {flowState === 'loading' && (
-            <div className="flex items-center justify-center py-8 text-slate-400">
-              <div className="animate-spin mr-3 h-5 w-5 border-2 border-civic-600 border-t-transparent rounded-full" />
+            <div className="flex items-center justify-center gap-3 py-8 t-small text-fg-3">
+              <span className="w-4 h-4 border-2 border-ink border-t-transparent rounded-full animate-spin" />
               Generating your script…
             </div>
           )}
 
-          {flowState === 'ready' && (
-            <>
-              <button
-                onClick={() => setScriptVisible(v => !v)}
-                className="w-full flex items-center justify-between text-sm font-semibold text-slate-700 mb-3"
-              >
-                <span>📝 Your script</span>
-                <span className="text-slate-400">{scriptVisible ? '▲ Hide' : '▼ Show'}</span>
+          {/* Daily limit hit */}
+          {flowState === 'ready' && limitReached && (
+            <div className="py-4 text-center space-y-4">
+              <p className="t-h3 text-ink">Daily limit reached</p>
+              <p className="t-small text-fg-2">
+                You&apos;ve made your 5 calls for today. Come back tomorrow, or upgrade for unlimited calls.
+              </p>
+              <a href="/upgrade">
+                <Button variant="action" size="lg" className="w-full">Upgrade to premium</Button>
+              </a>
+              <button onClick={onClose} className="btn btn-ghost btn-sm w-full">
+                Back to issues
               </button>
+            </div>
+          )}
 
-              {scriptVisible && (
-                <div className="bg-slate-50 rounded-xl p-4 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto mb-4 border border-slate-200">
-                  {script}
-                </div>
-              )}
+          {/* Script ready */}
+          {flowState === 'ready' && !limitReached && (
+            <div className="space-y-4">
+              {/* Script toggle */}
+              <div>
+                <button
+                  onClick={() => setScriptVisible(v => !v)}
+                  className="flex items-center justify-between w-full t-small font-semibold text-ink mb-2"
+                >
+                  <span>Your script</span>
+                  <span className="t-meta text-fg-3">{scriptVisible ? 'Hide' : 'Show'}</span>
+                </button>
+                {scriptVisible && (
+                  <div className="bg-paper border border-divider rounded-lg p-4 t-small text-ink leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto">
+                    {script}
+                  </div>
+                )}
+              </div>
 
-              <p className="text-xs text-slate-400 mb-4 text-center">
-                Read the script naturally — it&apos;s a guide, not a mandate. Be yourself.
+              <p className="t-meta text-fg-3 text-center">
+                Read naturally — it&apos;s a guide, not a mandate.
               </p>
 
               {rep.phone ? (
                 <a href={`tel:${rep.phone}`} onClick={() => setFlowState('called')}>
-                  <Button variant="signal" size="lg" className="w-full text-lg">
-                    📞 Call {rep.full_name.split(' ').pop()}
+                  <Button variant="action" size="lg" className="w-full">
+                    Call {repLastName}
                   </Button>
                 </a>
               ) : (
-                <div className="text-center text-slate-500 text-sm py-2">
-                  No phone number available.{' '}
-                  {rep.title && (
-                    <a
-                      href={`https://www.google.com/search?q=${encodeURIComponent(rep.title + ' ' + rep.full_name + ' contact')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-civic-600 underline"
-                    >
-                      Find contact info →
-                    </a>
-                  )}
-                </div>
+                <p className="t-small text-fg-2 text-center py-2">
+                  No phone number on file.{' '}
+                  <a
+                    href={`https://www.google.com/search?q=${encodeURIComponent(rep.title + ' ' + rep.full_name + ' contact')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-signal font-semibold hover:underline"
+                  >
+                    Find contact info →
+                  </a>
+                </p>
               )}
-            </>
+            </div>
           )}
 
+          {/* Confirm call */}
           {flowState === 'called' && (
-            <div className="text-center py-4">
-              <div className="text-4xl mb-3">📞</div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">
-                Did you complete the call?
-              </h3>
-              <p className="text-sm text-slate-500 mb-6">
-                Your call counts toward today&apos;s impact — whether it went through or not.
-              </p>
-              <div className="flex flex-col gap-3">
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={() => handleCallComplete('completed')}
-                >
-                  ✅ Yes, I called!
+            <div className="text-center py-2 space-y-5">
+              <div>
+                <h3 className="t-h2 text-ink">Did you complete the call?</h3>
+                <p className="t-small text-fg-2 mt-1">
+                  Every call counts — whether it went through or not.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Button variant="action" size="lg" className="w-full" onClick={() => handleCallComplete('completed')}>
+                  Yes, I called
                 </Button>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  className="w-full"
-                  onClick={() => handleCallComplete('skipped')}
-                >
-                  I tried but didn&apos;t reach them
+                <Button variant="secondary" size="lg" className="w-full" onClick={() => handleCallComplete('skipped')}>
+                  I tried — no answer
                 </Button>
                 <button
                   onClick={() => handleCallComplete('abandoned')}
-                  className="text-sm text-slate-400 hover:text-slate-600 py-2"
+                  className="btn btn-ghost btn-sm w-full t-small text-fg-3"
                 >
                   I&apos;ll try again later
                 </button>
@@ -224,19 +227,21 @@ export function CallFlow({ rep, bill, userId, onClose }: CallFlowProps) {
             </div>
           )}
 
+          {/* Done */}
           {flowState === 'done' && (
-            <div className="text-center py-6">
-              <div className="text-5xl mb-4">🎉</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">You made a difference!</h3>
-              <p className="text-sm text-slate-500 mb-6">
-                Every call matters. Representatives track constituent contact volume — your call
-                is counted.
-              </p>
-              <Button size="lg" className="w-full" onClick={onClose}>
+            <div className="text-center py-4 space-y-4">
+              <div>
+                <h3 className="t-h2 text-ink">You made a difference</h3>
+                <p className="t-small text-fg-2 mt-1">
+                  Representatives track constituent contact volume. Your call is counted.
+                </p>
+              </div>
+              <Button variant="primary" size="lg" className="w-full" onClick={onClose}>
                 Back to issues
               </Button>
             </div>
           )}
+
         </div>
       </div>
     </div>

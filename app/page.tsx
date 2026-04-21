@@ -1,221 +1,157 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 
 const FEATURES = [
   {
-    icon: '📋',
     title: 'Issues you actually care about',
-    description:
-      'Tell us what matters to you — climate, healthcare, housing, democracy — and we surface the legislation that affects it.',
+    description: 'Tell us what matters to you — climate, healthcare, housing, democracy — and we surface the legislation that affects it.',
   },
   {
-    icon: '📞',
     title: 'One tap to call your rep',
-    description:
-      'We find your representatives at every level: federal, state, and local. Tap to dial — no searching, no hold music maze.',
+    description: 'We find your representatives at every level: federal, state, and local. Tap to dial — no searching, no hold music maze.',
   },
   {
-    icon: '✍️',
     title: 'AI script, ready to go',
-    description:
-      'Calling your senator feels intimidating. We generate a natural, respectful script so you know exactly what to say.',
+    description: 'Calling your senator feels intimidating. We generate a natural, respectful script so you know exactly what to say.',
   },
   {
-    icon: '🏆',
     title: 'Callenge your community',
-    description:
-      'Commit to a number of calls with friends, family, or neighbors. Collective action is more powerful than going it alone.',
+    description: 'Commit to a number of calls with friends, family, or neighbors. Collective action is more powerful than going it alone.',
   },
   {
-    icon: '📍',
     title: 'Local matters too',
-    description:
-      'City councils, mayors, school boards — the decisions closest to home often have the most impact on your daily life.',
+    description: 'City councils, mayors, school boards — the decisions closest to home often have the most impact on your daily life.',
   },
   {
-    icon: '🔒',
     title: 'Privacy first, always',
-    description:
-      'No ads. No data selling. No tracking. Your political beliefs stay yours. We are funded by people, not corporations.',
+    description: 'No ads. No data selling. No tracking. Your political beliefs stay yours. We are funded by people, not corporations.',
   },
 ]
 
 const STEPS = [
-  {
-    number: '1',
-    title: 'Tell us what matters to you',
-    description:
-      'A quick 2-minute quiz maps your values and concerns. You can always update this anytime.',
-  },
-  {
-    number: '2',
-    title: 'See what\'s happening',
-    description:
-      'Your personalized feed shows legislation coming up for a vote — filtered by your interests and your location.',
-  },
-  {
-    number: '3',
-    title: 'Make the call',
-    description:
-      'Get your AI-generated script, tap to call, and log your action. Five minutes of your day can change policy.',
-  },
+  { number: '1', title: 'Tell us what matters', description: 'A quick 2-minute quiz maps your values and concerns. Update anytime.' },
+  { number: '2', title: 'See what\'s happening', description: 'Your feed shows legislation coming up for a vote, filtered by your interests and location.' },
+  { number: '3', title: 'Make the call', description: 'Get your AI-generated script, tap to call, and log your action. Five minutes can change policy.' },
 ]
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-paper">
+
       {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <div className="text-xl font-bold text-civic-600">Be The Change</div>
-        <div className="flex items-center gap-3">
-          <Link href="/login">
-            <Button variant="ghost" size="sm">
-              Sign in
-            </Button>
-          </Link>
-          <Link href="/signup">
-            <Button size="sm">Get started free</Button>
+      <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
+        <div style={{ fontFamily: "'Instrument Serif', serif", fontSize: 18 }} className="text-ink">
+          Be The Change
+        </div>
+        <div className="flex items-center gap-2">
+          <Link href="/login" className="btn btn-ghost btn-sm">Sign in</Link>
+          <Link href="/signup" className="btn btn-primary btn-sm">
+            <span className="btn-label">Get started free</span>
           </Link>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="px-6 pt-16 pb-20 text-center max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 bg-civic-50 text-civic-700 text-sm font-medium px-4 py-1.5 rounded-full mb-6 border border-civic-200">
-          <span>🗳️</span>
-          <span>Pro-democracy. Non-partisan. Built for everyone.</span>
-        </div>
+      <section className="px-5 pt-12 pb-16 max-w-lg mx-auto">
+        <Badge variant="outline" className="mb-5">Non-partisan · Free</Badge>
 
-        <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 leading-tight mb-6 text-balance">
-          Your voice matters.
-          <br />
-          <span className="text-civic-600">Make it heard.</span>
+        <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 'clamp(40px, 8vw, 52px)', lineHeight: 1.02, letterSpacing: '-0.02em', fontWeight: 400 }} className="text-ink mb-4">
+          Your voice<br />matters.<br />
+          <em style={{ color: '#E65A2B' }}>Make it heard.</em>
         </h1>
 
-        <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto text-balance">
-          Be The Change makes it effortless to contact your representatives about the issues you
-          care about — with AI-generated scripts, one-tap calling, and legislation matched to
-          your values.
+        <p className="t-body text-fg-2 mb-7 max-w-sm">
+          Contact your representatives about the issues you care about. AI-generated scripts, one-tap calling, legislation matched to your values.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/signup">
-            <Button size="lg" className="w-full sm:w-auto">
-              Start making calls — it&apos;s free
-            </Button>
-          </Link>
-          <Link href="/login">
-            <Button variant="outline" size="lg" className="w-full sm:w-auto">
-              Sign in
-            </Button>
-          </Link>
-        </div>
+        {/* Stat grid */}
+        <Card className="mb-6 grid grid-cols-3 gap-3 p-4">
+          {[
+            { value: '50', label: 'States' },
+            { value: '3', label: 'Levels' },
+            { value: '<5', label: 'Min to act', mono: true },
+          ].map(s => (
+            <div key={s.label}>
+              <div style={{ fontFamily: "'Instrument Serif', serif", fontSize: 26, lineHeight: 1 }} className="text-ink">
+                {s.value}
+              </div>
+              <div className="t-meta text-fg-3 mt-1">{s.label}</div>
+            </div>
+          ))}
+        </Card>
 
-        <p className="mt-5 text-sm text-slate-400">
-          No credit card. No ads. No data selling. Free for everyone in the US.
-        </p>
-      </section>
-
-      {/* Social proof strip */}
-      <section className="bg-slate-50 border-y border-slate-200 py-8 px-6">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-center">
-          <div>
-            <div className="text-3xl font-bold text-civic-600">100%</div>
-            <div className="text-sm text-slate-500 mt-1">Free to use</div>
-          </div>
-          <div className="hidden sm:block w-px h-8 bg-slate-300" />
-          <div>
-            <div className="text-3xl font-bold text-civic-600">3 levels</div>
-            <div className="text-sm text-slate-500 mt-1">Federal, state & local reps</div>
-          </div>
-          <div className="hidden sm:block w-px h-8 bg-slate-300" />
-          <div>
-            <div className="text-3xl font-bold text-civic-600">50 states</div>
-            <div className="text-sm text-slate-500 mt-1">Full state legislation coverage</div>
-          </div>
-          <div className="hidden sm:block w-px h-8 bg-slate-300" />
-          <div>
-            <div className="text-3xl font-bold text-civic-600">&lt; 5 min</div>
-            <div className="text-sm text-slate-500 mt-1">To make a difference</div>
-          </div>
-        </div>
+        <Link href="/signup" className="btn btn-primary btn-xl w-full mb-2.5" style={{ borderRadius: 14 }}>
+          <span className="btn-label">Get started — free</span>
+        </Link>
+        <Link href="/login" className="btn btn-ghost w-full">
+          I already have an account
+        </Link>
+        <p className="t-meta text-fg-3 text-center mt-4">No ads · No data selling · Open to all US residents</p>
       </section>
 
       {/* How it works */}
-      <section className="px-6 py-20 max-w-5xl mx-auto">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-slate-900">How it works</h2>
-          <p className="text-slate-500 mt-3">From signup to your first call in under 5 minutes.</p>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-8">
-          {STEPS.map(step => (
-            <div key={step.number} className="relative">
-              <div className="w-10 h-10 rounded-full bg-civic-600 text-white font-bold text-lg flex items-center justify-center mb-4">
-                {step.number}
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">{step.title}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">{step.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features grid */}
-      <section className="px-6 py-20 bg-slate-50 border-y border-slate-200">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold text-slate-900">
-              Everything you need to be civically active
-            </h2>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {FEATURES.map(feature => (
-              <div
-                key={feature.title}
-                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="text-3xl mb-4">{feature.icon}</div>
-                <h3 className="text-base font-semibold text-slate-900 mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{feature.description}</p>
+      <section className="px-5 py-16 bg-card border-y border-divider">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="t-h1 text-ink mb-10 text-center">How it works</h2>
+          <div className="grid sm:grid-cols-3 gap-8">
+            {STEPS.map((step, i) => (
+              <div key={step.number}>
+                <div
+                  className="w-8 h-8 rounded-full bg-ink text-paper flex items-center justify-center mb-4 t-meta"
+                >
+                  {i + 1}
+                </div>
+                <h3 className="t-h3 text-ink mb-1.5">{step.title}</h3>
+                <p className="t-small text-fg-2 leading-relaxed">{step.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Features */}
+      <section className="px-5 py-16 max-w-3xl mx-auto">
+        <h2 className="t-h1 text-ink mb-10 text-center">Everything you need to act</h2>
+        <div className="grid sm:grid-cols-2 gap-4">
+          {FEATURES.map(f => (
+            <Card key={f.title} interactive>
+              <h3 className="t-h3 text-ink mb-1.5">{f.title}</h3>
+              <p className="t-small text-fg-2 leading-relaxed">{f.description}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
       {/* CTA */}
-      <section className="px-6 py-24 text-center max-w-3xl mx-auto">
-        <h2 className="text-4xl font-bold text-slate-900 mb-4 text-balance">
-          Ready to be the change?
-        </h2>
-        <p className="text-lg text-slate-500 mb-10 text-balance">
-          Join thousands of everyday Americans making their voices heard. Your call takes 2
-          minutes — and it actually works.
-        </p>
-        <Link href="/signup">
-          <Button size="lg">
+      <section className="px-5 py-16 bg-ink text-paper text-center">
+        <div className="max-w-sm mx-auto">
+          <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 36, lineHeight: 1.15, fontWeight: 400, letterSpacing: '-0.01em' }} className="mb-4">
+            Ready to be the change?
+          </h2>
+          <p className="t-body mb-8" style={{ color: 'rgba(247,244,238,0.7)' }}>
+            Your call takes five minutes and it actually works. Representatives count constituent contacts.
+          </p>
+          <Link href="/signup" className="btn btn-action btn-lg w-full" style={{ maxWidth: 300, margin: '0 auto' }}>
             Create your free account
-          </Button>
-        </Link>
-        <p className="mt-4 text-sm text-slate-400">For all US residents. Not just citizens.</p>
+          </Link>
+          <p className="t-meta mt-4" style={{ color: 'rgba(247,244,238,0.5)' }}>For all US residents. Not just citizens.</p>
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 px-6 py-8">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
-          <div className="font-semibold text-civic-600">Be The Change</div>
-          <div>Not political. Just powerful. 🇺🇸</div>
-          <div className="flex gap-4">
-            <span className="cursor-pointer hover:text-slate-600">Privacy</span>
-            <span className="cursor-pointer hover:text-slate-600">Terms</span>
-            <span className="cursor-pointer hover:text-slate-600">Contact</span>
+      <footer className="border-t border-divider px-5 py-6">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div style={{ fontFamily: "'Instrument Serif', serif" }} className="text-ink text-lg">Be The Change</div>
+          <div className="t-small text-fg-3">Not political. Just powerful.</div>
+          <div className="flex gap-5 t-small text-fg-2">
+            <span className="cursor-pointer hover:text-ink">Privacy</span>
+            <span className="cursor-pointer hover:text-ink">Terms</span>
+            <span className="cursor-pointer hover:text-ink">Contact</span>
           </div>
         </div>
       </footer>
+
     </div>
   )
 }

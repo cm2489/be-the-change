@@ -11,14 +11,14 @@ const config: Config = {
     extend: {
       colors: {
         ink: {
-          DEFAULT: '#1F2E2A',
-          hover: '#121C19',
-          95: '#243530',
-          85: '#374741',
-          70: '#556159',
-          50: '#828A83',
-          20: '#CFD3CE',
-          10: '#E6E8E4',
+          DEFAULT: '#0E2A47',
+          hover: '#06192E',
+          95: '#0D2640',
+          85: '#1A3A58',
+          70: '#2C506E',
+          50: '#647B8F',
+          20: '#BAC6D2',
+          10: '#DCE3EA',
         },
         signal: {
           DEFAULT: '#E65A2B',
@@ -53,11 +53,11 @@ const config: Config = {
           DEFAULT: '#9A2A2A',
           10: '#F5DDD8',
         },
-        // Semantic fg aliases — matches CSS var(--fg-1/2/3)
+        // Semantic fg aliases — neutral graphite (matches CSS var(--fg-1/2/3))
         fg: {
-          1: '#1F2E2A',
-          2: '#556159',
-          3: '#828A83',
+          1: '#1A1A1A',
+          2: '#5A5A5A',
+          3: '#8A8A8A',
         },
       },
       fontFamily: {

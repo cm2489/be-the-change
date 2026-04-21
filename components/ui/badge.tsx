@@ -7,6 +7,7 @@ type BadgeVariant =
   | 'passed'
   | 'neutral'
   | 'federal'
+  | 'outline'
   | 'signal'
   | 'ink'
 
@@ -20,6 +21,7 @@ const variantClass: Record<BadgeVariant, string> = {
   passed:  'badge-passed',
   neutral: 'badge-neutral',
   federal: 'badge-federal',
+  outline: 'badge-outline',
   signal:  'badge-signal',
   ink:     'badge-ink',
 }

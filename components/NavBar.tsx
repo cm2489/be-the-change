@@ -118,12 +118,19 @@ export function NavBar({ userName }: { userName?: string }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex-1 flex flex-col items-center justify-center py-3 gap-1 t-meta transition-colors duration-[120ms]',
+                  'flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors duration-[120ms]',
                   active ? 'text-ink' : 'text-fg-3'
                 )}
               >
                 {item.icon}
-                <span style={{ fontSize: 10 }}>{item.label}</span>
+                <span style={{ fontSize: 10, fontFamily: "'Inter Tight', sans-serif", fontWeight: 600, letterSpacing: '0.02em' }}>
+                  {item.label}
+                </span>
+                {/* Signal dot below active item */}
+                <div
+                  className="w-1 h-1 rounded-full transition-opacity duration-[120ms]"
+                  style={{ background: '#E65A2B', opacity: active ? 1 : 0, marginTop: 2 }}
+                />
               </Link>
             )
           })}

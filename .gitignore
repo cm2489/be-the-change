@@ -148,3 +148,4 @@ dist/
 .replit
 *.replit
 .vscode/
+next-env.d.ts

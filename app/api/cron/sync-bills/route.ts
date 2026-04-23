@@ -58,16 +58,9 @@ async function runSync() {
     results.errors++
   }
 
-  // State bill sync only runs when LegiScan key is available
-  const hasLegiScan = !!process.env.LEGISCAN_API_KEY
-  const stateNote = hasLegiScan
-    ? 'LegiScan sync not included in this simplified version'
-    : 'No LEGISCAN_API_KEY set — state bills skipped'
-
   return NextResponse.json({
     success: true,
     results,
-    note: stateNote,
     timestamp: new Date().toISOString(),
   })
 }

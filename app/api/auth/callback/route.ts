@@ -6,7 +6,11 @@ import type { NextRequest } from 'next/server'
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
+  // `next` is set by callers that need a specific post-auth destination,
+  // e.g. forgot-password sets next=/reset-password.
+  // IMPORTANT: only redirect to same-origin paths to prevent open-redirect attacks.
+  // Before expanding this to accept full URLs (e.g. for OAuth), add an origin check.
+  const next = searchParams.get('next') ?? null
 
   if (code) {
     const cookieStore = await cookies()
@@ -27,9 +31,34 @@ export async function GET(request: NextRequest) {
         },
       }
     )
+
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      // If the caller specified an explicit destination (e.g. /reset-password),
+      // honour it — don't override with the onboarding check.
+      if (next) {
+        return NextResponse.redirect(`${origin}${next}`)
+      }
+
+      // For sign-up confirmation emails, the user may never have completed onboarding.
+      // Check their profile and send them to /onboarding if so.
+      // Future: if we add more onboarding steps (e.g. address verification, push opt-in),
+      // consider a richer onboarding_step enum rather than a single completed_at timestamp.
+      //
+      // Note: profiles.email_verified_at is not currently set here. When we add
+      // civic-action gating (Feature 4/5), set it in this branch:
+      //   await supabase.from('profiles').update({ email_verified_at: new Date() })
+      //     .eq('user_id', user.id)
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed_at')
+        .eq('user_id', user?.id)
+        .single()
+
+      const destination = profile?.onboarding_completed_at ? '/dashboard' : '/onboarding'
+      return NextResponse.redirect(`${origin}${destination}`)
     }
   }
 

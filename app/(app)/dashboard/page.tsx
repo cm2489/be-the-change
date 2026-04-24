@@ -20,12 +20,11 @@ export default async function DashboardPage() {
   // Load profile
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, onboarding_completed, onboarding_skipped, subscription_tier')
-    .eq('id', userId)
+    .select('full_name, onboarding_completed_at')
+    .eq('user_id', userId)
     .single()
 
   const userName = profile?.full_name || session.user.email?.split('@')[0] || 'there'
-  const isPremium = profile?.subscription_tier === 'premium'
 
   // Check if user has any interests
   const { count: interestCount } = await supabase
@@ -33,7 +32,7 @@ export default async function DashboardPage() {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
 
-  // Load personalized bill feed
+  // Load personalized bill feed (RPCs not yet live — fails silently, shows empty state)
   let bills: any[] = []
   if ((interestCount ?? 0) > 0) {
     const { data } = await supabase.rpc('get_personalized_feed', {
@@ -51,41 +50,44 @@ export default async function DashboardPage() {
   }
 
   // Call metrics
-  const today = new Date().toISOString().split('T')[0]
-  const { count: callsToday } = await supabase
-    .from('call_logs')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('call_date', today)
-    .in('status', ['completed', 'skipped'])
+  // NOTE: setHours(0,0,0,0) resolves to UTC midnight on Vercel, not the user's local
+  // timezone. A user in California making a call at 6pm PST will see it counted on the
+  // next UTC day. Fix properly in v2 when user timezone storage is added.
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
 
-  const { count: totalCalls } = await supabase
-    .from('call_logs')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .in('status', ['completed'])
+  const [{ count: callsToday }, { count: totalCalls }] = await Promise.all([
+    supabase
+      .from('call_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', todayStart.toISOString()),
+    supabase
+      .from('call_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId),
+  ])
 
   const todayCount = callsToday ?? 0
-  const callsRemaining = isPremium ? Infinity : Math.max(0, 5 - todayCount)
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       {/* Welcome header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">
-          Welcome back, {userName}! 👋
+          Welcome back, {userName}!
         </h1>
         <p className="text-slate-500 text-sm mt-1">
           Here&apos;s what&apos;s happening with issues you care about.
         </p>
       </div>
 
-      {/* Onboarding prompt if skipped */}
-      {profile?.onboarding_skipped && !profile?.onboarding_completed && (
+      {/* Onboarding prompt for users who skipped or came via email confirmation */}
+      {!profile?.onboarding_completed_at && (
         <div className="mb-6 bg-civic-50 border border-civic-200 rounded-2xl p-4 flex items-center justify-between gap-4">
           <div>
             <div className="font-semibold text-civic-800 text-sm">
-              Personalize your feed 🎯
+              Personalize your feed
             </div>
             <div className="text-civic-600 text-xs mt-0.5">
               Tell us what issues matter to you — takes 2 minutes.
@@ -102,8 +104,6 @@ export default async function DashboardPage() {
         <ImpactMetrics
           totalCalls={totalCalls ?? 0}
           callsToday={todayCount}
-          callsRemaining={callsRemaining === Infinity ? 999 : callsRemaining}
-          isPremium={isPremium}
         />
       </div>
 
@@ -120,7 +120,7 @@ export default async function DashboardPage() {
           <div className="bg-white rounded-2xl border border-slate-200 p-4 hover:border-civic-300 hover:shadow-sm transition-all cursor-pointer">
             <div className="text-2xl mb-2">📞</div>
             <div className="text-sm font-semibold text-slate-900">My Representatives</div>
-            <div className="text-xs text-slate-500 mt-0.5">Federal, state & local</div>
+            <div className="text-xs text-slate-500 mt-0.5">Your federal reps</div>
           </div>
         </Link>
       </div>

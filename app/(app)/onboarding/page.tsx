@@ -13,21 +13,6 @@ interface SelectedInterest {
   subcategory: string | null
 }
 
-const US_STATES = [
-  ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],
-  ['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],
-  ['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],
-  ['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],
-  ['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],
-  ['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],
-  ['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],
-  ['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],
-  ['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],
-  ['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],
-  ['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],
-  ['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],
-  ['WI','Wisconsin'],['WY','Wyoming'],['DC','Washington D.C.'],
-]
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -36,7 +21,6 @@ export default function OnboardingPage() {
   const [step, setStep] = useState<Step>('location')
   const [fullName, setFullName] = useState('')
   const [zipCode, setZipCode] = useState('')
-  const [stateCode, setStateCode] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set())
   const [selectedSubcategories, setSelectedSubcategories] = useState<Set<string>>(new Set())
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0)
@@ -51,25 +35,15 @@ export default function OnboardingPage() {
   // --- STEP 1: Location ---
   async function handleLocationNext(e: React.FormEvent) {
     e.preventDefault()
-    if (!zipCode.match(/^\d{5}$/) && !stateCode) {
-      setError('Please enter a valid ZIP code and select your state.')
+    if (!zipCode.match(/^\d{5}$/)) {
+      setError('Please enter a valid 5-digit ZIP code.')
       return
     }
     setError(null)
     setStep('categories')
   }
 
-  async function handleSkip() {
-    setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      await supabase.from('profiles').upsert({
-        id: user.id,
-        full_name: user.user_metadata?.full_name || '',
-        onboarding_skipped: true,
-        onboarding_completed: false,
-      })
-    }
+  function handleSkip() {
     router.push('/dashboard')
   }
 
@@ -141,15 +115,12 @@ export default function OnboardingPage() {
       return
     }
 
-    // Update profile
     const { error: profileError } = await supabase.from('profiles').upsert({
-      id: user.id,
+      user_id: user.id,
       full_name: fullName || user.user_metadata?.full_name || '',
       zip_code: zipCode,
-      state_code: stateCode,
-      onboarding_completed: true,
-      onboarding_skipped: false,
-    })
+      onboarding_completed_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' })
 
     if (profileError) {
       setError('Failed to save profile. Please try again.')
@@ -289,25 +260,6 @@ export default function OnboardingPage() {
                 <p className="mt-1.5 text-xs text-slate-400">
                   Used to find your specific representatives. Never shared.
                 </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  State <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={stateCode}
-                  onChange={e => setStateCode(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
-                >
-                  <option value="">Select your state</option>
-                  {US_STATES.map(([code, name]) => (
-                    <option key={code} value={code}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <Button type="submit" size="lg" className="w-full">

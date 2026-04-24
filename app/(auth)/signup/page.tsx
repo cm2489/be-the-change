@@ -15,18 +15,17 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [checkEmail, setCheckEmail] = useState(false)
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { full_name: name },
-      },
+      options: { data: { full_name: name } },
     })
 
     if (error) {
@@ -35,8 +34,13 @@ export default function SignupPage() {
       return
     }
 
-    router.push('/onboarding')
-    router.refresh()
+    if (data.session) {
+      router.push('/onboarding')
+      router.refresh()
+    } else {
+      setLoading(false)
+      setCheckEmail(true)
+    }
   }
 
   async function handleGoogleSignup() {
@@ -47,10 +51,34 @@ export default function SignupPage() {
     })
   }
 
+  if (checkEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-md text-center">
+          <div className="text-5xl mb-4">📬</div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Check your email</h1>
+          <p className="text-slate-500 text-sm mb-6">
+            We sent a confirmation link to <span className="font-medium text-slate-700">{email}</span>.
+            Click it to activate your account and get started.
+          </p>
+          <p className="text-xs text-slate-400">
+            Didn&apos;t get it? Check your spam folder, or{' '}
+            <button
+              className="underline hover:text-slate-600"
+              onClick={() => setCheckEmail(false)}
+            >
+              try again
+            </button>
+            .
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
             <div className="text-2xl font-bold text-civic-600">Be The Change</div>
@@ -70,10 +98,7 @@ export default function SignupPage() {
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-slate-700 mb-1.5"
-              >
+              <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1.5">
                 Full name
               </label>
               <input
@@ -88,10 +113,7 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-slate-700 mb-1.5"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
                 Email
               </label>
               <input
@@ -106,10 +128,7 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-slate-700 mb-1.5"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
                 Password
               </label>
               <input
@@ -124,12 +143,7 @@ export default function SignupPage() {
               />
             </div>
 
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full"
-              disabled={loading}
-            >
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
               {loading ? 'Creating account…' : 'Create account'}
             </Button>
           </form>

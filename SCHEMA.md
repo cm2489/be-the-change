@@ -40,6 +40,24 @@ Extended user data beyond `auth.users`. One row per user, created on signup.
 
 ---
 
+### `user_interests`
+Issue categories and subcategories selected during onboarding. Used to filter the bill feed and personalize AI script generation.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | uuid PK | |
+| `user_id` | uuid, FK → `auth.users(id)`, on delete cascade | |
+| `category` | text | top-level interest ID from `INTEREST_CATEGORIES` in `lib/interests.ts` |
+| `subcategory` | text, nullable | subcategory ID; null means "all subcategories in this category" |
+| `rank` | int | 1–99, lower = higher priority; used for feed scoring |
+| `created_at` | timestamptz | |
+
+Unique constraint: `NULLS NOT DISTINCT (user_id, category, subcategory)` — treats a category-only row (subcategory = null) as unique per user so it can't be inserted twice.
+
+**RLS:** User can SELECT/INSERT/UPDATE/DELETE own rows (all ops via single `users_manage_own` policy).
+
+---
+
 ### `representatives`
 Federal reps. Shared cache across users — NOT user-specific.
 

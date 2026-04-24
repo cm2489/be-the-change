@@ -12,7 +12,6 @@ export default function SettingsPage() {
 
   const [fullName, setFullName] = useState('')
   const [zipCode, setZipCode] = useState('')
-  const [stateCode, setStateCode] = useState('')
   const [selectedSubcats, setSelectedSubcats] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -30,14 +29,13 @@ export default function SettingsPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, zip_code, state_code')
-        .eq('id', session.user.id)
+        .select('full_name, zip_code')
+        .eq('user_id', session.user.id)
         .single()
 
       if (profile) {
         setFullName(profile.full_name || '')
         setZipCode(profile.zip_code || '')
-        setStateCode(profile.state_code || '')
       }
 
       const { data: interests } = await supabase
@@ -75,11 +73,10 @@ export default function SettingsPage() {
     if (!session) return
 
     await supabase.from('profiles').upsert({
-      id: session.user.id,
+      user_id: session.user.id,
       full_name: fullName,
       zip_code: zipCode,
-      state_code: stateCode,
-    })
+    }, { onConflict: 'user_id' })
 
     // Rebuild interests
     await supabase.from('user_interests').delete().eq('user_id', session.user.id)

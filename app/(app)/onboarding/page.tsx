@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { INTEREST_CATEGORIES, type InterestCategory } from '@/lib/interests'
+import { syncRepsForUser } from '@/lib/actions/sync-reps'
 import { Button } from '@/components/ui/button'
 
 type Step = 'location' | 'categories' | 'subcategories' | 'done'
@@ -21,6 +22,12 @@ export default function OnboardingPage() {
   const [step, setStep] = useState<Step>('location')
   const [fullName, setFullName] = useState('')
   const [zipCode, setZipCode] = useState('')
+  // Both ZIP and full address are required:
+  //   - ZIP filters the bill feed (state-level matching, see Feature 3 plan)
+  //   - Full address is needed to resolve the user's House district via
+  //     Google Civic Divisions → Congress.gov. ZIPs straddle districts and
+  //     are not reliable for House lookup.
+  const [fullAddress, setFullAddress] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set())
   const [selectedSubcategories, setSelectedSubcategories] = useState<Set<string>>(new Set())
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0)
@@ -33,13 +40,31 @@ export default function OnboardingPage() {
   const currentCategory = selectedCategoryList[currentCategoryIndex]
 
   // --- STEP 1: Location ---
+  // We sync reps here (not at final save) so a bad address fails fast — the
+  // user can fix it before drilling through interest steps. syncRepsForUser
+  // owns the writes to profiles.full_address / district_ocd_id /
+  // reps_last_refreshed_at; handleSave below intentionally does not touch
+  // those fields.
   async function handleLocationNext(e: React.FormEvent) {
     e.preventDefault()
+    setError(null)
     if (!zipCode.match(/^\d{5}$/)) {
       setError('Please enter a valid 5-digit ZIP code.')
       return
     }
-    setError(null)
+    if (fullAddress.trim().length < 10) {
+      setError('Please enter your full street address (street, city, state, ZIP).')
+      return
+    }
+
+    setLoading(true)
+    const result = await syncRepsForUser(fullAddress)
+    setLoading(false)
+
+    if (!result.ok) {
+      setError(result.message)
+      return
+    }
     setStep('categories')
   }
 
@@ -115,6 +140,9 @@ export default function OnboardingPage() {
       return
     }
 
+    // full_address / district_ocd_id / reps_last_refreshed_at are written
+    // by syncRepsForUser at step 1 — do NOT include them here, or we'd
+    // overwrite the geocode-normalized address with the raw user input.
     const { error: profileError } = await supabase.from('profiles').upsert({
       user_id: user.id,
       full_name: fullName || user.user_metadata?.full_name || '',
@@ -258,12 +286,30 @@ export default function OnboardingPage() {
                   className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
                 />
                 <p className="mt-1.5 text-xs text-slate-400">
-                  Used to find your specific representatives. Never shared.
+                  Used to filter bills relevant to your state. Never shared.
                 </p>
               </div>
 
-              <Button type="submit" size="lg" className="w-full">
-                Continue
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Full street address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={fullAddress}
+                  onChange={e => setFullAddress(e.target.value)}
+                  placeholder="123 Main St, Springfield, IL 62701"
+                  required
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
+                />
+                <p className="mt-1.5 text-xs text-slate-400">
+                  We need your full address to find your House district.
+                  ZIP codes alone can span multiple districts.
+                </p>
+              </div>
+
+              <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                {loading ? 'Looking up your reps…' : 'Continue'}
               </Button>
             </form>
           )}

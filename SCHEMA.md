@@ -33,6 +33,7 @@ Extended user data beyond `auth.users`. One row per user, created on signup.
 | `issue_priorities` | text[] | ranked list of ~5 issue IDs from fixed taxonomy |
 | `email_verified_at` | timestamptz, nullable | |
 | `onboarding_completed_at` | timestamptz, nullable | |
+| `reps_last_refreshed_at` | timestamptz, nullable | last time this user's federal reps were synced from Google Civic + Congress.gov; skip external calls if within the past 7 days unless address changed |
 | `created_at` | timestamptz | |
 | `updated_at` | timestamptz | |
 

@@ -149,3 +149,8 @@ dist/
 *.replit
 .vscode/
 next-env.d.ts
+
+# Playwright
+tests/.auth/
+test-results/
+playwright-report/

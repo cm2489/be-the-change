@@ -52,7 +52,7 @@ export function CallFlow({ rep, bill, userId, onClose }: CallFlowProps) {
     setScript(scriptData.script?.content || '')
     setScriptId(scriptData.script?.id || null)
 
-    // Initiate call log (checks freemium limit)
+    // Initiate call log
     const callRes = await fetch('/api/calls', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

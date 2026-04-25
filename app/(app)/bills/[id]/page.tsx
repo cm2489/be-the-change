@@ -2,21 +2,17 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { CallFlow } from '@/components/CallFlow'
 import { Button } from '@/components/ui/button'
+// The "Make your call" rep selector + CallFlow modal previously lived on
+// this page. Both depended on routes that no longer exist (/api/representatives
+// stub) or aren't built yet (/api/scripts → Feature 4, /api/calls → Feature 5).
+// For now we link out to /representatives instead — Features 4 + 5 will
+// re-introduce an inline call flow here.
+// See docs/deferred.md#callflow-bills-detail.
 import { urgencyLabel, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-
-interface Rep {
-  id: string
-  full_name: string
-  title: string
-  level: string
-  phone: string | null
-  party: string | null
-  photo_url?: string | null
-}
 
 interface Bill {
   id: string
@@ -40,12 +36,7 @@ export default function BillDetailPage() {
   const supabase = createClient()
 
   const [bill, setBill] = useState<Bill | null>(null)
-  const [reps, setReps] = useState<Rep[]>([])
-  const [selectedRep, setSelectedRep] = useState<Rep | null>(null)
-  const [userId, setUserId] = useState<string | null>(null)
-  const [zipCode, setZipCode] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [repsLoading, setRepsLoading] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -56,9 +47,7 @@ export default function BillDetailPage() {
         router.push('/login')
         return
       }
-      setUserId(session.user.id)
 
-      // Load bill
       const { data: billData } = await supabase
         .from('bills')
         .select('*')
@@ -66,38 +55,12 @@ export default function BillDetailPage() {
         .single()
 
       if (billData) setBill(billData)
-
-      // Load user's ZIP code
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('zip_code')
-        .eq('id', session.user.id)
-        .single()
-
-      if (profile?.zip_code) {
-        setZipCode(profile.zip_code)
-        loadReps(profile.zip_code)
-      }
-
       setLoading(false)
     }
 
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
-
-  async function loadReps(zip: string) {
-    setRepsLoading(true)
-    try {
-      const res = await fetch(`/api/representatives?zip=${zip}`)
-      const data = await res.json()
-      setReps(data.representatives ?? [])
-    } catch {
-      // silent fail
-    } finally {
-      setRepsLoading(false)
-    }
-  }
 
   if (loading) {
     return (
@@ -121,13 +84,6 @@ export default function BillDetailPage() {
 
   const urgency = urgencyLabel(bill.urgency_score)
   const displaySummary = bill.ai_summary || bill.summary
-
-  // Group reps by level
-  const repsByLevel = {
-    federal: reps.filter(r => r.level === 'federal'),
-    state: reps.filter(r => r.level === 'state'),
-    local: reps.filter(r => r.level === 'local'),
-  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
@@ -182,79 +138,20 @@ export default function BillDetailPage() {
         </div>
       </div>
 
-      {/* Representatives — call to action */}
+      {/* Call CTA — points users at /representatives until Features 4 + 5
+          rebuild the inline script + call flow. See deferred.md#callflow-bills-detail. */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h2 className="text-lg font-bold text-slate-900 mb-1">Make your call</h2>
+        <h2 className="text-lg font-bold text-slate-900 mb-1">Make your voice heard</h2>
         <p className="text-sm text-slate-500 mb-4">
-          Select a representative to call about this issue.
+          Call your federal representatives about this bill.
         </p>
-
-        {!zipCode && (
-          <div className="text-sm text-slate-500 bg-slate-50 rounded-xl p-4">
-            Update your ZIP code in{' '}
-            <a href="/settings" className="text-civic-600 underline">
-              settings
-            </a>{' '}
-            to see your representatives.
-          </div>
-        )}
-
-        {repsLoading && (
-          <div className="text-sm text-slate-400 py-4 text-center">Loading your representatives…</div>
-        )}
-
-        {!repsLoading && reps.length > 0 && (
-          <div className="space-y-4">
-            {Object.entries(repsByLevel).map(([level, levelReps]) => {
-              if (levelReps.length === 0) return null
-              return (
-                <div key={level}>
-                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
-                    {level === 'federal' ? '🇺🇸 Federal' : level === 'state' ? '🏛️ State' : '🏘️ Local'}
-                  </div>
-                  <div className="space-y-2">
-                    {levelReps.map(rep => (
-                      <button
-                        key={rep.id}
-                        onClick={() => setSelectedRep(rep)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-action-400 hover:bg-action-50 transition-all text-left group"
-                      >
-                        <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-semibold text-sm flex-shrink-0 overflow-hidden">
-                          {rep.photo_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={rep.photo_url} alt={rep.full_name} className="w-full h-full object-cover" />
-                          ) : (
-                            rep.full_name.charAt(0)
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold text-slate-900 truncate">{rep.full_name}</div>
-                          <div className="text-xs text-slate-500 truncate">{rep.title}</div>
-                        </div>
-                        {rep.phone && (
-                          <div className="text-xs font-medium text-action-500 group-hover:text-action-600">
-                            📞 Call
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+        <Link href="/representatives">
+          <Button size="lg" className="w-full sm:w-auto">
+            📞 See my representatives
+          </Button>
+        </Link>
       </div>
 
-      {/* CallFlow overlay */}
-      {selectedRep && userId && (
-        <CallFlow
-          rep={selectedRep}
-          bill={bill}
-          userId={userId}
-          onClose={() => setSelectedRep(null)}
-        />
-      )}
     </div>
   )
 }

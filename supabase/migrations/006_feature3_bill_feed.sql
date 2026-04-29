@@ -17,6 +17,13 @@
 -- formula). The CHECK constraint enforces the [0.000, 1.000] range
 -- since numeric(4,3) by itself permits values up to 9.999.
 --
+-- TODO (calibration): the status weights and the recency-bonus values
+-- (and `vetoed = 0.30`) were chosen by reasoning, not by fitting
+-- against real bill data. See Phase 2 end-of-phase report —
+-- "Three Questions / least confident". Revisit after the Phase 3
+-- backfill populates the feed and beta testers scan it for ordering
+-- that feels obviously wrong. v1.1 polish, not Phase 3.
+--
 -- issue_analysis is generated lazily by the bill-detail page on first
 -- view (Phase 4) and never bulk-backfilled. Shape documented in
 -- SCHEMA.md.

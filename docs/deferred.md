@@ -120,6 +120,21 @@ A one-shot backfill script paginates `/bill?congress=119` and pulls every bill i
 
 ---
 
+### local-supabase-stack
+
+**Priority:** Low (DEBT)
+**Where in code:** Local dev tooling — `supabase db reset` requires Docker Desktop, which isn't installed on this machine.
+
+`supabase db reset` brings up the full local Supabase stack (Postgres, GoTrue, PostgREST, Storage, etc.) in containers and replays every migration in order against a fresh DB. It's the only way to validate a migration against a clean schema without paying the cost of a remote `supabase db push`. We currently push migrations straight to the linked remote project (the pattern used for migrations 001–005); the 006 push followed the same path.
+
+That's fine for additive migrations. It is not fine for destructive ones — column drops, constraint tightening on existing data, or anything where a forward-only migration could leave production unbootable if the SQL has a typo. For those, validating locally first is cheap insurance.
+
+**Trigger to install:** before any destructive migration (column drops, NOT NULL on existing rows, CHECK constraint changes, RLS rewrites that affect already-applied policies). Until then, push-and-verify-via-MCP is acceptable for additive work.
+
+**What "install" means here:** Docker Desktop for macOS + `supabase init` to scaffold `config.toml` (currently absent — the migrations directory is the only thing under `supabase/`).
+
+---
+
 ### feature-3-prewarm-demo-bills
 
 **Priority:** MVP-OK (deferred from Phase 2; needs to run before each donor demo)
@@ -273,4 +288,4 @@ Standing comment warns against re-adding `isPremium`/freemium gating. This is fi
 ## Change log
 
 - 2026-04-24 — Initial creation during Feature 2 sweep (Colby + Claude). Captured Feature 2 vacancy edges, four broken pre-existing routes, freemium lib remnant, type debt, three already-commented UX v2 items.
-- 2026-04-28 — Feature 3 Phase 2 (migration + taxonomy lock). Added `feature-3-backfill-119th-congress` and `feature-3-prewarm-demo-bills` — both deferred from Phase 2 by explicit Phase 1 decision (logged in STRATEGY.md §11).
+- 2026-04-28 — Feature 3 Phase 2 (migration + taxonomy lock). Added `feature-3-backfill-119th-congress` and `feature-3-prewarm-demo-bills` — both deferred from Phase 2 by explicit Phase 1 decision (logged in STRATEGY.md §11). Added `local-supabase-stack` — Docker Desktop + `supabase init` deferred until first destructive migration; additive migrations push-and-verify-via-MCP.

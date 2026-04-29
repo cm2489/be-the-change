@@ -103,6 +103,56 @@ Theoretical risk that `partyHistory` is empty on a brand-new member before Congr
 
 ---
 
+## Feature 3 — Bill Feed
+
+### feature-3-backfill-119th-congress
+
+**Priority:** MVP-OK (deferred from Phase 2; needs to run before first donor demo)
+**Where in code:** to live at `scripts/backfill-bills.ts` (does not exist yet)
+
+The Phase 2 cron rewrite is incremental — it pulls only bills updated since `sync_state.last_successful_sync_at - 48h`. That keeps cron runs cheap, but it means a freshly-applied production database has an empty `bills` table until enough Congress.gov activity accumulates, and less-active issue tags (e.g. `gun_safety`) may never accumulate enough hits for the personalized feed to feel populated.
+
+A one-shot backfill script paginates `/bill?congress=119` and pulls every bill in the active Congress, chunked to respect the 5,000/hour Congress.gov quota. Idempotent via `bills.full_identifier` upsert, so it can be re-run safely.
+
+**Why script and not admin route:** runs once, takes too long for a 60s Vercel function, and the cost ceiling is local laptop runtime not a serverless invocation timer. Live in `scripts/backfill-bills.ts`, invoked with `tsx scripts/backfill-bills.ts` (or similar) using `SUPABASE_SERVICE_ROLE_KEY` and `CONGRESS_API_KEY` from `.env.local`.
+
+**Trigger to build it:** before the first donor demo, or whenever a beta tester reports an empty feed for a non-trending issue tag.
+
+---
+
+### local-supabase-stack
+
+**Priority:** Low (DEBT)
+**Where in code:** Local dev tooling — `supabase db reset` requires Docker Desktop, which isn't installed on this machine.
+
+`supabase db reset` brings up the full local Supabase stack (Postgres, GoTrue, PostgREST, Storage, etc.) in containers and replays every migration in order against a fresh DB. It's the only way to validate a migration against a clean schema without paying the cost of a remote `supabase db push`. We currently push migrations straight to the linked remote project (the pattern used for migrations 001–005); the 006 push followed the same path.
+
+That's fine for additive migrations. It is not fine for destructive ones — column drops, constraint tightening on existing data, or anything where a forward-only migration could leave production unbootable if the SQL has a typo. For those, validating locally first is cheap insurance.
+
+**Trigger to install:** before any destructive migration (column drops, NOT NULL on existing rows, CHECK constraint changes, RLS rewrites that affect already-applied policies). Until then, push-and-verify-via-MCP is acceptable for additive work.
+
+**What "install" means here:** Docker Desktop for macOS + `supabase init` to scaffold `config.toml` (currently absent — the migrations directory is the only thing under `supabase/`).
+
+---
+
+### feature-3-prewarm-demo-bills
+
+**Priority:** MVP-OK (deferred from Phase 2; needs to run before each donor demo)
+**Where in code:** to live at `scripts/prewarm-bills.ts` (does not exist yet)
+
+`bills.ai_summary` and `bills.issue_analysis` are generated lazily on the first detail-page view (Feature 4). That's the right call for cost control — we don't pay Anthropic for bills nobody opens — but it produces an awkward "generating…" spinner during a donor demo where every "Open this bill" tap should feel instant.
+
+A pre-warm script accepts a list of bill ids (CLI args or a `demo-bills.txt` file) and runs the same generation pipeline as the lazy path, just upserting the result. Caching is shared across all users, so once a demo bill is pre-warmed, every viewer gets the cached result.
+
+**Why script and not admin route:**
+- No public surface area = no auth/CSRF/rate-limit concerns.
+- Runs from your laptop the morning of a demo, no redeploy cycle.
+- Iteration cost is your laptop time, not serverless invocation cost.
+
+**Trigger to build it:** before the first scheduled donor demo. Until then, the lazy path works for ad-hoc usage.
+
+---
+
 ## Broken code discovered during pre-Feature-2 sweep
 
 These files were already in the codebase when Feature 2 work began. They were broken before any of my changes. Surfaced here for a clean cleanup decision before launch.
@@ -238,3 +288,4 @@ Standing comment warns against re-adding `isPremium`/freemium gating. This is fi
 ## Change log
 
 - 2026-04-24 — Initial creation during Feature 2 sweep (Colby + Claude). Captured Feature 2 vacancy edges, four broken pre-existing routes, freemium lib remnant, type debt, three already-commented UX v2 items.
+- 2026-04-28 — Feature 3 Phase 2 (migration + taxonomy lock). Added `feature-3-backfill-119th-congress` and `feature-3-prewarm-demo-bills` — both deferred from Phase 2 by explicit Phase 1 decision (logged in STRATEGY.md §11). Added `local-supabase-stack` — Docker Desktop + `supabase init` deferred until first destructive migration; additive migrations push-and-verify-via-MCP.

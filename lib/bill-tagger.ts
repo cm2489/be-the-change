@@ -1,6 +1,20 @@
-// Keyword-based bill → interest_id tagger
-// Each rule: if any keyword appears in the bill text, assign that interest_id
+// Keyword-based bill → interest tagger.
+//
+// Output goes into `bills.issue_tags` as a flat text[] containing both
+// subcategory ids (matched directly) and their parent category ids
+// (derived). The personalized-feed RPC intersects these against
+// `user_interests.category` — which carries top-level category ids
+// only — so the relevance match works whether the user picked a whole
+// category or specific subcategories.
+//
+// Source of truth for category/subcategory ids: lib/interests.ts.
+// The module-load validation block below throws on drift between this
+// file and the canonical taxonomy so the tagger refuses to run with a
+// stale ruleset.
 
+import { INTEREST_CATEGORIES, ALL_SUBCATEGORY_IDS } from './interests'
+
+// Each rule: if any keyword appears in the bill text, assign that subcategory id.
 const KEYWORD_RULES: Array<{ keywords: string[]; interest_id: string }> = [
   // Environment
   { keywords: ['carbon', 'emissions', 'climate change', 'greenhouse gas', 'paris agreement', 'global warming'], interest_id: 'env_climate_policy' },
@@ -57,15 +71,63 @@ const KEYWORD_RULES: Array<{ keywords: string[]; interest_id: string }> = [
   { keywords: ['antitrust', 'tech monopoly', 'big tech', 'platform competition', 'anti-competitive', 'market power'], interest_id: 'tech_monopoly' },
 ]
 
-export function tagBill(title: string, summary?: string | null): string[] {
+// Subcategory id → parent category id, derived once at module load from
+// INTEREST_CATEGORIES so a single source of truth defines parentage.
+const SUBCATEGORY_TO_CATEGORY: ReadonlyMap<string, string> = (() => {
+  const map = new Map<string, string>()
+  for (const cat of INTEREST_CATEGORIES) {
+    for (const sub of cat.subcategories) {
+      map.set(sub.id, cat.id)
+    }
+  }
+  return map
+})()
+
+// Module-load taxonomy lock. Throws at import time if any rule's
+// `interest_id` is not a real subcategory id in lib/interests.ts.
+// Catches drift before tagging output corrupts bills.issue_tags.
+const VALID_SUBCATEGORY_IDS: ReadonlySet<string> = new Set(ALL_SUBCATEGORY_IDS)
+const DRIFTED_RULE_IDS = KEYWORD_RULES
+  .map(r => r.interest_id)
+  .filter(id => !VALID_SUBCATEGORY_IDS.has(id))
+if (DRIFTED_RULE_IDS.length > 0) {
+  throw new Error(
+    `bill-tagger: KEYWORD_RULES references unknown subcategory ids — ` +
+    `${DRIFTED_RULE_IDS.join(', ')}. Update either KEYWORD_RULES or ` +
+    `lib/interests.ts INTEREST_CATEGORIES so they agree.`
+  )
+}
+
+export interface TagBillResult {
+  /** Subcategory ids (e.g. `env_clean_energy`) matched by keyword rules. */
+  subcategory_ids: string[]
+  /** Parent category ids (e.g. `environment`), derived from each subcategory match. */
+  category_ids: string[]
+}
+
+/**
+ * Tag a bill against the interest taxonomy by keyword presence in
+ * title + summary. Returns matched subcategory ids and their derived
+ * parent category ids; both arrays are deduped and order-stable
+ * (insertion order). Both go into `bills.issue_tags` so the relevance
+ * intersection works for category-only and subcategory-specific user
+ * interests alike.
+ */
+export function tagBill(title: string, summary?: string | null): TagBillResult {
   const text = `${title} ${summary ?? ''}`.toLowerCase()
-  const matched = new Set<string>()
+  const subs = new Set<string>()
+  const cats = new Set<string>()
 
   for (const rule of KEYWORD_RULES) {
     if (rule.keywords.some(kw => text.includes(kw.toLowerCase()))) {
-      matched.add(rule.interest_id)
+      subs.add(rule.interest_id)
+      const parent = SUBCATEGORY_TO_CATEGORY.get(rule.interest_id)
+      if (parent) cats.add(parent)
     }
   }
 
-  return Array.from(matched)
+  return {
+    subcategory_ids: Array.from(subs),
+    category_ids: Array.from(cats),
+  }
 }

@@ -285,7 +285,32 @@ Standing comment warns against re-adding `isPremium`/freemium gating. This is fi
 
 ---
 
+## Supabase advisor lints (pre-existing)
+
+### auth-trigger-and-leaked-password-lints
+
+**Priority:** DEBT
+**Where in code:**
+- `supabase/migrations/002_align_to_schema.sql` — original `handle_new_user` definition
+- `supabase/migrations/004_fix_profile_trigger_search_path.sql` — partial fix (qualified `public.profiles`)
+- Supabase Auth dashboard — "Leaked Password Protection" toggle
+
+Four WARN-level findings surfaced during the Phase 2 advisor diff. None are exploitable today; tracked here so they aren't rediscovered as "new" later.
+
+1. **`function_search_path_mutable` on `handle_new_user`** — the trigger function lacks an explicit `SET search_path` clause. Migration 004 addressed the symptom (qualified `public.profiles` in the body) but didn't pin the function's own `search_path`. Advisor still flags it because the function definition is still mutable-by-default.
+2. **Two `*_security_definer_function_executable` lints on `handle_new_user`** — flagged because it's `SECURITY DEFINER` and grantable to `public`. The trigger only fires on `auth.users` insert via the `on_auth_user_created` trigger and isn't reachable from RPC, so the practical risk is low, but tightening grants is best practice.
+3. **`auth_leaked_password_protection`** — Supabase Auth dashboard setting that gates HIBP-checked passwords at signup. Off by default. No code change required to enable.
+
+**Fix sketch (for the trigger):** add `SET search_path = public` to the `CREATE OR REPLACE FUNCTION handle_new_user()` body in a new migration; revoke `EXECUTE ... FROM public` and re-grant only to the postgres owner. Verify via `supabase db lint` afterward.
+
+**Fix sketch (for leaked-password):** flip the toggle in the Supabase dashboard → Authentication → Policies. No migration needed.
+
+**Trigger to fix:** Week 5 polish or beta hardening, not earlier. None of these block any MVP feature; surfacing them in a phase that's rewriting unrelated code (Phase 3a) would expand scope without payoff.
+
+---
+
 ## Change log
 
 - 2026-04-24 — Initial creation during Feature 2 sweep (Colby + Claude). Captured Feature 2 vacancy edges, four broken pre-existing routes, freemium lib remnant, type debt, three already-commented UX v2 items.
 - 2026-04-28 — Feature 3 Phase 2 (migration + taxonomy lock). Added `feature-3-backfill-119th-congress` and `feature-3-prewarm-demo-bills` — both deferred from Phase 2 by explicit Phase 1 decision (logged in STRATEGY.md §11). Added `local-supabase-stack` — Docker Desktop + `supabase init` deferred until first destructive migration; additive migrations push-and-verify-via-MCP.
+- 2026-04-28 — Feature 3 Phase 3a (cron + admin sync rewrite). Added `auth-trigger-and-leaked-password-lints` covering the four WARN-level Supabase advisor findings from the Phase 2 diff. Track-only in this phase; fix scheduled for Week 5 polish or beta hardening.

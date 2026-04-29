@@ -46,13 +46,19 @@ CREATE INDEX idx_user_interests_user_category
   ON user_interests (user_id, category);
 
 -- ============================================================
--- SYNC_STATE — single-row cron high-water-mark
+-- SYNC_STATE — single-row cron high-water-mark + diagnostics
 -- ============================================================
 --
 -- Tracks the latest successful incremental sync timestamp so the cron
 -- can pass `fromDateTime` to Congress.gov and pick up only bills
 -- updated since the prior run (with a 48-hour overlap, applied in
 -- code).
+--
+-- last_sync_status + last_sync_error give an in-DB signal when the
+-- cron starts failing silently. The cron writes these on every run
+-- (success, partial, failed) so we can surface drift via SQL rather
+-- than only via Vercel logs — that's the recurrence we're trying to
+-- prevent (see schema-drift-sync-bills in docs/deferred.md).
 --
 -- Single-row enforcement: a unique index on the constant expression
 -- `(1)` — every row has the same value, so only one row can satisfy
@@ -62,6 +68,8 @@ CREATE INDEX idx_user_interests_user_category
 CREATE TABLE sync_state (
   id                       uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
   last_successful_sync_at  timestamptz,
+  last_sync_status         text        CHECK (last_sync_status IN ('success', 'partial', 'failed')),
+  last_sync_error          text,
   created_at               timestamptz NOT NULL DEFAULT now(),
   updated_at               timestamptz NOT NULL DEFAULT now()
 );
@@ -69,7 +77,10 @@ CREATE TABLE sync_state (
 CREATE UNIQUE INDEX sync_state_singleton ON sync_state ((1));
 
 ALTER TABLE sync_state ENABLE ROW LEVEL SECURITY;
--- No policies => no authenticated access. Service role bypasses RLS.
+-- DO NOT add a SELECT policy without also restricting INSERT/UPDATE/DELETE
+-- explicitly. RLS-enabled-with-no-policies denies all authenticated access.
+-- Adding any single permissive policy without writing matching restrictive
+-- policies for other operations may inadvertently open writes.
 
 -- ============================================================
 -- RPC: get_personalized_feed
@@ -82,8 +93,18 @@ ALTER TABLE sync_state ENABLE ROW LEVEL SECURITY;
 -- branch), and returns each matching bill with the matched-tag set
 -- the relevance badge renders from.
 --
--- Composite sort key (not a calibrated metric):
---   cardinality(matched_tags) * 0.4 + urgency_score * 0.6
+-- Composite sort key, both components in [0, 1]:
+--   relevance_ratio = cardinality(matched_tags) / user_cat_count
+--   composite       = COALESCE(relevance_ratio, 0) * 0.4
+--                   + urgency_score                * 0.6
+--
+-- The relevance term is normalized by the user's total category count
+-- so a stale omnibus bill that touches every interest doesn't outrank
+-- an urgent single-issue bill on relevance alone. The 0.4/0.6 weights
+-- now meaningfully describe a tradeoff rather than competing on
+-- different scales. NULLIF guards a div-by-zero that shouldn't occur
+-- (this RPC is only called when the user has interests) but is
+-- defensive against future callers.
 --
 -- SECURITY INVOKER: function executes under the caller's RLS. bills
 -- has an authenticated_can_read policy; user_interests is scoped to
@@ -164,7 +185,14 @@ AS $$
     s.matched_tags
   FROM scored s
   ORDER BY
-    (cardinality(s.matched_tags)::numeric * 0.4 + s.urgency_score * 0.6) DESC,
+    (
+      COALESCE(
+        cardinality(s.matched_tags)::numeric
+          / NULLIF((SELECT count(*) FROM user_cats), 0),
+        0
+      ) * 0.4
+      + s.urgency_score * 0.6
+    ) DESC,
     s.last_action_date DESC NULLS LAST
   OFFSET p_offset
   LIMIT  p_limit;

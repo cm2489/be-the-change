@@ -299,15 +299,17 @@ Rate-limiting + audit log for push notifications.
 ---
 
 ### `sync_state`
-Single-row table tracking the cron's last successful incremental sync. The cron passes `last_successful_sync_at - 48 hours` as `fromDateTime` to Congress.gov, so a brief sync failure can't drop a day's worth of bill updates. Single-row enforcement uses a unique index on the constant expression `(1)`.
+Single-row table tracking the cron's last successful incremental sync plus diagnostics. The cron passes `last_successful_sync_at - 48 hours` as `fromDateTime` to Congress.gov, so a brief sync failure can't drop a day's worth of bill updates. The `last_sync_status` + `last_sync_error` columns give an in-DB signal when the cron starts failing silently — the recurrence we're trying to prevent (see `schema-drift-sync-bills` in `docs/deferred.md`). Single-row enforcement uses a unique index on the constant expression `(1)`.
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | uuid PK | |
-| `last_successful_sync_at` | timestamptz, nullable | Null on first run; set to `now()` after a successful sync; rolled back on failure |
+| `last_successful_sync_at` | timestamptz, nullable | Null on first run; set to `now()` after a successful sync; not advanced on failure |
+| `last_sync_status` | text, nullable | CHECK in `('success', 'partial', 'failed')`; written by the cron on every run |
+| `last_sync_error` | text, nullable | Error message from the most recent failed run; cleared on next success |
 | `created_at`, `updated_at` | timestamptz | |
 
-**RLS:** Enabled with **no policies** — authenticated users have no access. All reads and writes go through service role from the cron route, which bypasses RLS.
+**RLS:** Enabled with **no policies** — authenticated users have no access. All reads and writes go through service role from the cron route, which bypasses RLS. **Do not add a SELECT policy without also restricting INSERT/UPDATE/DELETE explicitly:** RLS-enabled-with-no-policies denies all authenticated access, but adding any single permissive policy without writing matching restrictive policies for other operations may inadvertently open writes.
 
 ---
 
@@ -319,14 +321,17 @@ Postgres functions called via `supabase.rpc(...)`. All `SECURITY INVOKER` (calle
 
 Personalized bill feed for users with at least one `user_interests` row. Joins `bills` against the user's selected categories, intersects with `bills.issue_tags` (which carries both subcategory ids and parent-category ids from the tagger), and ranks by a composite of relevance count and urgency.
 
-**Sort key (not a calibrated metric, just a deterministic ordering):**
+**Sort key — both terms in `[0, 1]`, weighted 0.4 / 0.6:**
 
 ```
-cardinality(matched_tags) * 0.4 + urgency_score * 0.6   DESC
-last_action_date                                         DESC NULLS LAST
+relevance_ratio = cardinality(matched_tags) / user_cat_count
+composite       = COALESCE(relevance_ratio, 0) * 0.4 + urgency_score * 0.6   DESC
+                  last_action_date                                            DESC NULLS LAST
 ```
 
-A bill matching three of the user's categories with `urgency_score = 0.5` scores `3 * 0.4 + 0.5 * 0.6 = 1.50` and outranks a bill matching one category at `urgency_score = 0.9` (`1 * 0.4 + 0.9 * 0.6 = 0.94`). Relevance is allowed to dominate intentionally — three matches is a strong signal.
+`user_cat_count` is the number of distinct categories the user picked in `user_interests` (computed from the same CTE the join uses). The `NULLIF` guards a div-by-zero that shouldn't occur — this RPC is only invoked when the user has at least one interest — but the COALESCE keeps callers honest.
+
+A user with three categories looking at a bill that matches all three (`relevance_ratio = 1.0`) at `urgency_score = 0.5` scores `1.0 * 0.4 + 0.5 * 0.6 = 0.70`. A bill matching one of three categories at `urgency_score = 0.9` scores `0.333 * 0.4 + 0.9 * 0.6 = 0.673`. Relevance and urgency now compete on the same scale, so the 0.4 / 0.6 weights describe a real tradeoff rather than dimensional accident.
 
 **Returns** (one row per matching bill):
 

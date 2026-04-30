@@ -1,15 +1,8 @@
+import { tagBill } from './bill-tagger'
+
 // CONGRESS_API_BASE_URL is overridable for tests (Playwright points it at a
 // local mock server). Production leaves it unset and we hit Congress.gov.
 const BASE = process.env.CONGRESS_API_BASE_URL ?? 'https://api.congress.gov/v3'
-
-interface CongressBillSummary {
-  congress: number
-  type: string
-  number: string
-  title: string
-  latestAction: { actionDate: string; text: string }
-  url: string
-}
 
 async function congressFetch<T>(
   path: string,
@@ -31,118 +24,380 @@ async function congressFetch<T>(
   return res.json()
 }
 
-export async function getRecentBills(): Promise<CongressBillSummary[]> {
-  const data = await congressFetch<{ bills: CongressBillSummary[] }>('/bill', {
-    sort: 'updateDate',
-    direction: 'desc',
-  })
-  return data.bills ?? []
-}
+// ============================================================
+// Bill ingestion — types
+// ============================================================
 
-export interface NormalizedFederalBill {
-  external_id: string
-  source: 'congress'
-  level: 'federal'
-  state_code: null
-  bill_number: string
+// Canonical bill record matching the post-002 `bills` schema (with the
+// Phase 2 additions of `urgency_score` and `issue_tags` as a flat array
+// of subcategory + parent category ids from the tagger).
+//
+// `last_synced_at`, `created_at`, `updated_at` are set by Postgres and
+// are not modeled here.
+export interface CanonicalBill {
+  full_identifier: string
+  congress_number: number
+  bill_type: BillType
+  bill_number: number
   title: string
-  summary: string | null
-  full_text_url: string
-  status: string
-  vote_date: string | null
-  last_action: string
+  short_title: string | null
+  summary_text: string | null
+  sponsor_bioguide_id: string
+  introduced_date: string
   last_action_date: string
+  last_action_text: string
+  status: BillStatus
+  congress_gov_url: string
+  issue_tags: string[]
   urgency_score: number
 }
 
-// Returns true for bills actively moving — markup stage or later
-export function isActionableBill(actionText: string): boolean {
-  const text = actionText.toLowerCase()
-  return (
-    text.includes('markup') ||
-    text.includes('ordered to be reported') ||
-    text.includes('placed on') ||
-    text.includes('legislative calendar') ||
-    text.includes('scheduled for') ||
-    text.includes('floor consideration') ||
-    text.includes('cloture') ||
-    text.includes('vote scheduled') ||
-    text.includes('motion to proceed') ||
-    text.includes('rule providing for') ||
+// The four bill types the MVP cares about. Resolutions (`hres`, `sres`)
+// and concurrent resolutions (`hconres`, `sconres`) are filtered out at
+// the list-response level — they don't carry the same legislative
+// weight and would inflate the feed without proportional value.
+export type BillType = 'hr' | 's' | 'hjres' | 'sjres'
+
+// The closed token set the bills.status column accepts. Anything that
+// doesn't match a keyword pattern in mapStatusFromAction falls through
+// to 'committee' (the 0.45 default urgency tier) so we never write a
+// status the schema doesn't expect.
+export type BillStatus =
+  | 'floor_vote'
+  | 'passed_chamber'
+  | 'conference'
+  | 'markup'
+  | 'committee'
+  | 'signed'
+  | 'vetoed'
+  | 'introduced'
+
+// Sparse list-endpoint shape — we never trust list rows for anything
+// other than (congress, type, number) to drive the detail fetch.
+export interface CongressBillListItem {
+  congress: number
+  type: string
+  number: string | number
+  url: string
+}
+
+interface CongressPagination {
+  count?: number
+  next?: string
+}
+
+interface CongressBillListResponse {
+  bills?: CongressBillListItem[]
+  pagination?: CongressPagination
+}
+
+// Detail-endpoint shape — pared down to the fields we actually read.
+// Congress.gov returns far more (committees, cosponsors, related bills,
+// etc.); we omit them rather than pretending to model the whole API.
+//
+// Notably absent: a `summary` / `summaries.text` field. The bill detail
+// endpoint surfaces only a sub-resource pointer — actual summary text
+// lives at /bill/{congress}/{type}/{number}/summaries and requires a
+// separate fetch we don't make in this phase. `bills.summary_text` is
+// therefore always null on initial sync; Phase 3b/4 owns `ai_summary`.
+// If a future phase wants Congress.gov's own summary text, add a
+// fetchBillSummary() call here and populate summary_text from it.
+export interface CongressBillDetail {
+  congress: number
+  type: string
+  number: string | number
+  title: string
+  shortTitle?: string
+  introducedDate?: string
+  updateDate?: string
+  sponsors?: Array<{ bioguideId?: string }>
+  latestAction?: { actionDate?: string; text?: string }
+}
+
+interface CongressBillDetailResponse {
+  bill: CongressBillDetail
+}
+
+const ACCEPTED_BILL_TYPES: ReadonlySet<BillType> = new Set([
+  'hr',
+  's',
+  'hjres',
+  'sjres',
+])
+
+// Exported so the cron can prefilter list-endpoint rows before
+// spending detail-fetch quota on bill types we'll discard anyway
+// (hres, sres, hconres, sconres). Defensive re-check still happens
+// inside mapDetailToBill so unfiltered callers can't write bad rows.
+export function normalizeBillType(raw: string): BillType | null {
+  const lc = raw.toLowerCase()
+  return ACCEPTED_BILL_TYPES.has(lc as BillType) ? (lc as BillType) : null
+}
+
+// ============================================================
+// Bill ingestion — fetchers
+// ============================================================
+
+// Paginates /bill?fromDateTime=... in updateDate-desc order. Returns
+// every list-endpoint row whose update is newer than fromDateTime.
+//
+// Congress.gov returns `pagination.next` as an absolute URL when there
+// are more pages; we follow it directly rather than reconstructing
+// query params, so any sort/filter the server applied is preserved.
+//
+// `format=json` and our api_key are appended to the next URL because
+// Congress.gov echoes `format` and the api_key onto the next link, but
+// belt-and-suspenders to ensure we don't get HTML or 401 if the API
+// shape shifts.
+export async function fetchRecentBills(
+  fromDateTime: string,
+): Promise<CongressBillListItem[]> {
+  // `URL.searchParams.set` URL-encodes `+` to `%2B`, so the combined
+  // `sort=updateDate+desc` form Congress.gov documents in some examples
+  // can't be passed safely through this API. Use the equivalent
+  // `sort=updateDate&direction=desc` two-param form per the spec.
+  // Even if `direction` is ignored on this endpoint, descending update
+  // order is the API default for the bill list.
+  const initial = await congressFetch<CongressBillListResponse>('/bill', {
+    fromDateTime,
+    sort: 'updateDate',
+    direction: 'desc',
+  })
+  const all: CongressBillListItem[] = [...(initial.bills ?? [])]
+  let next = initial.pagination?.next
+
+  while (next) {
+    const url = new URL(next)
+    url.searchParams.set('format', 'json')
+    url.searchParams.set('api_key', process.env.CONGRESS_API_KEY ?? 'DEMO_KEY')
+    const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
+    if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      throw new Error(
+        `Congress.gov pagination error: ${res.status} ${res.statusText} — ${body}`,
+      )
+    }
+    const page = (await res.json()) as CongressBillListResponse
+    all.push(...(page.bills ?? []))
+    next = page.pagination?.next
+  }
+
+  return all
+}
+
+export async function fetchBillDetail(
+  congress: number,
+  type: string,
+  billNumber: number,
+): Promise<CongressBillDetail> {
+  const data = await congressFetch<CongressBillDetailResponse>(
+    `/bill/${congress}/${type.toLowerCase()}/${billNumber}`,
+  )
+  return data.bill
+}
+
+// ============================================================
+// Bill ingestion — mappers
+// ============================================================
+
+// Keyword-based mapping from raw Congress.gov action text to the
+// canonical BillStatus token set. Order matters — more specific
+// patterns (signed, vetoed) come before more generic ones (passed,
+// floor) to avoid accidental capture.
+//
+// Unmatched action text is logged via console.warn and falls through
+// to 'committee'. Production logs surface drift candidates the next
+// time we sweep this file (Phase 3a end-of-phase report lists them).
+export function mapStatusFromAction(actionText: string): BillStatus {
+  const text = actionText.toLowerCase().trim()
+  if (!text) {
+    console.warn('[congress.mapStatusFromAction] empty action text — defaulting to committee')
+    return 'committee'
+  }
+
+  if (text.includes('became public law') || text.includes('signed by president')) {
+    return 'signed'
+  }
+  if (text.includes('vetoed')) return 'vetoed'
+  if (text.includes('conference report') || text.includes('conference committee')) {
+    return 'conference'
+  }
+  if (
     text.includes('passed house') ||
     text.includes('passed senate') ||
     text.includes('passed/agreed to') ||
     text.includes('agreed to in') ||
     text.includes('received in the senate') ||
     text.includes('received in the house') ||
-    text.includes('signed by president') ||
-    text.includes('became public law') ||
-    text.includes('vetoed') ||
-    text.includes('conference report')
-  )
-}
+    text.includes('held at the desk')
+  ) {
+    return 'passed_chamber'
+  }
+  if (
+    text.includes('cloture') ||
+    text.includes('motion to proceed') ||
+    text.includes('floor consideration') ||
+    text.includes('vote scheduled') ||
+    text.includes('placed on') ||
+    text.includes('legislative calendar') ||
+    text.includes('rule providing for') ||
+    text.includes('scheduled for') ||
+    text.includes('considered by')
+  ) {
+    return 'floor_vote'
+  }
+  if (
+    text.includes('markup') ||
+    text.includes('ordered to be reported') ||
+    text.includes('reported by') ||
+    text.includes('reported to')
+  ) {
+    return 'markup'
+  }
+  if (
+    text.includes('introduced in house') ||
+    text.includes('introduced in senate') ||
+    text.includes('read twice and referred') ||
+    text.includes('referred to the')
+  ) {
+    // Treat the canonical "just introduced + referred to committee"
+    // path as 'introduced'. Once a committee acts on it, later cron
+    // runs will roll the status forward to 'committee' / 'markup'.
+    if (text.includes('introduced')) return 'introduced'
+    return 'committee'
+  }
 
-export function mapCongressStatus(actionText: string): string {
-  const text = actionText.toLowerCase()
-  if (text.includes('became public law') || text.includes('signed by president')) return 'signed'
-  if (text.includes('vetoed')) return 'vetoed'
-  if (text.includes('conference report')) return 'conference'
-  if (text.includes('passed house') || text.includes('passed senate') ||
-      text.includes('passed/agreed to') || text.includes('agreed to in') ||
-      text.includes('received in the senate') || text.includes('received in the house')) return 'passed_chamber'
-  if (text.includes('cloture') || text.includes('motion to proceed') ||
-      text.includes('floor consideration') || text.includes('vote scheduled') ||
-      text.includes('placed on') || text.includes('legislative calendar') ||
-      text.includes('rule providing for') || text.includes('scheduled for')) return 'floor_vote'
-  if (text.includes('markup') || text.includes('ordered to be reported')) return 'markup'
+  console.warn(
+    `[congress.mapStatusFromAction] unmatched action text — falling through to 'committee': "${actionText}"`,
+  )
   return 'committee'
 }
 
-export function mapCongressBill(bill: CongressBillSummary): NormalizedFederalBill {
-  const congressNum = bill.congress ?? 119
-  const externalId = `congress-${bill.type?.toLowerCase()}-${bill.number}-${congressNum}`
-  const status = mapCongressStatus(bill.latestAction?.text ?? '')
+// Implements the formula in SCHEMA.md exactly. The status weights are
+// flagged as uncalibrated in migration 006's TODO — do not "improve"
+// them here. Calibration is v1.1 polish.
+//
+// Range: [0.000, 1.000]. The schema CHECK constraint will reject
+// anything outside that band, which we enforce with a final clamp.
+export function computeUrgencyScore(
+  status: BillStatus,
+  lastActionDate: string | null,
+): number {
+  const baseByStatus: Record<BillStatus, number> = {
+    floor_vote: 0.9,
+    passed_chamber: 0.75,
+    conference: 0.75,
+    markup: 0.65,
+    committee: 0.45,
+    signed: 0.3,
+    vetoed: 0.3,
+    introduced: 0.2,
+  }
+  const base = baseByStatus[status] ?? 0.2
+
+  let bonus = 0
+  if (lastActionDate) {
+    const days = (Date.now() - new Date(lastActionDate).getTime()) / 86_400_000
+    if (Number.isFinite(days)) {
+      if (days < 3) bonus = 0.1
+      else if (days < 7) bonus = 0.05
+    }
+  }
+
+  const raw = base + bonus
+  if (raw < 0) return 0
+  if (raw > 1) return 1
+  // numeric(4,3) — three decimal places of precision in the schema.
+  return Math.round(raw * 1000) / 1000
+}
+
+// Maps a Congress.gov detail response to the canonical bill record we
+// upsert into `bills`. Returns null (rather than throwing) when the
+// detail response is missing any field the schema requires NOT NULL —
+// sponsor_bioguide_id, introduced_date, latestAction.text/date,
+// or a non-MVP bill_type. The cron uses the null return to count these
+// as "skipped" so partial-success accounting stays clean: skipped is
+// not the same outcome as a 5xx-from-Congress.gov failure.
+export function mapDetailToBill(detail: CongressBillDetail): CanonicalBill | null {
+  const billType = normalizeBillType(detail.type ?? '')
+  if (!billType) return null
+
+  const billNumber = Number(detail.number)
+  if (!Number.isFinite(billNumber) || billNumber <= 0) return null
+
+  const congressNumber = detail.congress
+  if (!Number.isFinite(congressNumber) || congressNumber <= 0) return null
+
+  const sponsorBioguide = detail.sponsors?.[0]?.bioguideId
+  if (!sponsorBioguide) return null
+
+  const introducedDate = detail.introducedDate
+  if (!introducedDate) return null
+
+  const lastActionText = detail.latestAction?.text
+  const lastActionDate = detail.latestAction?.actionDate
+  if (!lastActionText || !lastActionDate) return null
+
+  const status = mapStatusFromAction(lastActionText)
+  // summary_text is intentionally null at sync time — Congress.gov's
+  // detail endpoint doesn't surface inline summary text, and the lazy
+  // ai_summary path (Phase 3b/4) is what populates the bill detail
+  // page. tagBill runs against the title alone for now; once a future
+  // phase wires the /summaries sub-fetch, pass it as the second arg.
+  const tags = tagBill(detail.title ?? '', '')
+  const issueTags = Array.from(
+    new Set([...tags.subcategory_ids, ...tags.category_ids]),
+  )
 
   return {
-    external_id: externalId,
-    source: 'congress',
-    level: 'federal',
-    state_code: null,
-    bill_number: `${bill.type} ${bill.number}`,
-    title: bill.title,
-    summary: null,
-    full_text_url: bill.url,
+    full_identifier: `${billType}-${billNumber}-${congressNumber}`,
+    congress_number: congressNumber,
+    bill_type: billType,
+    bill_number: billNumber,
+    title: detail.title ?? '',
+    short_title: detail.shortTitle ?? null,
+    summary_text: null,
+    sponsor_bioguide_id: sponsorBioguide,
+    introduced_date: introducedDate,
+    last_action_date: lastActionDate,
+    last_action_text: lastActionText,
     status,
-    vote_date: null,
-    last_action: bill.latestAction?.text ?? '',
-    last_action_date: bill.latestAction?.actionDate ?? '',
-    urgency_score: computeUrgencyScore(status, null, bill.latestAction?.actionDate),
+    congress_gov_url: buildCongressGovUrl(congressNumber, billType, billNumber),
+    issue_tags: issueTags,
+    urgency_score: computeUrgencyScore(status, lastActionDate),
   }
 }
 
-function computeUrgencyScore(
-  status: string,
-  voteDate: string | null,
-  lastActionDate?: string
-): number {
-  if (voteDate) {
-    const days = (new Date(voteDate).getTime() - Date.now()) / 86_400_000
-    if (days <= 1) return 1.0
-    if (days <= 3) return 0.95
-    if (days <= 7) return 0.85
-    if (days <= 30) return 0.65
-    return 0.45
+// Builds the public congress.gov URL deterministically. Congress.gov's
+// detail endpoint doesn't carry a stable public-URL field across API
+// versions, so constructing it ourselves is more robust than parsing
+// for one.
+//
+// Ordinal note: the URL uses `${N}th-congress` which is correct for
+// Congress 119 and 120 (the MVP-era congresses). Congress 121 onward
+// requires proper ordinals — `121st-congress`, `122nd-congress`,
+// `123rd-congress`, then `th` from 124 on. Revisit before Jan 2029.
+function buildCongressGovUrl(
+  congress: number,
+  type: BillType,
+  number: number,
+): string {
+  return `https://www.congress.gov/bill/${congress}th-congress/${billTypePathSegment(type)}/${number}`
+}
+
+// Maps a canonical bill_type token to the URL slug Congress.gov uses
+// in its public web URLs (e.g. 'hr' → 'house-bill').
+function billTypePathSegment(type: BillType): string {
+  switch (type) {
+    case 'hr':
+      return 'house-bill'
+    case 's':
+      return 'senate-bill'
+    case 'hjres':
+      return 'house-joint-resolution'
+    case 'sjres':
+      return 'senate-joint-resolution'
   }
-  if (status === 'signed') return 0.3
-  if (status === 'passed_chamber' || status === 'conference') return 0.75
-  if (status === 'floor_vote') return 0.9
-  if (status === 'markup') return 0.65
-  if (lastActionDate) {
-    const days = (Date.now() - new Date(lastActionDate).getTime()) / 86_400_000
-    if (days < 3) return 0.55
-    if (days < 7) return 0.45
-  }
-  return 0.3
 }
 
 // ============================================================

@@ -14,6 +14,7 @@ import {
   runBillSync,
   readSyncState,
   computeFromDateTime,
+  toCongressDateTime,
 } from '@/lib/bill-sync'
 
 export const maxDuration = 60
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
         { status: 400 },
       )
     }
-    fromDateTime = parsed.toISOString()
+    fromDateTime = toCongressDateTime(parsed)
   } else {
     const admin = createAdminClient()
     const state = await readSyncState(admin).catch(() => null)

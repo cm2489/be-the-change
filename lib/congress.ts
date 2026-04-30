@@ -14,14 +14,40 @@ async function congressFetch<T>(
   url.searchParams.set('api_key', process.env.CONGRESS_API_KEY ?? 'DEMO_KEY')
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
 
-  const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
+  return fetchWithRetry<T>(url.toString())
+}
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => '')
-    throw new Error(`Congress.gov API error: ${res.status} ${res.statusText} — ${body}`)
+// Single retry with 500ms backoff on transient socket failures
+// (`UND_ERR_SOCKET` / "terminated"). Congress.gov drops sockets on
+// deep pagination ranges intermittently; a one-shot retry recovers
+// without needing to fail the whole sync.
+//
+// `cache: 'no-store'` disables Next.js's fetch cache layer. Sync code
+// always wants fresh data per cron run, and the cache layer was
+// surfacing its own "terminated" errors on top of any underlying
+// socket failure (see Phase 3a end-of-phase notes).
+async function fetchWithRetry<T>(urlStr: string): Promise<T> {
+  const doFetch = async () => {
+    const res = await fetch(urlStr, { cache: 'no-store' })
+    if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      throw new Error(
+        `Congress.gov API error: ${res.status} ${res.statusText} — ${body}`,
+      )
+    }
+    return (await res.json()) as T
   }
 
-  return res.json()
+  try {
+    return await doFetch()
+  } catch (err) {
+    const isTransient =
+      err instanceof TypeError ||
+      (err instanceof Error && /terminated|socket|ECONNRESET|fetch failed/i.test(err.message))
+    if (!isTransient) throw err
+    await new Promise(r => setTimeout(r, 500))
+    return await doFetch()
+  }
 }
 
 // ============================================================
@@ -170,14 +196,7 @@ export async function fetchRecentBills(
     const url = new URL(next)
     url.searchParams.set('format', 'json')
     url.searchParams.set('api_key', process.env.CONGRESS_API_KEY ?? 'DEMO_KEY')
-    const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
-    if (!res.ok) {
-      const body = await res.text().catch(() => '')
-      throw new Error(
-        `Congress.gov pagination error: ${res.status} ${res.statusText} — ${body}`,
-      )
-    }
-    const page = (await res.json()) as CongressBillListResponse
+    const page = await fetchWithRetry<CongressBillListResponse>(url.toString())
     all.push(...(page.bills ?? []))
     next = page.pagination?.next
   }

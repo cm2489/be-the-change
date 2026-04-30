@@ -268,12 +268,23 @@ export function computeFromDateTime(
   initialLookbackDays = 7,
   overlapHours = 48,
 ): string {
-  if (!lastSuccessAt) {
-    return new Date(Date.now() - initialLookbackDays * 86_400_000).toISOString()
-  }
-  return new Date(
-    new Date(lastSuccessAt).getTime() - overlapHours * 3_600_000,
-  ).toISOString()
+  const target = !lastSuccessAt
+    ? new Date(Date.now() - initialLookbackDays * 86_400_000)
+    : new Date(
+        new Date(lastSuccessAt).getTime() - overlapHours * 3_600_000,
+      )
+  return toCongressDateTime(target)
+}
+
+// Congress.gov's /bill?fromDateTime=... endpoint accepts only the
+// strict `%Y-%m-%dT%H:%M:%SZ` format — Date#toISOString's millisecond
+// component (`.755`) trips a 400 Bad Request. Strip the fractional
+// seconds and keep the trailing Z.
+//
+// Exported for the admin route, which needs to apply the same
+// normalization to the user-supplied ?since override.
+export function toCongressDateTime(date: Date): string {
+  return date.toISOString().replace(/\.\d+Z$/, 'Z')
 }
 
 // sync_state singleton helpers. The table has a UNIQUE INDEX on the

@@ -119,6 +119,18 @@ export async function runBillSync(
         return
       }
 
+      // Substance filter: skip bills still at 'introduced'. These are
+      // mostly bookkeeping noise — sponsor swaps, introductory remarks,
+      // bills that will never move. The feed should surface bills
+      // committee-stage or later, where there's something to act on.
+      // See docs/deferred.md#substance-filter-introduced-bills for the
+      // v1.1 work to surface introduced-status bills selectively
+      // (cosponsor count, sponsor role, AI substance classifier, etc.).
+      if (canonical.status === 'introduced') {
+        skipped++
+        return
+      }
+
       try {
         const appended = await upsertBillWithActionLog(supabase, canonical)
         synced++
@@ -258,6 +270,10 @@ async function withConcurrency<T>(
 // First run (lastSuccessAt null): use a fixed initial lookback. We
 // don't backfill all of history from the cron — that's a one-shot
 // script tracked in docs/deferred.md#feature-3-backfill-119th-congress.
+// 1 day chosen over 7 to fit comfortably under the 60s Vercel ceiling
+// — a 7-day initial window pulled ~1,350 bills in the first live run,
+// taking 83 seconds (over the cap). Nightly incremental runs use the
+// 48h overlap, which is a smaller delta from any prior sync.
 //
 // Subsequent runs: subtract a 48-hour overlap window from the prior
 // success timestamp. The overlap absorbs Congress.gov's update-time
@@ -265,7 +281,7 @@ async function withConcurrency<T>(
 // upserts make the redundant fetches harmless.
 export function computeFromDateTime(
   lastSuccessAt: string | null,
-  initialLookbackDays = 7,
+  initialLookbackDays = 1,
   overlapHours = 48,
 ): string {
   const target = !lastSuccessAt

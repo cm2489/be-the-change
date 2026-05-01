@@ -105,6 +105,7 @@ At the start of every coding session, Claude should:
 - Do not disable TypeScript errors with `@ts-ignore` or `@ts-expect-error` without a comment explaining the specific reason and a plan to remove.
 - Do not commit directly to `main`. Use feature branches. Every feature = one branch.
 - Do not ship a feature without at least one Playwright test covering the happy path.
+- **Do not run destructive MCP operations on production Supabase without an explicit approval prompt.** TRUNCATE, DELETE, DROP, ALTER (data or schema), and anything else that removes data or modifies schema outside a tracked migration must be confirmed with the user before execution — same approval gate as destructive bash commands. A pre-action "heads up" notice is not approval. "Risk is essentially zero" framing is not sufficient justification. Default = ask, not act. Schema changes belong in `supabase/migrations/`, not in ad-hoc MCP DDL.
 
 ## Commit Discipline
 

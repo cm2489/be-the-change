@@ -191,12 +191,18 @@ A pre-warm script accepts a list of bill ids (CLI args or a `demo-bills.txt` fil
 
 `computeUrgencyScore` runs at sync time against the stored status, which means a bill in its first 7 days is scored against `'committee'` (~0.45) while users see it displayed as `'introduced'`. The Phase 2 STRATEGY note already flagged the urgency weights as uncalibrated for v1.1; this is the same calibration debt now made visible by the time-based display split.
 
-**When revisiting urgency weights, decide whether to:**
+**Decision (2026-05-01, see `STRATEGY.md` §11): option (b) below — accept the divergence for v1.1.**
 
-- **(a) Recompute urgency at read-time** alongside `deriveDisplayStatus`, so display status and urgency tier always match. Costs a per-row computation on every feed query but keeps the contract crisp.
-- **(b) Accept that "introduced" as a display state doesn't carry its own urgency tier.** Bills in their first 7 days display as introduced but rank against the committee weight in the feed sort. Cheaper, less semantically clean.
+The urgency weights are uncalibrated for v1.1 anyway per the Phase 2 STRATEGY note. Polishing one component (status-tier mapping) when the underlying weights are themselves uncalibrated would be premature optimization. The mismatch will be reconciled as part of the full urgency calibration pass, not as a one-off.
 
-Cross-link: time-based status decision in `STRATEGY.md` §11.
+**Chosen for v1.1 — option (b): accept divergence.**
+Bills in their first 7 days display as `'introduced'` but rank against the `'committee'` urgency tier (~0.45) in the feed sort. Display status and sort weight don't agree, but neither does anything else in the urgency model right now. Cheaper, less semantically clean, defensible until calibration.
+
+**Alternative (deferred to the urgency calibration pass) — option (a): recompute urgency at read-time** alongside `deriveDisplayStatus`, so display status and urgency tier always match. Costs a per-row computation on every feed query but keeps the contract crisp. Revisit when the calibration pass happens; if the calibration pass concludes that `'introduced'` wants its own urgency tier, this is the implementation path.
+
+A second alternative also rejected at decision time: add an `'introduced'` urgency tier to `computeUrgencyScore` and write at sync time. Requires a migration to update existing rows and tightly couples the display-state and storage layers; less attractive than (a) when the calibration pass eventually engages.
+
+**Cross-link:** time-based status decision and this v1.1 choice in `STRATEGY.md` §11.
 
 ---
 

@@ -137,21 +137,28 @@ That's fine for additive migrations. It is not fine for destructive ones — col
 
 ### substance-filter-introduced-bills
 
-**Priority:** V2
-**Where in code:** `lib/bill-sync.ts` — `runBillSync` per-bill loop, the `canonical.status === 'introduced'` skip branch.
+**Priority:** V1.1 (product calibration)
+**Where in code:** `lib/congress.ts` — `deriveDisplayStatus` is what surfaces a bill as `'introduced'` for its first 7 days. The substance signals discussed below would feed into either a feed-side filter or a separate "introduced-but-noteworthy" UI affordance.
 
-The Phase 3a cron skips every bill whose status maps to `'introduced'`. The first live sync's `mapStatusFromAction` warn output showed why: a 1,350-bill window contained large clusters of pure-bookkeeping action text (sponsor swaps, "Sponsor introductory remarks on measure", procedural reprintings). These bills mostly never move, and surfacing them in the feed dilutes signal without payoff.
+The 7-day display window from `deriveDisplayStatus` (Phase 3a refactor) means the feed will show every bill in its first week — including procedural noise like sponsor swaps ("ASSUMING FIRST SPONSORSHIP"), introductory-remark entries, and bills that will never move. The first live sync's `mapStatusFromAction` warn output documented dozens of distinct procedural-text patterns inside a 24-hour window: most bills introduced in any given week are not substantive in the sense a user cares about.
 
-The blanket skip is correct for MVP. It is also too coarse long-term: some genuinely substantive bills sit at `introduced` for weeks before committee assignment, and we'd want to surface the meaningful subset.
+The product question for v1.1 is: **how do we keep the introduced-display window from being dominated by procedural noise without hiding genuinely substantive bills that haven't yet had committee action?**
 
-**V2 candidates for surfacing introduced-status bills selectively:**
+**Candidate substance signals to combine:**
 - Cosponsor count threshold (e.g. ≥10 cosponsors → likely substantive)
-- Sponsor role (committee chair / leadership → higher prior on substance)
+- Sponsor seniority / role (committee chair, ranking member, leadership → higher prior on substance)
 - AI substance classifier on title + summary (Claude call gated by daily cost cap, similar to the script-generation pattern)
 - Keyword-density heuristic against the issue taxonomy (`lib/interests.ts`) — bills whose title hits multiple high-signal keywords are likely substantive
-- Any combination, possibly tuned against beta tester complaints
+- Any combination, tuned against beta complaints
 
-**Trigger to revisit:** beta feedback of the form "I'm following Issue X but the feed is empty" or "There's a major bill on Issue X that's not showing up" — i.e. evidence that the blanket skip is now hiding real bills, not just noise.
+**Possible product shapes once a signal is chosen:**
+- Filter `'introduced'`-display bills below a substance threshold out of the personalized feed entirely.
+- Surface them in a secondary "Recently introduced" section beneath the main feed, ordered by substance score.
+- Surface all of them but de-rank — keep the existing feed sort and let urgency win against introduced-display urgency naturally.
+
+**Cross-link:** time-based status decision in `STRATEGY.md` §11.
+
+**Trigger to revisit:** beta feedback of the form "I'm following Issue X but the feed is full of nothing" or "There's a major bill on Issue X that's not showing up." Either signal — too much noise, or substantive bills missing — is evidence that we need to engage with the substance question rather than rely on the blanket time-based window.
 
 ---
 
@@ -170,6 +177,26 @@ A pre-warm script accepts a list of bill ids (CLI args or a `demo-bills.txt` fil
 - Iteration cost is your laptop time, not serverless invocation cost.
 
 **Trigger to build it:** before the first scheduled donor demo. Until then, the lazy path works for ad-hoc usage.
+
+---
+
+## Status & Urgency Calibration (v1.1)
+
+### urgency-score-display-status-mismatch
+
+**Priority:** V1.1 (calibration debt)
+**Where in code:**
+- `lib/congress.ts` — `computeUrgencyScore` is called inside `mapDetailToBill` against the stored `BillStatus` at sync time.
+- `lib/congress.ts` — `deriveDisplayStatus` returns the read-time display status (introduced for the first 7 days).
+
+`computeUrgencyScore` runs at sync time against the stored status, which means a bill in its first 7 days is scored against `'committee'` (~0.45) while users see it displayed as `'introduced'`. The Phase 2 STRATEGY note already flagged the urgency weights as uncalibrated for v1.1; this is the same calibration debt now made visible by the time-based display split.
+
+**When revisiting urgency weights, decide whether to:**
+
+- **(a) Recompute urgency at read-time** alongside `deriveDisplayStatus`, so display status and urgency tier always match. Costs a per-row computation on every feed query but keeps the contract crisp.
+- **(b) Accept that "introduced" as a display state doesn't carry its own urgency tier.** Bills in their first 7 days display as introduced but rank against the committee weight in the feed sort. Cheaper, less semantically clean.
+
+Cross-link: time-based status decision in `STRATEGY.md` §11.
 
 ---
 

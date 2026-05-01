@@ -216,17 +216,24 @@ export async function fetchBillDetail(
 }
 
 // ============================================================
-// Bill ingestion — mappers
+// SYNC-TIME STATUS DERIVATION
 // ============================================================
 
 // Keyword-based mapping from raw Congress.gov action text to the
-// canonical BillStatus token set. Order matters — more specific
-// patterns (signed, vetoed) come before more generic ones (passed,
-// floor) to avoid accidental capture.
+// canonical BillStatus token set.
+//
+// IMPORTANT: This function never returns 'introduced'. The
+// introduced→committee boundary is time-based and applied at read-time
+// via deriveDisplayStatus(). At sync time we record the highest
+// action-text-implied state; for brand-new bills that's 'committee'
+// (referral happens automatically and almost always within hours of
+// introduction).
+//
+// Order matters — more specific patterns (signed, vetoed) come before
+// more generic ones (passed, floor) to avoid accidental capture.
 //
 // Unmatched action text is logged via console.warn and falls through
-// to 'committee'. Production logs surface drift candidates the next
-// time we sweep this file (Phase 3a end-of-phase report lists them).
+// to 'committee'. Production logs surface drift candidates.
 export function mapStatusFromAction(actionText: string): BillStatus {
   const text = actionText.toLowerCase().trim()
   if (!text) {
@@ -273,22 +280,70 @@ export function mapStatusFromAction(actionText: string): BillStatus {
   ) {
     return 'markup'
   }
+  // Brand-new bills land here. The "Read twice and referred to..." path
+  // is recorded as 'committee' — the 'introduced' display state is
+  // derived at read time from introduced_date, not action text.
   if (
     text.includes('introduced in house') ||
     text.includes('introduced in senate') ||
     text.includes('read twice and referred') ||
     text.includes('referred to the')
   ) {
-    // Treat the canonical "just introduced + referred to committee"
-    // path as 'introduced'. Once a committee acts on it, later cron
-    // runs will roll the status forward to 'committee' / 'markup'.
-    if (text.includes('introduced')) return 'introduced'
     return 'committee'
   }
 
   console.warn(
     `[congress.mapStatusFromAction] unmatched action text — falling through to 'committee': "${actionText}"`,
   )
+  return 'committee'
+}
+
+// ============================================================
+// READ-TIME STATUS DERIVATION
+// ============================================================
+
+// Number of days a bill displays as 'introduced' before transitioning
+// to its stored sync-time status. 7 days per Phase 3a product call.
+export const RECENTLY_INTRODUCED_WINDOW_DAYS = 7
+
+// Returns the user-facing display status for a bill. For the first
+// RECENTLY_INTRODUCED_WINDOW_DAYS after introduction, returns
+// 'introduced' regardless of stored status — unless the bill has
+// already advanced past committee, in which case the stored status
+// wins (a bill that passes the House on day 3 must not display as
+// 'introduced').
+//
+// Pure function — no DB access, no side effects. Call from feed-query
+// post-processing or from the bill detail-page renderer in Phase 3b.
+export function deriveDisplayStatus(
+  storedStatus: BillStatus,
+  introducedDate: string,
+  now: Date = new Date(),
+): BillStatus {
+  // Stored statuses that mean "something past committee has happened" —
+  // never override with 'introduced' even if the bill is <7 days old.
+  const advancedStatuses: ReadonlySet<BillStatus> = new Set([
+    'markup',
+    'floor_vote',
+    'passed_chamber',
+    'conference',
+    'signed',
+    'vetoed',
+  ])
+  if (advancedStatuses.has(storedStatus)) return storedStatus
+
+  // storedStatus is 'committee' or (legacy) 'introduced' — apply the
+  // time-based override.
+  const introduced = new Date(introducedDate)
+  if (Number.isNaN(introduced.getTime())) {
+    // Defensive: malformed date string. Trust the stored status.
+    return storedStatus
+  }
+
+  const ageMs = now.getTime() - introduced.getTime()
+  const ageDays = ageMs / (1000 * 60 * 60 * 24)
+
+  if (ageDays < RECENTLY_INTRODUCED_WINDOW_DAYS) return 'introduced'
   return 'committee'
 }
 

@@ -119,18 +119,6 @@ export async function runBillSync(
         return
       }
 
-      // Substance filter: skip bills still at 'introduced'. These are
-      // mostly bookkeeping noise — sponsor swaps, introductory remarks,
-      // bills that will never move. The feed should surface bills
-      // committee-stage or later, where there's something to act on.
-      // See docs/deferred.md#substance-filter-introduced-bills for the
-      // v1.1 work to surface introduced-status bills selectively
-      // (cosponsor count, sponsor role, AI substance classifier, etc.).
-      if (canonical.status === 'introduced') {
-        skipped++
-        return
-      }
-
       try {
         const appended = await upsertBillWithActionLog(supabase, canonical)
         synced++

@@ -135,6 +135,26 @@ That's fine for additive migrations. It is not fine for destructive ones — col
 
 ---
 
+### substance-filter-introduced-bills
+
+**Priority:** V2
+**Where in code:** `lib/bill-sync.ts` — `runBillSync` per-bill loop, the `canonical.status === 'introduced'` skip branch.
+
+The Phase 3a cron skips every bill whose status maps to `'introduced'`. The first live sync's `mapStatusFromAction` warn output showed why: a 1,350-bill window contained large clusters of pure-bookkeeping action text (sponsor swaps, "Sponsor introductory remarks on measure", procedural reprintings). These bills mostly never move, and surfacing them in the feed dilutes signal without payoff.
+
+The blanket skip is correct for MVP. It is also too coarse long-term: some genuinely substantive bills sit at `introduced` for weeks before committee assignment, and we'd want to surface the meaningful subset.
+
+**V2 candidates for surfacing introduced-status bills selectively:**
+- Cosponsor count threshold (e.g. ≥10 cosponsors → likely substantive)
+- Sponsor role (committee chair / leadership → higher prior on substance)
+- AI substance classifier on title + summary (Claude call gated by daily cost cap, similar to the script-generation pattern)
+- Keyword-density heuristic against the issue taxonomy (`lib/interests.ts`) — bills whose title hits multiple high-signal keywords are likely substantive
+- Any combination, possibly tuned against beta tester complaints
+
+**Trigger to revisit:** beta feedback of the form "I'm following Issue X but the feed is empty" or "There's a major bill on Issue X that's not showing up" — i.e. evidence that the blanket skip is now hiding real bills, not just noise.
+
+---
+
 ### feature-3-prewarm-demo-bills
 
 **Priority:** MVP-OK (deferred from Phase 2; needs to run before each donor demo)
@@ -285,7 +305,33 @@ Standing comment warns against re-adding `isPremium`/freemium gating. This is fi
 
 ---
 
+## Supabase advisor lints (pre-existing)
+
+### auth-trigger-and-leaked-password-lints
+
+**Priority:** DEBT
+**Where in code:**
+- `supabase/migrations/002_align_to_schema.sql` — original `handle_new_user` definition
+- `supabase/migrations/004_fix_profile_trigger_search_path.sql` — partial fix (qualified `public.profiles`)
+- Supabase Auth dashboard — "Leaked Password Protection" toggle
+
+Four WARN-level findings surfaced during the Phase 2 advisor diff. None are exploitable today; tracked here so they aren't rediscovered as "new" later.
+
+1. **`function_search_path_mutable` on `handle_new_user`** — the trigger function lacks an explicit `SET search_path` clause. Migration 004 addressed the symptom (qualified `public.profiles` in the body) but didn't pin the function's own `search_path`. Advisor still flags it because the function definition is still mutable-by-default.
+2. **Two `*_security_definer_function_executable` lints on `handle_new_user`** — flagged because it's `SECURITY DEFINER` and grantable to `public`. The trigger only fires on `auth.users` insert via the `on_auth_user_created` trigger and isn't reachable from RPC, so the practical risk is low, but tightening grants is best practice.
+3. **`auth_leaked_password_protection`** — Supabase Auth dashboard setting that gates HIBP-checked passwords at signup. Off by default. No code change required to enable.
+
+**Fix sketch (for the trigger):** add `SET search_path = public` to the `CREATE OR REPLACE FUNCTION handle_new_user()` body in a new migration; revoke `EXECUTE ... FROM public` and re-grant only to the postgres owner. Verify via `supabase db lint` afterward.
+
+**Fix sketch (for leaked-password):** flip the toggle in the Supabase dashboard → Authentication → Policies. No migration needed.
+
+**Trigger to fix:** Week 5 polish or beta hardening, not earlier. None of these block any MVP feature; surfacing them in a phase that's rewriting unrelated code (Phase 3a) would expand scope without payoff.
+
+---
+
 ## Change log
 
 - 2026-04-24 — Initial creation during Feature 2 sweep (Colby + Claude). Captured Feature 2 vacancy edges, four broken pre-existing routes, freemium lib remnant, type debt, three already-commented UX v2 items.
 - 2026-04-28 — Feature 3 Phase 2 (migration + taxonomy lock). Added `feature-3-backfill-119th-congress` and `feature-3-prewarm-demo-bills` — both deferred from Phase 2 by explicit Phase 1 decision (logged in STRATEGY.md §11). Added `local-supabase-stack` — Docker Desktop + `supabase init` deferred until first destructive migration; additive migrations push-and-verify-via-MCP.
+- 2026-04-28 — Feature 3 Phase 3a (cron + admin sync rewrite). Added `auth-trigger-and-leaked-password-lints` covering the four WARN-level Supabase advisor findings from the Phase 2 diff. Track-only in this phase; fix scheduled for Week 5 polish or beta hardening.
+- 2026-04-30 — Feature 3 Phase 3a closeout. Added `substance-filter-introduced-bills` — the cron now blanket-skips `'introduced'`-status bills as MVP signal/noise control. V1.1 work to surface substantive introduced bills selectively.

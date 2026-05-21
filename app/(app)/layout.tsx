@@ -14,8 +14,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, onboarding_completed, onboarding_skipped')
-    .eq('id', session.user.id)
+    .select('full_name, onboarding_completed_at')
+    .eq('user_id', session.user.id)
     .single()
 
   const userName = profile?.full_name || session.user.email?.split('@')[0] || 'there'

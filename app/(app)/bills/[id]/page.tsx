@@ -2,15 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-// The "Make your call" rep selector + CallFlow modal previously lived on
-// this page. Both depended on routes that no longer exist (/api/representatives
-// stub) or aren't built yet (/api/scripts → Feature 4, /api/calls → Feature 5).
-// For now we link out to /representatives instead — Features 4 + 5 will
-// re-introduce an inline call flow here.
-// See docs/deferred.md#callflow-bills-detail.
+import { ScriptFlow } from '@/components/ScriptFlow'
 import { urgencyLabel, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
@@ -139,19 +133,10 @@ export default function BillDetailPage() {
         </div>
       </div>
 
-      {/* Call CTA — points users at /representatives until Features 4 + 5
-          rebuild the inline script + call flow. See deferred.md#callflow-bills-detail. */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h2 className="text-lg font-bold text-slate-900 mb-1">Make your voice heard</h2>
-        <p className="text-sm text-slate-500 mb-4">
-          Call your federal representatives about this bill.
-        </p>
-        <Link href="/representatives">
-          <Button size="lg" className="w-full sm:w-auto">
-            📞 See my representatives
-          </Button>
-        </Link>
-      </div>
+      {/* Feature 4: AI script flow. Feature 5 will swap the "Call my
+          representative" CTA inside ScriptFlow for an actual call surface;
+          for now it links out to /representatives once the script is saved. */}
+      <ScriptFlow billId={bill.id} />
 
     </div>
   )

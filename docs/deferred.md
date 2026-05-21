@@ -265,12 +265,65 @@ Inserts into `call_logs` — schema is `call_events`. Column drift beyond just t
 
 ### schema-drift-scripts
 
-**Priority:** BLOCK
-**Where in code:** `app/api/scripts/route.ts`
+**Priority:** RESOLVED (2026-05-21)
+**Where in code:** ~~`app/api/scripts/route.ts`~~
 
-Queries a `scripts` table that does not exist (schema has `script_generations`). Also references `script_type` and `representative_id` — neither exists on `script_generations` per `SCHEMA.md`. Every call to this route crashes.
+Pre-Feature-4 route queried a non-existent `scripts` table with non-canonical columns (`script_type`, `representative_id`). Rewritten in Feature 4 against `script_generations` per SCHEMA.md: cache-first lookup by `(user_id, bill_id, stance)`, persist `prompt_hash`, `model`, `input_tokens`, `output_tokens`, `cost_usd`. Stance enum aligned to the canonical `'support'|'oppose'|'undecided'` (was `'concerned'`).
 
-Feature 4 (AI Script Generation) is not yet built. This route may or may not be the right starting point for Feature 4 — decide when scoping Feature 4, and either rewrite to match the current schema or delete outright.
+---
+
+### feature-4-rep-personalization
+
+**Priority:** V2
+**Where in code:**
+- `lib/anthropic.ts` — `buildUserPrompt` instructs the model to address the recipient as a generic "Representative" rather than by name
+- `app/api/scripts/route.ts` — does not load the user's representatives at all
+- SCHEMA.md / migration 002 — `script_generations` UNIQUE constraint is `(user_id, bill_id, stance)` with no rep dimension
+
+FEATURES.md §4 specifies the script should be "personalized with: user's values, stance on the bill, bill summary, **rep's name and party**." The canonical `script_generations` cache key has no rep dimension, so the script body must be rep-agnostic — otherwise the same cached row would be served for a House call and a Senate call with the wrong rep's name baked in.
+
+**MVP behavior:** the generated script uses a generic "Representative" salutation, and the user fills in the actual rep's name in the editable textarea before the call. This is exactly what the "Save & Review" step is for.
+
+**Trade-off:** A user calling their House rep and one of their Senators sees the same script body twice (one cache row). The personalization the user gets is real (values, interests, stance, bill), but rep-specific tailoring is shifted to the human edit step rather than the model.
+
+**V2 path (if/when this becomes load-bearing):**
+- Add `representative_id uuid` to `script_generations` and migrate the UNIQUE constraint to `(user_id, bill_id, stance, representative_id)`.
+- Update `/api/scripts` to require `representativeId` in the request body and load the rep's name + party + chamber for prompt construction.
+- Update `lib/anthropic.ts` to include rep fields in `ScriptRequest` and drop the "address as Representative generically" instruction.
+
+**Trigger to revisit:** beta feedback indicating the rep-agnostic body feels generic, or a donor demo where the editable-name step is awkward on stage.
+
+---
+
+### dead-civic-classes
+
+**Priority:** DEBT (high — visible)
+**Where in code:** Class-name references to `civic-50` / `civic-200` / `civic-300` / `civic-400` / `civic-600` / `civic-700` / `civic-800` across the app. Affected files:
+- `app/page.tsx` (landing)
+- `app/(app)/dashboard/page.tsx`
+- `app/(app)/onboarding/page.tsx`
+- `app/(app)/representatives/page.tsx`
+- `app/(app)/settings/page.tsx`
+- `app/(app)/bills/[id]/page.tsx`
+- `app/(auth)/forgot-password/page.tsx`
+- `app/(auth)/login/page.tsx`
+- `app/(auth)/reset-password/page.tsx`
+- `app/(auth)/signup/page.tsx`
+- `components/BillCard.tsx`
+- `components/CallFlow.tsx` (unused, but contains civic-* references)
+- `components/ImpactMetrics.tsx`
+- `components/NavBar.tsx`
+
+**Situation:** `tailwind.config.ts` defines the design palette as `ink / signal / paper / divider / graphite / moss / amber / oxblood`. There is no `civic-*` color extension anywhere — not in the Tailwind config, not in `app/globals.css`, not in any CSS variables. Tailwind silently drops unknown utility classes at build time, so every `civic-*` reference renders as a no-op: no background color, no text color, no border. The pages still render because surrounding utilities (text-slate-X, bg-white, border-slate-200) carry the styling, but the *intended accent color* is missing across the entire app.
+
+This was discovered while scoping Feature 4 — the user instructed "use existing design tokens (civic-600 etc.)" and verification showed `civic-*` is not an existing token. Feature 4 (ScriptFlow + bill detail page edits) uses the real `ink/signal/paper` tokens via the existing Button variants and matches the actual design system. New code does not introduce more `civic-*` references.
+
+**Fix options:**
+1. **Replace `civic-*` with `ink-*`/`signal-*` everywhere.** Closest to the apparent design intent (the Button variants already encode the system). Single mechanical PR.
+2. **Define a `civic` palette in `tailwind.config.ts`.** Lights up all existing references at once. Requires picking colors — visual identity decision that the user has explicitly deferred ("don't invent new visual identity").
+3. **Migrate to a CSS-variable-driven palette.** Bigger change; pairs with the v3→v4 Tailwind upgrade if/when that happens.
+
+**Trigger to fix:** before the first donor demo, since "accent color missing" is a visible polish problem on every page. Option (1) is the cheapest path and aligns with the existing Button design tokens.
 
 ---
 
@@ -397,3 +450,4 @@ Four WARN-level findings surfaced during the Phase 2 advisor diff. None are expl
 - 2026-04-28 — Feature 3 Phase 3a (cron + admin sync rewrite). Added `auth-trigger-and-leaked-password-lints` covering the four WARN-level Supabase advisor findings from the Phase 2 diff. Track-only in this phase; fix scheduled for Week 5 polish or beta hardening.
 - 2026-04-30 — Feature 3 Phase 3a closeout. Added `substance-filter-introduced-bills` — the cron now blanket-skips `'introduced'`-status bills as MVP signal/noise control. V1.1 work to surface substantive introduced bills selectively.
 - 2026-05-21 — Bill detail + BillCard schema-drift fix + first Playwright happy-path spec on the bill feed. Added `schema-drift-bill-detail-and-card` (RESOLVED) and `feature-3-bill-number-missing-from-feed-rpcs` (DEBT, surfaced during the sweep).
+- 2026-05-21 — Feature 4 (AI call script) end-to-end. Marked `schema-drift-scripts` as RESOLVED, added `feature-4-rep-personalization` (V2; documents the cache-key trade-off) and `dead-civic-classes` (DEBT, high-visibility — surfaced during Feature 4 scoping when `civic-*` was confirmed undefined in the Tailwind config).

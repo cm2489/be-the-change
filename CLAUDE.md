@@ -112,6 +112,8 @@ At the start of every coding session, Claude should:
 - One feature per branch. Branch name format: `feat/[short-description]` or `fix/[short-description]`.
 - Commit messages: imperative mood, first line under 72 chars. ("Add rep lookup by ZIP", not "Added rep lookup")
 - Before every commit: `npm run lint` must pass. Build must pass. Any Playwright test related to the touched code must pass.
+- Stacked branches: when a feature branch is based on another unmerged branch, the parent must land on `main` first. Don't open a child PR against `main` while its parent is unmerged — the child's diff will silently bundle the parent's commits.
+- Before any `git push` or `gh pr create`, run `git log main..<branch>` and state what the PR actually carries. Never assume a child branch's PR contains only the child's commits.
 
 ## When Things Break
 

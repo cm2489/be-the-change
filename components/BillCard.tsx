@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { cn, urgencyLabel } from '@/lib/utils'
+import { deriveDisplayStatus, type BillStatus } from '@/lib/congress'
 
 interface BillCardProps {
   bill: {
@@ -9,6 +10,7 @@ interface BillCardProps {
     ai_summary?: string | null
     summary_text?: string | null
     status: string
+    introduced_date: string
     urgency_score: number
     issue_tags?: string[] | null
   }
@@ -18,6 +20,9 @@ interface BillCardProps {
 export function BillCard({ bill, compact = false }: BillCardProps) {
   const urgency = urgencyLabel(bill.urgency_score)
   const displaySummary = bill.ai_summary || bill.summary_text
+  // bills.status is a closed token set (see BillStatus in lib/congress.ts);
+  // the RPC SELECTs the column directly so the cast is safe at this boundary.
+  const displayStatus = deriveDisplayStatus(bill.status as BillStatus, bill.introduced_date)
 
   return (
     <Link href={`/bills/${bill.id}`}>
@@ -67,7 +72,7 @@ export function BillCard({ bill, compact = false }: BillCardProps) {
 
         {/* Footer */}
         <div className="mt-3 flex items-center justify-between">
-          <span className="text-xs text-slate-400 capitalize">{bill.status?.replace('_', ' ')}</span>
+          <span className="text-xs text-slate-400 capitalize">{displayStatus.replace('_', ' ')}</span>
 
           <span className="text-xs font-medium text-civic-600 group-hover:text-civic-700">
             Take action →

@@ -16,18 +16,16 @@ import { cn } from '@/lib/utils'
 
 interface Bill {
   id: string
-  bill_number: string
+  bill_number: number
   title: string
-  summary: string | null
+  summary_text: string | null
   ai_summary: string | null
-  level: string
-  state_code: string | null
   status: string
-  vote_date: string | null
-  last_action: string | null
+  last_action_text: string | null
+  last_action_date: string | null
   urgency_score: number
-  full_text_url: string | null
-  tags: string[] | null
+  congress_gov_url: string | null
+  issue_tags: string[] | null
 }
 
 export default function BillDetailPage() {
@@ -83,7 +81,7 @@ export default function BillDetailPage() {
   }
 
   const urgency = urgencyLabel(bill.urgency_score)
-  const displaySummary = bill.ai_summary || bill.summary
+  const displaySummary = bill.ai_summary || bill.summary_text
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
@@ -106,8 +104,9 @@ export default function BillDetailPage() {
           >
             {urgency.label}
           </span>
+          {/* Federal-only per MVP scope (FEATURES.md); v2 reintroduces a level/state-code branch. */}
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-            {bill.level === 'federal' ? '🇺🇸 Federal' : `🏛️ ${bill.state_code}`}
+            🇺🇸 Federal
           </span>
           <span className="text-xs text-slate-400">{bill.bill_number}</span>
         </div>
@@ -119,15 +118,17 @@ export default function BillDetailPage() {
         )}
 
         <div className="flex items-center gap-4 text-xs text-slate-400 border-t border-slate-100 pt-4">
-          {bill.vote_date && (
-            <span>Vote scheduled: <strong className="text-slate-600">{formatDate(bill.vote_date)}</strong></span>
+          {bill.last_action_text && (
+            <span className="line-clamp-1">
+              Last action: {bill.last_action_text}
+              {bill.last_action_date && (
+                <span className="text-slate-500"> ({formatDate(bill.last_action_date)})</span>
+              )}
+            </span>
           )}
-          {bill.last_action && (
-            <span className="line-clamp-1">Last action: {bill.last_action}</span>
-          )}
-          {bill.full_text_url && (
+          {bill.congress_gov_url && (
             <a
-              href={bill.full_text_url}
+              href={bill.congress_gov_url}
               target="_blank"
               rel="noopener noreferrer"
               className="text-civic-600 hover:underline ml-auto flex-shrink-0"

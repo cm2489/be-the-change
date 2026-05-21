@@ -210,6 +210,34 @@ A second alternative also rejected at decision time: add an `'introduced'` urgen
 
 These files were already in the codebase when Feature 2 work began. They were broken before any of my changes. Surfaced here for a clean cleanup decision before launch.
 
+### schema-drift-bill-detail-and-card
+
+**Priority:** RESOLVED (2026-05-21)
+**Where in code:** ~~`app/(app)/bills/[id]/page.tsx`~~, ~~`components/BillCard.tsx`~~
+
+Same pattern as `schema-drift-sync-bills` — the bill detail page and the `BillCard` component were both written against the pre-002 bills schema. References to `summary`, `level`, `state_code`, `vote_date`, `last_action`, `full_text_url`, and `tags` survived migration 002. Visible symptoms before the fix: "🏛️ undefined" badges across the feed (level fall-through), missing Congress.gov summary text (only `ai_summary` was rendered), no "Last action" line on detail, no "Full text →" link.
+
+Mapped to canonical columns (`summary_text`, `last_action_text` + `last_action_date`, `congress_gov_url`, `issue_tags`); deleted `level`, `state_code`, `vote_date` outright since they don't exist on the canonical schema and the project is federal-only by scope. Federal badge is now hardcoded in both files with a one-line scope reference. Covered by `tests/bills.spec.ts` to prevent regression.
+
+---
+
+### feature-3-bill-number-missing-from-feed-rpcs
+
+**Priority:** DEBT
+**Where in code:**
+- `components/BillCard.tsx` — renders `{bill.bill_number}` in the card header
+- `supabase/migrations/006_feature3_bill_feed.sql` — `get_default_feed` and `get_personalized_feed` return columns do NOT include `bill_number`
+
+`bills.bill_number` is `int NOT NULL`, but the feed RPCs return only `full_identifier` (e.g. `hr-1234-119`). `BillCard` reads `bill.bill_number` and renders empty in the live feed. The bill detail page is unaffected — it uses `.from('bills').select('*')` which returns `bill_number`.
+
+**Fix options (v1.1 hygiene pass):**
+1. Add `bill_number` to the RPC return columns in a new migration.
+2. Switch `BillCard`'s identifier slot to `full_identifier`, which is also the more "official" form Congress.gov uses publicly.
+
+(2) is the smaller change and probably the better UX (most users recognize "HR 1234 (119th)" over a bare `1234`).
+
+---
+
 ### schema-drift-sync-bills
 
 **Priority:** BLOCK (neutralized in production via cron disable; still a latent bug)
@@ -368,3 +396,4 @@ Four WARN-level findings surfaced during the Phase 2 advisor diff. None are expl
 - 2026-04-28 — Feature 3 Phase 2 (migration + taxonomy lock). Added `feature-3-backfill-119th-congress` and `feature-3-prewarm-demo-bills` — both deferred from Phase 2 by explicit Phase 1 decision (logged in STRATEGY.md §11). Added `local-supabase-stack` — Docker Desktop + `supabase init` deferred until first destructive migration; additive migrations push-and-verify-via-MCP.
 - 2026-04-28 — Feature 3 Phase 3a (cron + admin sync rewrite). Added `auth-trigger-and-leaked-password-lints` covering the four WARN-level Supabase advisor findings from the Phase 2 diff. Track-only in this phase; fix scheduled for Week 5 polish or beta hardening.
 - 2026-04-30 — Feature 3 Phase 3a closeout. Added `substance-filter-introduced-bills` — the cron now blanket-skips `'introduced'`-status bills as MVP signal/noise control. V1.1 work to surface substantive introduced bills selectively.
+- 2026-05-21 — Bill detail + BillCard schema-drift fix + first Playwright happy-path spec on the bill feed. Added `schema-drift-bill-detail-and-card` (RESOLVED) and `feature-3-bill-number-missing-from-feed-rpcs` (DEBT, surfaced during the sweep).

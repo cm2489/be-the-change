@@ -1,243 +1,273 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { cn, partyColor } from '@/lib/utils'
 
 interface CallFlowProps {
-  rep: {
-    id: string
-    full_name: string
-    title: string
-    phone: string | null
-    party: string | null
-    photo_url?: string | null
-  }
-  bill: {
-    id: string
-    title: string
-    bill_number: string
-    ai_summary?: string | null
-    summary?: string | null
-  }
-  userId: string
-  onClose: () => void
+  billId: string
+  scriptGenerationId: string | null
 }
 
-type FlowState = 'loading' | 'ready' | 'called' | 'done'
+interface RepRow {
+  id: string
+  full_name: string
+  party: string
+  state: string
+  district: string | null
+  chamber: 'house' | 'senate'
+  dc_office_phone: string
+}
 
-export function CallFlow({ rep, bill, userId, onClose }: CallFlowProps) {
-  const [flowState, setFlowState] = useState<FlowState>('loading')
-  const [script, setScript] = useState<string>('')
-  const [callLogId, setCallLogId] = useState<string | null>(null)
-  const [scriptId, setScriptId] = useState<string | null>(null)
-  const [scriptVisible, setScriptVisible] = useState(true)
+// Shape of the embedded select below — mirrors loadLinkedReps in
+// lib/actions/sync-reps.ts. The to-one FK (user_representatives.
+// representative_id → representatives.id) resolves to a single object
+// (or null), not an array.
+interface LinkedRepRow {
+  representatives: RepRow | null
+}
 
-  async function loadScript() {
-    // Generate script
-    const scriptRes = await fetch('/api/scripts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        billId: bill.id,
-        representativeId: rep.id,
-        representativeName: rep.full_name,
-        representativeTitle: rep.title,
-        billTitle: bill.title,
-        billSummary: bill.ai_summary || bill.summary || '',
-        scriptType: 'phone',
-      }),
-    })
+function repTitle(chamber: 'house' | 'senate', state: string, district: string | null) {
+  if (chamber === 'senate') return `U.S. Senator, ${state}`
+  const isAtLarge = !district || district === '0'
+  return isAtLarge
+    ? `U.S. Representative, ${state} (At Large)`
+    : `U.S. Representative, ${state}-${district}`
+}
 
-    const scriptData = await scriptRes.json()
-    setScript(scriptData.script?.content || '')
-    setScriptId(scriptData.script?.id || null)
+function telHref(phone: string): string {
+  // Strip everything that isn't a digit and prepend +1. RFC 3966 allows
+  // hyphens but +E.164 form is the most reliably parsed across iOS, Android,
+  // and desktop link handlers.
+  const digits = phone.replace(/\D/g, '')
+  return `tel:+1${digits}`
+}
 
-    // Initiate call log
-    const callRes = await fetch('/api/calls', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'initiate',
-        billId: bill.id,
-        representativeId: rep.id,
-        scriptId: scriptData.script?.id || null,
-        scriptType: 'phone',
-      }),
-    })
+export function CallFlow({ billId, scriptGenerationId }: CallFlowProps) {
+  const supabase = createClient()
+  const [reps, setReps] = useState<RepRow[] | null>(null)
+  const [hasAddress, setHasAddress] = useState(false)
+  const [loadErr, setLoadErr] = useState<string | null>(null)
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const [loggedIds, setLoggedIds] = useState<Set<string>>(new Set())
+  const [submittingId, setSubmittingId] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
-    const callData = await callRes.json()
-
-    if (!callRes.ok) {
-      if (callData.error === 'DAILY_LIMIT_REACHED') {
-        // Show limit message
-        setScript(`You've reached your daily limit of ${callData.limit} calls.\n\nUpgrade to premium for unlimited calls.`)
-        setFlowState('ready')
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      const { data: userData } = await supabase.auth.getUser()
+      if (!userData?.user) {
+        setLoadErr('Not signed in')
         return
       }
+      const userId = userData.user.id
+
+      // Reps + profile address loaded together: a 0-rep result means
+      // different things depending on whether an address is on file (see
+      // the empty-state branch below). The FK-hint embed mirrors
+      // loadLinkedReps in lib/actions/sync-reps.ts; the to-one relation
+      // resolves to a single object, not an array.
+      const [repsRes, profileRes] = await Promise.all([
+        supabase
+          .from('user_representatives')
+          .select(
+            `representatives:representative_id (
+              id, full_name, party, state, district, chamber, dc_office_phone
+            )`
+          )
+          .eq('user_id', userId),
+        supabase.from('profiles').select('full_address').eq('user_id', userId).maybeSingle(),
+      ])
+      if (cancelled) return
+      if (repsRes.error) {
+        setLoadErr('Could not load your representatives')
+        return
+      }
+      // The browser client (lib/supabase/client.ts) is untyped — it returns
+      // `null as any` when env is missing — so `.returns<T>()` can't be used
+      // here the way loadLinkedReps does on the typed server client.
+      // Assigning the `any` result to a typed local is the equivalent and
+      // keeps the rest of this function fully typed without a double-cast.
+      const links: LinkedRepRow[] = repsRes.data ?? []
+      const rows = links.flatMap((link) => (link.representatives ? [link.representatives] : []))
+      setReps(rows)
+      setHasAddress(Boolean(profileRes.data?.full_address))
     }
+    load()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-    setCallLogId(callData.callLogId || null)
-    setFlowState('ready')
-  }
-
-  // Load script when component mounts
-  if (flowState === 'loading' && !script) {
-    loadScript()
-  }
-
-  async function handleCallComplete(status: 'completed' | 'skipped' | 'abandoned') {
-    if (callLogId) {
-      await fetch('/api/calls', {
+  async function handleConfirmCall(rep: RepRow) {
+    setSubmittingId(rep.id)
+    try {
+      const res = await fetch('/api/calls', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'complete',
-          callLogId,
-          status,
+          billId,
+          representativeId: rep.id,
+          scriptGenerationId,
         }),
       })
+      if (res.ok) {
+        setLoggedIds((prev) => new Set(prev).add(rep.id))
+      }
+      // Silent on failure for MVP — the user already made the call; an
+      // inability to log it client-side isn't a blocker. Server logs the
+      // error. A retry surface would be a v1.1 polish.
+    } finally {
+      setSubmittingId(null)
+      setConfirmingId(null)
     }
-    setFlowState('done')
+  }
+
+  async function handleCopy(rep: RepRow) {
+    try {
+      await navigator.clipboard.writeText(rep.dc_office_phone)
+      setCopiedId(rep.id)
+      window.setTimeout(() => setCopiedId((c) => (c === rep.id ? null : c)), 1500)
+    } catch {
+      // Clipboard API requires a secure context; the number is also
+      // rendered as text on screen so the user can still select-and-copy.
+    }
+  }
+
+  if (loadErr) {
+    return (
+      <div className="bg-card rounded-xl border border-divider p-6">
+        <p className="text-small text-oxblood">{loadErr}</p>
+      </div>
+    )
+  }
+
+  if (reps === null) {
+    return (
+      <div className="bg-card rounded-xl border border-divider p-6">
+        <p className="text-small text-ink-70">Loading your representatives…</p>
+      </div>
+    )
+  }
+
+  if (reps.length === 0) {
+    // Two distinct 0-rep cases, distinguished by whether an address is
+    // on file:
+    //   - no address  → skipped onboarding (docs/deferred.md#onboarding-skip-not-gated);
+    //                    re-entering an address fixes it → round-trip CTA.
+    //   - has address → the lookup genuinely returned no current reps
+    //                    (vacancy or post-swear-in lag, see
+    //                    docs/deferred.md#feature-2-vacant-seats); re-entering
+    //                    the same address won't help, so point at Congress.gov.
+    if (hasAddress) {
+      return (
+        <div className="bg-card rounded-xl border border-divider p-6">
+          <h2 className="text-h3 text-ink mb-1">Make the call</h2>
+          <p className="text-small text-ink-70 mb-4">
+            We have your address, but couldn&apos;t find current federal representatives for it —
+            a seat may be vacant or pending an update. You can look up your delegation directly on
+            Congress.gov.
+          </p>
+          <a href="https://www.congress.gov/members" target="_blank" rel="noopener noreferrer">
+            <Button variant="outline">Look up on Congress.gov</Button>
+          </a>
+        </div>
+      )
+    }
+    return (
+      <div className="bg-card rounded-xl border border-divider p-6">
+        <h2 className="text-h3 text-ink mb-1">Make the call</h2>
+        <p className="text-small text-ink-70 mb-4">
+          We don&apos;t have your federal representatives on file yet. Add your address to look them up.
+        </p>
+        {/* Return round-trip: /representatives hops back here after a
+            successful address sync that finds reps. Param is encoded and
+            validated against an allowlist on the other side. */}
+        <Link href={`/representatives?return=${encodeURIComponent(`/bills/${billId}`)}`}>
+          <Button>Add my address</Button>
+        </Link>
+      </div>
+    )
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-civic-600 text-white px-6 py-5">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-medium opacity-80">Calling about:</span>
-            <button
-              onClick={onClose}
-              className="text-white/60 hover:text-white text-2xl leading-none"
+    <div className="bg-card rounded-xl border border-divider p-6">
+      <h2 className="text-h3 text-ink mb-1">Make the call</h2>
+      <p className="text-small text-ink-70 mb-4">
+        Tap a number to dial on mobile, or copy it to call from another device.
+      </p>
+
+      <div className="space-y-3">
+        {reps.map((rep) => {
+          const logged = loggedIds.has(rep.id)
+          const confirming = confirmingId === rep.id
+          const submitting = submittingId === rep.id
+          return (
+            <div
+              key={rep.id}
+              className={cn(
+                'rounded-md border p-4 transition-opacity',
+                logged ? 'border-divider opacity-60' : 'border-divider-strong'
+              )}
             >
-              ×
-            </button>
-          </div>
-          <h2 className="text-lg font-bold leading-tight line-clamp-2">{bill.title}</h2>
-        </div>
-
-        {/* Rep info */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-lg font-semibold overflow-hidden flex-shrink-0">
-            {rep.photo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={rep.photo_url} alt={rep.full_name} className="w-full h-full object-cover" />
-            ) : (
-              rep.full_name.charAt(0)
-            )}
-          </div>
-          <div>
-            <div className="font-semibold text-slate-900 text-sm">{rep.full_name}</div>
-            <div className="text-xs text-slate-500">{rep.title}</div>
-          </div>
-          {rep.phone && (
-            <div className="ml-auto text-sm text-slate-500 font-mono">{rep.phone}</div>
-          )}
-        </div>
-
-        {/* Script area */}
-        <div className="px-6 py-4">
-          {flowState === 'loading' && (
-            <div className="flex items-center justify-center py-8 text-slate-400">
-              <div className="animate-spin mr-3 h-5 w-5 border-2 border-civic-600 border-t-transparent rounded-full" />
-              Generating your script…
-            </div>
-          )}
-
-          {flowState === 'ready' && (
-            <>
-              <button
-                onClick={() => setScriptVisible(v => !v)}
-                className="w-full flex items-center justify-between text-sm font-semibold text-slate-700 mb-3"
-              >
-                <span>📝 Your script</span>
-                <span className="text-slate-400">{scriptVisible ? '▲ Hide' : '▼ Show'}</span>
-              </button>
-
-              {scriptVisible && (
-                <div className="bg-slate-50 rounded-xl p-4 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto mb-4 border border-slate-200">
-                  {script}
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div>
+                  <div className="text-small font-semibold text-ink leading-tight">{rep.full_name}</div>
+                  <div className="text-small text-ink-70 leading-tight">
+                    {repTitle(rep.chamber, rep.state, rep.district)}
+                  </div>
                 </div>
-              )}
-
-              <p className="text-xs text-slate-400 mb-4 text-center">
-                Read the script naturally — it&apos;s a guide, not a mandate. Be yourself.
-              </p>
-
-              {rep.phone ? (
-                <a href={`tel:${rep.phone}`} onClick={() => setFlowState('called')}>
-                  <Button variant="signal" size="lg" className="w-full text-lg">
-                    📞 Call {rep.full_name.split(' ').pop()}
-                  </Button>
-                </a>
-              ) : (
-                <div className="text-center text-slate-500 text-sm py-2">
-                  No phone number available.{' '}
-                  {rep.title && (
-                    <a
-                      href={`https://www.google.com/search?q=${encodeURIComponent(rep.title + ' ' + rep.full_name + ' contact')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-civic-600 underline"
-                    >
-                      Find contact info →
-                    </a>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-
-          {flowState === 'called' && (
-            <div className="text-center py-4">
-              <div className="text-4xl mb-3">📞</div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">
-                Did you complete the call?
-              </h3>
-              <p className="text-sm text-slate-500 mb-6">
-                Your call counts toward today&apos;s impact — whether it went through or not.
-              </p>
-              <div className="flex flex-col gap-3">
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={() => handleCallComplete('completed')}
-                >
-                  ✅ Yes, I called!
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  className="w-full"
-                  onClick={() => handleCallComplete('skipped')}
-                >
-                  I tried but didn&apos;t reach them
-                </Button>
-                <button
-                  onClick={() => handleCallComplete('abandoned')}
-                  className="text-sm text-slate-400 hover:text-slate-600 py-2"
-                >
-                  I&apos;ll try again later
-                </button>
+                <span className={cn('text-xs px-2 py-0.5 rounded-pill font-medium', partyColor(rep.party))}>
+                  {rep.party}
+                </span>
               </div>
-            </div>
-          )}
 
-          {flowState === 'done' && (
-            <div className="text-center py-6">
-              <div className="text-5xl mb-4">🎉</div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">You made a difference!</h3>
-              <p className="text-sm text-slate-500 mb-6">
-                Every call matters. Representatives track constituent contact volume — your call
-                is counted.
-              </p>
-              <Button size="lg" className="w-full" onClick={onClose}>
-                Back to issues
-              </Button>
+              <div className="text-small font-mono text-ink mb-3">{rep.dc_office_phone}</div>
+
+              {logged ? (
+                <p className="text-small text-moss">Call logged.</p>
+              ) : confirming ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="text-small text-ink-70 mr-1">Did you make the call?</p>
+                  <Button
+                    size="sm"
+                    variant="signal"
+                    onClick={() => handleConfirmCall(rep)}
+                    disabled={submitting}
+                    aria-busy={submitting}
+                  >
+                    {submitting ? 'Logging…' : 'Yes, I called'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setConfirmingId(null)}
+                    disabled={submitting}
+                  >
+                    Skip
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href={telHref(rep.dc_office_phone)}
+                    onClick={() => setConfirmingId(rep.id)}
+                    className="inline-flex items-center justify-center h-9 px-3 rounded-md bg-signal text-white text-small font-semibold hover:bg-signal-hover"
+                  >
+                    Tap to call
+                  </a>
+                  <Button size="sm" variant="outline" onClick={() => handleCopy(rep)}>
+                    {copiedId === rep.id ? 'Copied' : 'Copy number'}
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          )
+        })}
       </div>
     </div>
   )

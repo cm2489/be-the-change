@@ -254,12 +254,10 @@ Both routes upsert into `bills` with columns `synced_at`, `tags`, `external_id` 
 
 ### schema-drift-call-logs
 
-**Priority:** BLOCK
-**Where in code:** `app/api/calls/route.ts`
+**Priority:** RESOLVED (2026-05-21)
+**Where in code:** ~~`app/api/calls/route.ts`~~
 
-Inserts into `call_logs` — schema is `call_events`. Column drift beyond just the table name (`script_id`, `script_type`, `status`, `call_date` — none exist on `call_events`). Every invocation fails at the DB layer.
-
-**2026-04-24:** Freemium gating was removed from this route (see `freemium-lib-remnant`), but the schema drift remains. Feature 5 (1-Click Calling) will rewrite the route against `call_events` per SCHEMA.md.
+Pre-Feature-5 route inserted into a non-existent `call_logs` table with drifted columns (`script_id`, `script_type`, `status`, `call_date`) and a legacy initiate/complete state machine. Rewritten in Feature 5 against canonical `call_events`: single POST `{ billId, representativeId, scriptGenerationId? }`, UUID validation, optional+nullable `scriptGenerationId` with an ownership check against `user_id` before linking. Freemium gating was already removed (see `freemium-lib-remnant`). The inline call surface (CallFlow) is wired back onto the bill detail page — see the now-resolved `callflow-bills-detail`.
 
 ---
 
@@ -338,14 +336,31 @@ This was discovered while scoping Feature 4 — the user instructed "use existin
 
 ### callflow-bills-detail
 
-**Priority:** RESOLVED (2026-04-24) — inline call flow temporarily removed; restore when Features 4 & 5 ship
-**Where in code:** `app/(app)/bills/[id]/page.tsx`, `components/CallFlow.tsx`
+**Priority:** RESOLVED (2026-05-21) — inline script + call flow rebuilt on the bill detail page
+**Where in code:** `app/(app)/bills/[id]/page.tsx`, `components/ScriptFlow.tsx`, `components/CallFlow.tsx`
 
-`<CallFlow>` was rendered on the bill detail page but depended on two broken routes (`/api/scripts`, `/api/calls`). The CallFlow import and render block were removed from the bill detail page during the Feature 2 UI rewrite. As of Task #6, the rep-selector UI on the bill detail page (which fetched the deleted `/api/representatives` stub and held dead `selectedRep` state) was also removed and replaced with a "See my representatives" link to `/representatives`. `components/CallFlow.tsx` remains in the codebase unchanged — it will be re-integrated once Features 4 and 5 rewrite the underlying routes; the inline rep + script + call flow on the bill detail page should be rebuilt then.
+`<CallFlow>` was removed from the bill detail page during the Feature 2 UI rewrite because it depended on two broken routes (`/api/scripts`, `/api/calls`), and was temporarily replaced with a "See my representatives" link. With Features 4 and 5 shipped, both routes are rewritten against canonical schema and the inline flow is rebuilt: `ScriptFlow` (stance → generate → Save & Review) lifts saved-state + script id to the bill page, which then renders `CallFlow` (rep cards → tap-to-call → self-report). `components/CallFlow.tsx` was fully rewritten — the old version is gone.
 
 ---
 
 ## Type safety & lint debt
+
+### untyped-browser-supabase-client
+
+**Priority:** DEBT (broad — affects every client-side query)
+**Where in code:** `lib/supabase/client.ts`
+
+`createClient()` returns `createBrowserClient(url, key)` but falls back to `null as any` when env vars are missing. Because one branch is `any`, the function's inferred return type collapses to `any` — so **every client-side Supabase query in the app is unchecked at compile time**. Table names, column names, filter shapes, and result types are all unverified; typos and schema drift only surface at runtime.
+
+This surfaced during Feature 5: `CallFlow` tried to mirror `loadLinkedReps` (server side) with `.returns<LinkedRepRow[]>()`, but a generic call can't be applied to an `any` chain (TS2347 "Untyped function calls may not accept type arguments"). The workaround was to assign the `any` result to a typed local — fine locally, but it's a symptom of the whole client being untyped.
+
+The server client (`lib/supabase/server.ts`) is properly typed with the generated `Database` types, which is why `loadLinkedReps` gets `.returns<>()` and full inference. The browser client should be typed the same way:
+- `createBrowserClient<Database>(url, key)` with the generated types.
+- Replace the `null as any` fallback with a typed nullable (`SupabaseClient<Database> | null`) and have callers handle null, or throw — see the related `any-casts` note on `client.ts:6`.
+
+**Trigger to fix:** v1.1 type-safety hygiene pass, or sooner if a client-side query bug ships that compile-time types would have caught. Related: `any-casts`.
+
+---
 
 ### any-casts
 
@@ -382,6 +397,28 @@ Each disables `react-hooks/exhaustive-deps` for an effect that likely depends on
 ---
 
 ## UX polish punted
+
+### onboarding-skip-not-gated
+
+**Priority:** Product decision (needs your call before fixing)
+**Where in code:**
+- `app/(app)/onboarding/page.tsx:226` — always-visible "Just let me make a call — skip for now" button calls `router.push('/dashboard')` with no profile update
+- `app/(app)/layout.tsx:15–19` — selects `onboarding_completed_at` from `profiles` but only uses it for the userName display; never redirects on null
+
+**Situation:** A new user can sign up, hit the onboarding location step, click Skip, and land on the dashboard with no address, no district, no `user_representatives` rows, and no interests. From there they can navigate freely to `/bills`, open any bill, and reach any feature surface — they're authenticated, just not onboarded. The skip path is intentional product copy ("Just let me make a call — skip for now") but no part of the app handles the consequences in a coordinated way today.
+
+**Surfaced during Feature 5 scoping.** CallFlow's 0-reps state was originally framed as an edge case for vacant-seat scenarios. After auditing the onboarding flow, it's actually a first-class path any skip-user takes. Feature 5 handles it locally with an "Add my address" CTA pointing at `/representatives`, but the question scales:
+
+- Should `/bills` nudge skip-users to complete onboarding?
+- Should ScriptFlow refuse to generate without a profile (or generate with degraded personalization)?
+- Should the layout soft-gate by redirecting `onboarding_completed_at IS NULL` users to a "finish setup" surface?
+- Or is the skip path supposed to be permissive — let users explore, prompt for setup only at the action moment?
+
+**This is a product decision, not a code one.** Each surface (feed, script, call) currently treats incomplete profiles differently or not at all. A coherent policy needs to be decided before further surfaces are built. Until then, each new feature handles its own degraded path locally.
+
+**Trigger to decide:** before any user-facing pre-launch or donor demo. The current behavior is technically correct (no crashes, no missing data errors), but a skip-user opening a bill sees inconsistent surfaces — Feature 4 generates a generic script regardless of profile completeness, Feature 5 will show "Add my address" with a clear CTA. That inconsistency is the smell.
+
+---
 
 ### dashboard-timezone
 
@@ -451,3 +488,4 @@ Four WARN-level findings surfaced during the Phase 2 advisor diff. None are expl
 - 2026-04-30 — Feature 3 Phase 3a closeout. Added `substance-filter-introduced-bills` — the cron now blanket-skips `'introduced'`-status bills as MVP signal/noise control. V1.1 work to surface substantive introduced bills selectively.
 - 2026-05-21 — Bill detail + BillCard schema-drift fix + first Playwright happy-path spec on the bill feed. Added `schema-drift-bill-detail-and-card` (RESOLVED) and `feature-3-bill-number-missing-from-feed-rpcs` (DEBT, surfaced during the sweep).
 - 2026-05-21 — Feature 4 (AI call script) end-to-end. Marked `schema-drift-scripts` as RESOLVED, added `feature-4-rep-personalization` (V2; documents the cache-key trade-off) and `dead-civic-classes` (DEBT, high-visibility — surfaced during Feature 4 scoping when `civic-*` was confirmed undefined in the Tailwind config).
+- 2026-05-21 — Feature 5 (1-click calling) end-to-end. Marked `schema-drift-call-logs` and `callflow-bills-detail` as RESOLVED (route rewritten against `call_events`; inline ScriptFlow + CallFlow rebuilt on the bill detail page). Added `onboarding-skip-not-gated` (product decision — skip-onboarding users reach feature surfaces with no address/reps; CallFlow handles the 0-reps case locally with a vacant-seat vs. add-address split).

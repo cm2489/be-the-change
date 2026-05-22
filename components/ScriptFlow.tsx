@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -15,15 +14,29 @@ const STANCE_OPTIONS: { value: Stance; label: string }[] = [
 
 interface ScriptFlowProps {
   billId: string
+  // Fires whenever the saved state or cached script id changes. `saved`
+  // gates the downstream CallFlow on the bill page; `scriptGenerationId`
+  // is the script_generations row id for call_events audit linking, and
+  // is null when the cache insert failed (the column is nullable, so the
+  // call can still be logged without the link).
+  onSavedChange?: (saved: boolean, scriptGenerationId: string | null) => void
 }
 
-export function ScriptFlow({ billId }: ScriptFlowProps) {
-  const router = useRouter()
+export function ScriptFlow({ billId, onSavedChange }: ScriptFlowProps) {
   const [stance, setStance] = useState<Stance | null>(null)
   const [scriptText, setScriptText] = useState<string | null>(null)
+  const [scriptId, setScriptId] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Notify the parent on every saved/scriptId transition. Held in a ref so
+  // a non-memoized parent callback doesn't re-fire the effect on each render.
+  const onSavedChangeRef = useRef(onSavedChange)
+  onSavedChangeRef.current = onSavedChange
+  useEffect(() => {
+    onSavedChangeRef.current?.(saved, scriptId)
+  }, [saved, scriptId])
 
   async function handleGenerate() {
     if (!stance || generating) return
@@ -40,12 +53,15 @@ export function ScriptFlow({ billId }: ScriptFlowProps) {
       if (!res.ok) {
         setError(body.error || 'Could not generate script')
         setScriptText(null)
+        setScriptId(null)
         return
       }
       setScriptText(body.script_text ?? '')
+      setScriptId(body.id ?? null)
     } catch {
       setError('Network error — please try again')
       setScriptText(null)
+      setScriptId(null)
     } finally {
       setGenerating(false)
     }
@@ -58,6 +74,7 @@ export function ScriptFlow({ billId }: ScriptFlowProps) {
     // different cache row. Drop downstream state so the user picks
     // "Get my script" explicitly for the new stance.
     setScriptText(null)
+    setScriptId(null)
     setSaved(false)
     setError(null)
   }
@@ -138,13 +155,6 @@ export function ScriptFlow({ billId }: ScriptFlowProps) {
               variant="outline"
             >
               {saved ? 'Saved' : 'Save & Review'}
-            </Button>
-            <Button
-              onClick={() => router.push('/representatives')}
-              disabled={!saved}
-              variant="signal"
-            >
-              Call my representative
             </Button>
           </div>
         </div>

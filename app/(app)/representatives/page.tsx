@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { syncRepsForUser, type RepForUi, type SyncRepsResult } from '@/lib/actions/sync-reps'
 import { RepCard } from '@/components/RepCard'
@@ -16,8 +17,37 @@ const SLOT_LABEL: Record<SlotKey, string> = {
   senate_2: 'Junior U.S. Senator',
 }
 
+// Allowlist for the `?return=` round-trip (CallFlow's no-reps CTA links
+// here with the originating bill path). Only the bill-detail shape is
+// honored, and only as a same-origin relative path. Guards against
+// open-redirect: rejects absolute/protocol-relative URLs, backslash
+// tricks (browsers fold `\` → `/`), and path-traversal that normalizes
+// off the /bills/ prefix.
+const BILL_PATH_RE = /^\/bills\/[^/]+\/?$/
+
+function safeReturnTarget(): string | null {
+  if (typeof window === 'undefined') return null
+  // URLSearchParams.get already percent-decodes once.
+  const raw = new URLSearchParams(window.location.search).get('return')
+  if (!raw) return null
+  if (!raw.startsWith('/') || raw.startsWith('//') || raw.includes('\\')) return null
+  if (!BILL_PATH_RE.test(raw)) return null
+  try {
+    const url = new URL(raw, window.location.origin)
+    if (url.origin !== window.location.origin) return null
+    // Re-check post-normalization — `new URL` collapses `..`/encoded
+    // segments, so a value that passed the raw regex can still resolve
+    // off the allowlisted prefix.
+    if (!BILL_PATH_RE.test(url.pathname)) return null
+  } catch {
+    return null
+  }
+  return raw
+}
+
 export default function RepresentativesPage() {
   const supabase = createClient()
+  const router = useRouter()
   const [address, setAddress] = useState('')
   const [storedAddress, setStoredAddress] = useState<string | null>(null)
   const [reps, setReps] = useState<RepForUi[]>([])
@@ -68,6 +98,15 @@ export default function RepresentativesPage() {
       setStoredAddress(result.normalizedAddress)
       setAddress(result.normalizedAddress)
       setError(null)
+      // Return round-trip — submit-path only (bootstrap auto-sync never
+      // calls applyResult). Hop back only once we actually have reps to
+      // call; if the address resolved but every seat is vacant, stay here
+      // so the user sees the vacancy cards instead of bouncing to a bill
+      // page that would still say "add your address".
+      if (result.reps.length > 0) {
+        const target = safeReturnTarget()
+        if (target) router.push(target)
+      }
     } else {
       // Keep existing reps visible; just surface the error. Clearing on
       // failure would erase a working set the user hasn't chosen to lose.

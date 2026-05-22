@@ -140,12 +140,12 @@ test('user generates, reviews, and saves a script via the cache path', async ({ 
   // Disclaimer is visible above the textarea.
   await expect(page.getByText('AI-drafted. Review and edit before use.')).toBeVisible()
 
-  // Save & Review gates the call CTA.
+  // Save & Review confirms review. The call surface (CallFlow) is a
+  // separate component that the bill page reveals after save — its own
+  // behavior is covered by tests/feature-5-call.spec.ts.
   const saveButton = page.getByRole('button', { name: 'Save & Review', exact: true })
-  const callButton = page.getByRole('button', { name: 'Call my representative', exact: true })
-  await expect(callButton).toBeDisabled()
+  await expect(saveButton).toBeVisible()
   await saveButton.click()
-  await expect(callButton).toBeEnabled()
 
   // Save button reflects the saved state.
   await expect(page.getByRole('button', { name: 'Saved', exact: true })).toBeVisible()

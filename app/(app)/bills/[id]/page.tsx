@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { ScriptFlow } from '@/components/ScriptFlow'
+import { CallFlow } from '@/components/CallFlow'
 import { urgencyLabel, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
@@ -29,6 +30,10 @@ export default function BillDetailPage() {
 
   const [bill, setBill] = useState<Bill | null>(null)
   const [loading, setLoading] = useState(true)
+  // Lifted from ScriptFlow so CallFlow can gate on a saved script and
+  // thread the script_generations id into call_events.
+  const [scriptSaved, setScriptSaved] = useState(false)
+  const [scriptGenerationId, setScriptGenerationId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -133,10 +138,21 @@ export default function BillDetailPage() {
         </div>
       </div>
 
-      {/* Feature 4: AI script flow. Feature 5 will swap the "Call my
-          representative" CTA inside ScriptFlow for an actual call surface;
-          for now it links out to /representatives once the script is saved. */}
-      <ScriptFlow billId={bill.id} />
+      {/* Script generation (Feature 4) → call surface (Feature 5). CallFlow
+          appears once a script is saved; scriptGenerationId is null only if
+          the script's cache insert failed, which CallFlow tolerates. */}
+      <div className="space-y-4">
+        <ScriptFlow
+          billId={bill.id}
+          onSavedChange={(saved, id) => {
+            setScriptSaved(saved)
+            setScriptGenerationId(id)
+          }}
+        />
+        {scriptSaved && (
+          <CallFlow billId={bill.id} scriptGenerationId={scriptGenerationId} />
+        )}
+      </div>
 
     </div>
   )

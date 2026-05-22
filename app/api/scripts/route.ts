@@ -45,7 +45,7 @@ export async function POST(request: Request) {
   // DB layer; this read guarantees we never call Anthropic on a hit.
   const { data: cached, error: cacheErr } = await adminClient
     .from('script_generations')
-    .select('script_text')
+    .select('id, script_text')
     .eq('user_id', userId)
     .eq('bill_id', billId)
     .eq('stance', stance)
@@ -55,7 +55,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Cache lookup failed' }, { status: 500 })
   }
   if (cached) {
-    return NextResponse.json({ script_text: cached.script_text, cached: true })
+    // `id` widens the response by exactly one field — the row's uuid —
+    // so Feature 5 can thread it into call_events.script_generation_id.
+    // Safe to expose: we filtered by user_id, so this is always the
+    // caller's own row.
+    return NextResponse.json({ id: cached.id, script_text: cached.script_text, cached: true })
   }
 
   // ---- Miss path: fetch context, generate, persist ------------------
@@ -112,17 +116,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Script generation returned empty content' }, { status: 500 })
   }
 
-  const { error: insertErr } = await adminClient.from('script_generations').insert({
-    user_id: userId,
-    bill_id: billId,
-    stance,
-    script_text: generated.scriptText,
-    prompt_hash: generated.promptHash,
-    model: generated.model,
-    input_tokens: generated.inputTokens,
-    output_tokens: generated.outputTokens,
-    cost_usd: generated.costUsd,
-  })
+  const { data: inserted, error: insertErr } = await adminClient
+    .from('script_generations')
+    .insert({
+      user_id: userId,
+      bill_id: billId,
+      stance,
+      script_text: generated.scriptText,
+      prompt_hash: generated.promptHash,
+      model: generated.model,
+      input_tokens: generated.inputTokens,
+      output_tokens: generated.outputTokens,
+      cost_usd: generated.costUsd,
+    })
+    .select('id')
+    .single()
 
   if (insertErr) {
     // The script was generated (Anthropic was paid) but we couldn't
@@ -131,9 +139,11 @@ export async function POST(request: Request) {
     // against runaway cost is the Anthropic dashboard daily cap.
     // Expected case: two near-simultaneous misses both generate, one
     // insert wins, the other lands here on the unique-key violation.
+    // `id` is null on this branch — call_events.script_generation_id
+    // is nullable, so Feature 5 simply logs without the audit link.
     console.error('[scripts] cache insert failed — returning uncached script', insertErr)
-    return NextResponse.json({ script_text: generated.scriptText, cached: false })
+    return NextResponse.json({ id: null, script_text: generated.scriptText, cached: false })
   }
 
-  return NextResponse.json({ script_text: generated.scriptText, cached: false })
+  return NextResponse.json({ id: inserted.id, script_text: generated.scriptText, cached: false })
 }

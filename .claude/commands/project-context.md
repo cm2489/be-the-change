@@ -1,5 +1,6 @@
 Read the following files in parallel, then produce a concise project-state summary:
 
+- `STATUS.md` — read first: the living status doc (last shipped, per-feature status, single next action, open decisions/debt)
 - `CLAUDE.md` — coding rules, stack constraints, and hard "do not do" rules
 - `FEATURES.md` — MVP feature list with acceptance criteria and what is explicitly out of scope
 - `ARCHITECTURE.md` — stack, external APIs, and data-flow diagrams
@@ -13,7 +14,7 @@ Then output a summary with these sections (keep each tight — bullet points pre
 One sentence on what the app does and who it's for.
 
 ## Current Phase
-Where we are in the 6–8 week MVP timeline, based on recent git activity and feature completion.
+Where we are in the 6–8 week MVP timeline, drawing on `STATUS.md` (last shipped / next action) and recent git activity.
 
 ## Stack Snapshot
 Key tech choices with any critical "do not use X" warnings still in effect.

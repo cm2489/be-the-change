@@ -22,6 +22,55 @@ This file tracks every "we did not handle this" item in the codebase — intenti
 
 ---
 
+## Feature 1 — Account + Profile
+
+### email-verification-deferred
+
+**Priority:** BLOCK (pre-launch — before any uncontrolled signup / public beta)
+**Where in code:**
+- `FEATURES.md` §1 — "Email verification required before civic actions (calling, following bills)"
+- `app/api/calls/route.ts`, `app/api/scripts/route.ts` — civic-action mutations, currently session-gated only (no verification check)
+- Supabase project `tnopzkpufusdqukmkplt` (BTC) — Auth → "Confirm email" toggle
+
+**Situation:** Feature 1's "email verification before civic actions" requirement is **consciously NOT met for MVP** (decision 2026-05-22). Verified empirically against the live project:
+- **"Confirm email" is OFF (auto-confirm ON).** Public `auth.signUp` returns a session immediately with `email_confirmed_at` stamped at signup and no confirmation email sent. So `auth.users.email_confirmed_at` is **true for every user** and proves nothing about email ownership.
+- `profiles.email_verified_at` is **true for no user** (never written; 0/N populated) — see `email-verified-at-dead-column`.
+- Net: **no proof-of-email-ownership exists anywhere in the system.** Anyone can sign up with an address they don't control and immediately use every civic action.
+
+**Why deferring is acceptable now:** accounts are operator-created/controlled through the demo phase, and the abuse/cost vector (unverified accounts burning Anthropic budget) is already capped by the Anthropic dashboard daily spend limit. Verification is not demo-critical.
+
+**Must be resolved before any uncontrolled signup / public beta.** Two viable paths, teed up so the decision isn't re-derived:
+1. **Flip "Confirm email" ON** (Supabase dashboard) — near-zero work. Native verification enforced at the login boundary: unverified users can't obtain a session at all, so they can't reach any civic action. Stricter than the "browse-then-gate" wording (users can't do anything until verified), which is fine/better for MVP. Once ON, `auth.users.email_confirmed_at` becomes a real signal and any action-level gate is optional belt-and-suspenders.
+2. **Custom Resend token flow** — only if "let unverified users explore, gate just the civic actions" is a wanted UX. Keep Confirm-email OFF (session at signup), send an ownership token via Resend, set a real `profiles.email_verified_at` on click, and gate `/api/calls` (+ optionally `/api/scripts`) on that column. Real feature build; partly reinvents Supabase's native confirmation.
+
+**Probe note:** to check the toggle, use the public `auth.signUp` path, NOT `admin.auth.admin.createUser` — GoTrue rejects login for any `email_confirmed_at = null` user regardless of the toggle, so the admin path gives a false "ON" reading.
+
+---
+
+### email-verified-at-dead-column
+
+**Priority:** DEBT
+**Where in code:** `profiles.email_verified_at` (migration 002); `SCHEMA.md` §`profiles`
+
+`profiles.email_verified_at` exists as a nullable column but is **never written** (0/N rows populated — confirmed by query). It reads like a gate-able "is this user verified" signal but isn't one — a future dev could gate on it and 403 every real user. Authoritative verification (once it exists) lives on `auth.users.email_confirmed_at`, not here. See `email-verification-deferred`.
+
+**Resolve when email verification is built (one of):**
+- **Backfill + populate:** if the custom flow (path 2 above) is chosen, this becomes the real signal — backfill existing confirmed users and write it on verify.
+- **Remove:** if Confirm-email ON (path 1) is chosen, `auth.users.email_confirmed_at` is sufficient — drop this column in a migration to kill the trap.
+
+Until then it is a dead field that looks load-bearing. **Do not gate on it.**
+
+---
+
+### signup-check-email-dead-branch
+
+**Priority:** DEBT
+**Where in code:** `app/(auth)/signup/page.tsx` — the `if (data.session) … else { setCheckEmail(true) }` branch + the `checkEmail` "Check your email" screen
+
+Under the current auto-confirm config, `auth.signUp` always returns a session, so `data.session` is always truthy and the `else` branch (the "📬 Check your email" confirmation screen) is **unreachable dead code**. It only comes alive if "Confirm email" is turned ON (path 1 of `email-verification-deferred`). Harmless today; flagged so it isn't mistaken for working verification UX, and so it's revisited when the verification gap is closed.
+
+---
+
 ## Feature 2 — Federal Representative Lookup
 
 ### feature-2-vacant-seats
@@ -497,3 +546,5 @@ Four WARN-level findings surfaced during the Phase 2 advisor diff. None are expl
 - 2026-05-21 — Feature 4 (AI call script) end-to-end. Marked `schema-drift-scripts` as RESOLVED, added `feature-4-rep-personalization` (V2; documents the cache-key trade-off) and `dead-civic-classes` (DEBT, high-visibility — surfaced during Feature 4 scoping when `civic-*` was confirmed undefined in the Tailwind config).
 - 2026-05-21 — Feature 5 (1-click calling) end-to-end. Marked `schema-drift-call-logs` and `callflow-bills-detail` as RESOLVED (route rewritten against `call_events`; inline ScriptFlow + CallFlow rebuilt on the bill detail page). Added `onboarding-skip-not-gated` (product decision — skip-onboarding users reach feature surfaces with no address/reps; CallFlow handles the 0-reps case locally with a vacant-seat vs. add-address split).
 - 2026-05-22 — Dead `civic-*` classes fixed (`fix/dead-civic-classes`). Marked `dead-civic-classes` RESOLVED — 64 occurrences across 13 files mechanically remapped to the `ink` family; corrected the stale `CallFlow.tsx` reference (rewritten in Feature 5, no longer contained `civic-*`) and the missing `civic-900` shade. Added `brand-accent-color-pops` (V2/brand-lock) capturing the wordmark/hero/stat color-pop decision — restored to neutral `ink`, no `signal` introduced under a cleanup PR.
+- 2026-05-22 — Landing stats overstating scope fixed (`fix/landing-stats-federal-scope`): removed the "state & local" / "50 states" claims, leaving a 3-stat federal-true strip.
+- 2026-05-22 — Email verification consciously deferred to pre-launch (docs-only; no code shipped). Added the `## Feature 1` section: `email-verification-deferred` (BLOCK before public beta — "Confirm email" is OFF so `auth.users.email_confirmed_at` is true-for-all and `profiles.email_verified_at` is true-for-none; no proof-of-ownership exists), plus `email-verified-at-dead-column` and `signup-check-email-dead-branch` (DEBT gate-traps). `FEATURES.md` §1 annotated as deferred. Toggle state verified empirically via the public `auth.signUp` path (the `admin.createUser` path gives a false reading).

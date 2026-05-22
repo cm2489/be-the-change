@@ -13,7 +13,7 @@ This file defines exactly what is and isn't in scope. When in doubt, the answer 
 - User has a profile with: full name, email, ZIP code, political values (multi-select from fixed list), issue priorities (ranked top 5 from fixed list)
 - Profile is editable after creation
 - User can delete their account (GDPR-style full delete)
-- Email verification required before civic actions (calling, following bills) are enabled
+- Email verification required before civic actions (calling, following bills) are enabled — **DEFERRED to pre-launch** (currently unmet: Supabase "Confirm email" is OFF, so nothing enforces ownership; tracked in `docs/deferred.md#email-verification-deferred`, must close before any public beta)
 
 ### 2. Federal Representative Lookup
 **Acceptance criteria:**

@@ -125,13 +125,8 @@ export default function LandingPage() {
           </div>
           <div className="hidden sm:block w-px h-8 bg-slate-300" />
           <div>
-            <div className="text-3xl font-bold text-ink">3 levels</div>
-            <div className="text-sm text-slate-500 mt-1">Federal, state & local reps</div>
-          </div>
-          <div className="hidden sm:block w-px h-8 bg-slate-300" />
-          <div>
-            <div className="text-3xl font-bold text-ink">50 states</div>
-            <div className="text-sm text-slate-500 mt-1">Full state legislation coverage</div>
+            <div className="text-3xl font-bold text-ink">1-click</div>
+            <div className="text-sm text-slate-500 mt-1">Calling your reps</div>
           </div>
           <div className="hidden sm:block w-px h-8 bg-slate-300" />
           <div>

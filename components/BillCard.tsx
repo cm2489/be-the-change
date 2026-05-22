@@ -28,7 +28,7 @@ export function BillCard({ bill, compact = false }: BillCardProps) {
     <Link href={`/bills/${bill.id}`}>
       <div
         className={cn(
-          'bg-white rounded-2xl border border-slate-200 hover:border-civic-300 hover:shadow-md transition-all cursor-pointer group',
+          'bg-white rounded-2xl border border-slate-200 hover:border-divider-strong hover:shadow-md transition-all cursor-pointer group',
           compact ? 'p-4' : 'p-5'
         )}
       >
@@ -56,7 +56,7 @@ export function BillCard({ bill, compact = false }: BillCardProps) {
         {/* Title */}
         <h3
           className={cn(
-            'font-semibold text-slate-900 group-hover:text-civic-700 transition-colors leading-snug',
+            'font-semibold text-slate-900 group-hover:text-ink transition-colors leading-snug',
             compact ? 'text-sm line-clamp-2' : 'text-base line-clamp-3'
           )}
         >
@@ -74,7 +74,7 @@ export function BillCard({ bill, compact = false }: BillCardProps) {
         <div className="mt-3 flex items-center justify-between">
           <span className="text-xs text-slate-400 capitalize">{displayStatus.replace('_', ' ')}</span>
 
-          <span className="text-xs font-medium text-civic-600 group-hover:text-civic-700">
+          <span className="text-xs font-medium text-ink group-hover:text-ink">
             Take action →
           </span>
         </div>

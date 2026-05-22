@@ -295,33 +295,40 @@ FEATURES.md §4 specifies the script should be "personalized with: user's values
 
 ### dead-civic-classes
 
-**Priority:** DEBT (high — visible)
-**Where in code:** Class-name references to `civic-50` / `civic-200` / `civic-300` / `civic-400` / `civic-600` / `civic-700` / `civic-800` across the app. Affected files:
-- `app/page.tsx` (landing)
-- `app/(app)/dashboard/page.tsx`
-- `app/(app)/onboarding/page.tsx`
-- `app/(app)/representatives/page.tsx`
-- `app/(app)/settings/page.tsx`
-- `app/(app)/bills/[id]/page.tsx`
-- `app/(auth)/forgot-password/page.tsx`
-- `app/(auth)/login/page.tsx`
-- `app/(auth)/reset-password/page.tsx`
-- `app/(auth)/signup/page.tsx`
-- `components/BillCard.tsx`
-- `components/CallFlow.tsx` (unused, but contains civic-* references)
-- `components/ImpactMetrics.tsx`
-- `components/NavBar.tsx`
+**Priority:** RESOLVED (2026-05-22)
+**Where in code:** ~~`civic-*` class references across 13 files~~ — now `ink`-family tokens.
 
-**Situation:** `tailwind.config.ts` defines the design palette as `ink / signal / paper / divider / graphite / moss / amber / oxblood`. There is no `civic-*` color extension anywhere — not in the Tailwind config, not in `app/globals.css`, not in any CSS variables. Tailwind silently drops unknown utility classes at build time, so every `civic-*` reference renders as a no-op: no background color, no text color, no border. The pages still render because surrounding utilities (text-slate-X, bg-white, border-slate-200) carry the styling, but the *intended accent color* is missing across the entire app.
+**Situation (historical):** `tailwind.config.ts` defines the design palette as `ink / signal / paper / divider / graphite / moss / amber / oxblood`. There was no `civic-*` color extension anywhere — not in the Tailwind config, not in `app/globals.css`, not in any CSS variables. Tailwind silently drops unknown utility classes at build time, so every `civic-*` reference rendered as a no-op: no background color, no text color, no border. The pages still rendered because surrounding utilities (`text-slate-X`, `bg-white`, `border-slate-200`) carried the styling — those survive because `theme.extend` *merges* with Tailwind's defaults, whereas `civic-*` was never added — but the *intended accent color* was missing across the entire app.
 
-This was discovered while scoping Feature 4 — the user instructed "use existing design tokens (civic-600 etc.)" and verification showed `civic-*` is not an existing token. Feature 4 (ScriptFlow + bill detail page edits) uses the real `ink/signal/paper` tokens via the existing Button variants and matches the actual design system. New code does not introduce more `civic-*` references.
+Discovered while scoping Feature 4 (the instruction "use existing design tokens (civic-600 etc.)" turned out to reference a non-existent token). Feature 4/5 code (`ScriptFlow`, `CallFlow`, bill detail) already used the real `ink/signal/paper` tokens via the Button variants.
 
-**Fix options:**
-1. **Replace `civic-*` with `ink-*`/`signal-*` everywhere.** Closest to the apparent design intent (the Button variants already encode the system). Single mechanical PR.
-2. **Define a `civic` palette in `tailwind.config.ts`.** Lights up all existing references at once. Requires picking colors — visual identity decision that the user has explicitly deferred ("don't invent new visual identity").
-3. **Migrate to a CSS-variable-driven palette.** Bigger change; pairs with the v3→v4 Tailwind upgrade if/when that happens.
+**Resolution (option 1 — mechanical remap to `ink`):** All 64 `civic-*` occurrences across 13 files replaced 1:1 with the `ink` family — the dominant accent in the locked system (links/ghost buttons, primary fills, focus rings, and selected borders are all `ink` in `button.tsx` / `ScriptFlow` / `CallFlow`; `signal` is reserved for the single loud CTA). Mapping:
 
-**Trigger to fix:** before the first donor demo, since "accent color missing" is a visible polish problem on every page. Option (1) is the cheapest path and aligns with the existing Button design tokens.
+| `civic-*` | → | real token |
+|---|---|---|
+| `text-civic-{600,700,800,900}` | → | `text-ink` |
+| `bg-civic-600` | → | `bg-ink` |
+| `bg-civic-300` | → | `bg-ink-20` |
+| `bg-civic-50` | → | `bg-ink-10` |
+| `border-civic-600` | → | `border-ink` |
+| `border-civic-{300,400}` (card / toggle hover) | → | `border-divider-strong` |
+| `border-civic-200` | → | `border-ink-20` |
+| `ring-civic-600` (input focus) | → | `ring-ink` |
+
+No `signal` introduced — the wordmark / hero / stat color-pops were restored to neutral `ink` and the brand decision deferred to `brand-accent-color-pops` below. The original entry listed `components/CallFlow.tsx` as affected, but that component was fully rewritten in Feature 5 and no longer contained `civic-*`; the entry's shade list also omitted `civic-900` (found in onboarding). The actual edited set was 13 files: landing, dashboard, onboarding, representatives, settings, bill detail, the four auth pages, `BillCard`, `ImpactMetrics`, `NavBar`.
+
+---
+
+### brand-accent-color-pops
+
+**Priority:** V2 (brand-lock)
+**Where in code:**
+- `app/page.tsx` — hero accent span ("Make it heard.") and the four landing stat figures (`100%` / `3 levels` / `50 states` / `< 5 min`)
+- "Be The Change" wordmark logotype — every page header + footer (`app/page.tsx`, `components/NavBar.tsx`, the auth pages, onboarding)
+
+Hero accent span, wordmark logotype, and landing stat figures were `civic-600` color-pops, restored to neutral `ink` pending brand lock; revisit whether the logotype / hero / stats should carry a brand accent (`signal` or otherwise) when the name + visual identity are decided. Mapping these to `ink` keeps them legible and on-system, but at these specific spots it effectively removes the accent rather than restoring it — which is exactly why the original intent is a brand-identity call, deliberately kept out of the mechanical cleanup PR (see `dead-civic-classes`).
+
+**Trigger to revisit:** brand lock (name + visual identity), or the first donor demo if the headers/hero feel flat without an accent.
 
 ---
 
@@ -489,3 +496,4 @@ Four WARN-level findings surfaced during the Phase 2 advisor diff. None are expl
 - 2026-05-21 — Bill detail + BillCard schema-drift fix + first Playwright happy-path spec on the bill feed. Added `schema-drift-bill-detail-and-card` (RESOLVED) and `feature-3-bill-number-missing-from-feed-rpcs` (DEBT, surfaced during the sweep).
 - 2026-05-21 — Feature 4 (AI call script) end-to-end. Marked `schema-drift-scripts` as RESOLVED, added `feature-4-rep-personalization` (V2; documents the cache-key trade-off) and `dead-civic-classes` (DEBT, high-visibility — surfaced during Feature 4 scoping when `civic-*` was confirmed undefined in the Tailwind config).
 - 2026-05-21 — Feature 5 (1-click calling) end-to-end. Marked `schema-drift-call-logs` and `callflow-bills-detail` as RESOLVED (route rewritten against `call_events`; inline ScriptFlow + CallFlow rebuilt on the bill detail page). Added `onboarding-skip-not-gated` (product decision — skip-onboarding users reach feature surfaces with no address/reps; CallFlow handles the 0-reps case locally with a vacant-seat vs. add-address split).
+- 2026-05-22 — Dead `civic-*` classes fixed (`fix/dead-civic-classes`). Marked `dead-civic-classes` RESOLVED — 64 occurrences across 13 files mechanically remapped to the `ink` family; corrected the stale `CallFlow.tsx` reference (rewritten in Feature 5, no longer contained `civic-*`) and the missing `civic-900` shade. Added `brand-accent-color-pops` (V2/brand-lock) capturing the wordmark/hero/stat color-pop decision — restored to neutral `ink`, no `signal` introduced under a cleanup PR.

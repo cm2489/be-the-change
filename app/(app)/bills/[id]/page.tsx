@@ -130,7 +130,7 @@ export default function BillDetailPage() {
               href={bill.congress_gov_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-civic-600 hover:underline ml-auto flex-shrink-0"
+              className="text-ink hover:underline ml-auto flex-shrink-0"
             >
               Full text →
             </a>

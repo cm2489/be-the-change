@@ -19,7 +19,7 @@ export function NavBar({ userName }: { userName?: string }) {
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-white border-r border-slate-200 p-6 fixed left-0 top-0">
         <div className="mb-8">
-          <div className="text-xl font-bold text-civic-600">Be The Change</div>
+          <div className="text-xl font-bold text-ink">Be The Change</div>
           <div className="text-xs text-slate-400 mt-0.5">Not political. Just powerful.</div>
         </div>
 
@@ -31,7 +31,7 @@ export function NavBar({ userName }: { userName?: string }) {
               className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors',
                 pathname === item.href || pathname.startsWith(item.href + '/')
-                  ? 'bg-civic-50 text-civic-700'
+                  ? 'bg-ink-10 text-ink'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               )}
             >
@@ -66,7 +66,7 @@ export function NavBar({ userName }: { userName?: string }) {
               className={cn(
                 'flex-1 flex flex-col items-center justify-center py-3 text-xs font-medium transition-colors',
                 pathname === item.href || pathname.startsWith(item.href + '/')
-                  ? 'text-civic-600'
+                  ? 'text-ink'
                   : 'text-slate-400'
               )}
             >

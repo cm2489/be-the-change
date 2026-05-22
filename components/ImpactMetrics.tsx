@@ -15,7 +15,7 @@ export function ImpactMetrics({ totalCalls, callsToday }: ImpactMetricsProps) {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="text-center">
-          <div className="text-2xl font-bold text-civic-600">{totalCalls}</div>
+          <div className="text-2xl font-bold text-ink">{totalCalls}</div>
           <div className="text-xs text-slate-500 mt-0.5">Total calls</div>
         </div>
         <div className="text-center">

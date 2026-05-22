@@ -66,7 +66,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <div className="text-xl font-bold text-civic-600">Be The Change</div>
+        <div className="text-xl font-bold text-ink">Be The Change</div>
         <div className="flex items-center gap-3">
           <Link href="/login">
             <Button variant="ghost" size="sm">
@@ -81,7 +81,7 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="px-6 pt-16 pb-20 text-center max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 bg-civic-50 text-civic-700 text-sm font-medium px-4 py-1.5 rounded-full mb-6 border border-civic-200">
+        <div className="inline-flex items-center gap-2 bg-ink-10 text-ink text-sm font-medium px-4 py-1.5 rounded-full mb-6 border border-ink-20">
           <span>🗳️</span>
           <span>Pro-democracy. Non-partisan. Built for everyone.</span>
         </div>
@@ -89,7 +89,7 @@ export default function LandingPage() {
         <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 leading-tight mb-6 text-balance">
           Your voice matters.
           <br />
-          <span className="text-civic-600">Make it heard.</span>
+          <span className="text-ink">Make it heard.</span>
         </h1>
 
         <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto text-balance">
@@ -120,22 +120,22 @@ export default function LandingPage() {
       <section className="bg-slate-50 border-y border-slate-200 py-8 px-6">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-center">
           <div>
-            <div className="text-3xl font-bold text-civic-600">100%</div>
+            <div className="text-3xl font-bold text-ink">100%</div>
             <div className="text-sm text-slate-500 mt-1">Free to use</div>
           </div>
           <div className="hidden sm:block w-px h-8 bg-slate-300" />
           <div>
-            <div className="text-3xl font-bold text-civic-600">3 levels</div>
+            <div className="text-3xl font-bold text-ink">3 levels</div>
             <div className="text-sm text-slate-500 mt-1">Federal, state & local reps</div>
           </div>
           <div className="hidden sm:block w-px h-8 bg-slate-300" />
           <div>
-            <div className="text-3xl font-bold text-civic-600">50 states</div>
+            <div className="text-3xl font-bold text-ink">50 states</div>
             <div className="text-sm text-slate-500 mt-1">Full state legislation coverage</div>
           </div>
           <div className="hidden sm:block w-px h-8 bg-slate-300" />
           <div>
-            <div className="text-3xl font-bold text-civic-600">&lt; 5 min</div>
+            <div className="text-3xl font-bold text-ink">&lt; 5 min</div>
             <div className="text-sm text-slate-500 mt-1">To make a difference</div>
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function LandingPage() {
         <div className="grid sm:grid-cols-3 gap-8">
           {STEPS.map(step => (
             <div key={step.number} className="relative">
-              <div className="w-10 h-10 rounded-full bg-civic-600 text-white font-bold text-lg flex items-center justify-center mb-4">
+              <div className="w-10 h-10 rounded-full bg-ink text-white font-bold text-lg flex items-center justify-center mb-4">
                 {step.number}
               </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">{step.title}</h3>
@@ -207,7 +207,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-slate-200 px-6 py-8">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
-          <div className="font-semibold text-civic-600">Be The Change</div>
+          <div className="font-semibold text-ink">Be The Change</div>
           <div>Not political. Just powerful. 🇺🇸</div>
           <div className="flex gap-4">
             <span className="cursor-pointer hover:text-slate-600">Privacy</span>

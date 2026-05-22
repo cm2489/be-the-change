@@ -128,7 +128,7 @@ export default function SettingsPage() {
                 type="text"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-civic-600"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-ink"
               />
             </div>
             <div>
@@ -139,7 +139,7 @@ export default function SettingsPage() {
                 maxLength={5}
                 value={zipCode}
                 onChange={e => setZipCode(e.target.value.replace(/\D/g, ''))}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-civic-600"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-ink"
               />
             </div>
           </div>
@@ -164,8 +164,8 @@ export default function SettingsPage() {
                       onClick={() => toggleSub(sub.id)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                         selectedSubcats.has(sub.id)
-                          ? 'bg-civic-600 text-white border-civic-600'
-                          : 'bg-white text-slate-600 border-slate-300 hover:border-civic-400'
+                          ? 'bg-ink text-white border-ink'
+                          : 'bg-white text-slate-600 border-slate-300 hover:border-divider-strong'
                       }`}
                     >
                       {sub.label}

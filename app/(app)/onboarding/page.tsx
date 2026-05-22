@@ -202,7 +202,7 @@ export default function OnboardingPage() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-xl font-bold text-civic-600 mb-1">Be The Change</div>
+          <div className="text-xl font-bold text-ink mb-1">Be The Change</div>
           <h1 className="text-2xl font-bold text-slate-900">
             {step === 'location' && 'Where are you located?'}
             {step === 'categories' && 'What issues matter to you?'}
@@ -245,9 +245,9 @@ export default function OnboardingPage() {
               key={s}
               className={`h-1.5 flex-1 rounded-full transition-colors ${
                 step === s
-                  ? 'bg-civic-600'
+                  ? 'bg-ink'
                   : ['location', 'categories', 'subcategories'].indexOf(step) > i
-                  ? 'bg-civic-300'
+                  ? 'bg-ink-20'
                   : 'bg-slate-200'
               }`}
             />
@@ -267,7 +267,7 @@ export default function OnboardingPage() {
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="Jane Smith"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 />
               </div>
 
@@ -283,7 +283,7 @@ export default function OnboardingPage() {
                   onChange={e => setZipCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="e.g. 10001"
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 />
                 <p className="mt-1.5 text-xs text-slate-400">
                   Used to filter bills relevant to your state. Never shared.
@@ -300,7 +300,7 @@ export default function OnboardingPage() {
                   onChange={e => setFullAddress(e.target.value)}
                   placeholder="123 Main St, Springfield, IL 62701"
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 />
                 <p className="mt-1.5 text-xs text-slate-400">
                   We need your full address to find your House district.
@@ -324,7 +324,7 @@ export default function OnboardingPage() {
                     onClick={() => toggleCategory(cat.id)}
                     className={`p-3 rounded-xl border-2 text-left transition-all ${
                       selectedCategories.has(cat.id)
-                        ? 'border-civic-600 bg-civic-50 text-civic-900'
+                        ? 'border-ink bg-ink-10 text-ink'
                         : 'border-slate-200 hover:border-slate-300 text-slate-700'
                     }`}
                   >
@@ -367,7 +367,7 @@ export default function OnboardingPage() {
                     onClick={() => toggleSubcategory(sub.id)}
                     className={`w-full p-3.5 rounded-xl border-2 text-left text-sm font-medium transition-all ${
                       selectedSubcategories.has(sub.id)
-                        ? 'border-civic-600 bg-civic-50 text-civic-900'
+                        ? 'border-ink bg-ink-10 text-ink'
                         : 'border-slate-200 hover:border-slate-300 text-slate-700'
                     }`}
                   >

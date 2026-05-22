@@ -81,7 +81,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <div className="text-2xl font-bold text-civic-600">Be The Change</div>
+            <div className="text-2xl font-bold text-ink">Be The Change</div>
             <div className="text-sm text-slate-500 mt-1">Your voice matters. Use it.</div>
           </Link>
         </div>
@@ -107,7 +107,7 @@ export default function SignupPage() {
                 required
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 placeholder="Jane Smith"
               />
             </div>
@@ -122,7 +122,7 @@ export default function SignupPage() {
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 placeholder="you@example.com"
               />
             </div>
@@ -138,7 +138,7 @@ export default function SignupPage() {
                 minLength={8}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 placeholder="At least 8 characters"
               />
             </div>
@@ -176,7 +176,7 @@ export default function SignupPage() {
 
           <p className="mt-6 text-center text-sm text-slate-500">
             Already have an account?{' '}
-            <Link href="/login" className="text-civic-600 font-medium hover:underline">
+            <Link href="/login" className="text-ink font-medium hover:underline">
               Sign in
             </Link>
           </p>

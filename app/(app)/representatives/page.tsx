@@ -148,7 +148,7 @@ export default function RepresentativesPage() {
           value={address}
           onChange={e => setAddress(e.target.value)}
           placeholder="123 Main St, Springfield, IL 62701"
-          className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
+          className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
         />
         <p className="text-xs text-slate-400">
           Full street address — required to find your House district.
@@ -207,7 +207,7 @@ function VacantSlotCard({ label }: { label: string }) {
           href="https://www.congress.gov/members"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-civic-600 underline"
+          className="text-ink underline"
         >
           Check Congress.gov
         </a>

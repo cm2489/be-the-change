@@ -50,7 +50,7 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <div className="text-2xl font-bold text-civic-600">Be The Change</div>
+            <div className="text-2xl font-bold text-ink">Be The Change</div>
           </Link>
         </div>
 
@@ -84,7 +84,7 @@ export default function ResetPasswordPage() {
                 autoComplete="new-password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 placeholder="At least 8 characters"
               />
             </div>
@@ -101,7 +101,7 @@ export default function ResetPasswordPage() {
                 autoComplete="new-password"
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-civic-600 focus:border-transparent"
+                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 placeholder="Repeat your new password"
               />
             </div>

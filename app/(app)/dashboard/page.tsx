@@ -84,12 +84,12 @@ export default async function DashboardPage() {
 
       {/* Onboarding prompt for users who skipped or came via email confirmation */}
       {!profile?.onboarding_completed_at && (
-        <div className="mb-6 bg-civic-50 border border-civic-200 rounded-2xl p-4 flex items-center justify-between gap-4">
+        <div className="mb-6 bg-ink-10 border border-ink-20 rounded-2xl p-4 flex items-center justify-between gap-4">
           <div>
-            <div className="font-semibold text-civic-800 text-sm">
+            <div className="font-semibold text-ink text-sm">
               Personalize your feed
             </div>
-            <div className="text-civic-600 text-xs mt-0.5">
+            <div className="text-ink text-xs mt-0.5">
               Tell us what issues matter to you — takes 2 minutes.
             </div>
           </div>
@@ -110,14 +110,14 @@ export default async function DashboardPage() {
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <Link href="/bills">
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 hover:border-civic-300 hover:shadow-sm transition-all cursor-pointer">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 hover:border-divider-strong hover:shadow-sm transition-all cursor-pointer">
             <div className="text-2xl mb-2">📋</div>
             <div className="text-sm font-semibold text-slate-900">Browse Issues</div>
             <div className="text-xs text-slate-500 mt-0.5">See all upcoming votes</div>
           </div>
         </Link>
         <Link href="/representatives">
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 hover:border-civic-300 hover:shadow-sm transition-all cursor-pointer">
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 hover:border-divider-strong hover:shadow-sm transition-all cursor-pointer">
             <div className="text-2xl mb-2">📞</div>
             <div className="text-sm font-semibold text-slate-900">My Representatives</div>
             <div className="text-xs text-slate-500 mt-0.5">Your federal reps</div>
@@ -131,7 +131,7 @@ export default async function DashboardPage() {
           <h2 className="text-lg font-bold text-slate-900">
             {(interestCount ?? 0) > 0 ? 'For You' : 'Trending Issues'}
           </h2>
-          <Link href="/bills" className="text-sm text-civic-600 hover:underline font-medium">
+          <Link href="/bills" className="text-sm text-ink hover:underline font-medium">
             See all →
           </Link>
         </div>

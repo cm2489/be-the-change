@@ -28,7 +28,7 @@ export function BillCard({ bill, compact = false }: BillCardProps) {
     <Link href={`/bills/${bill.id}`}>
       <div
         className={cn(
-          'bg-white rounded-2xl border border-slate-200 hover:border-divider-strong hover:shadow-md transition-all cursor-pointer group',
+          'bg-card rounded-2xl border border-divider hover:border-divider-strong hover:shadow-md transition-all cursor-pointer group',
           compact ? 'p-4' : 'p-5'
         )}
       >
@@ -44,11 +44,11 @@ export function BillCard({ bill, compact = false }: BillCardProps) {
               {urgency.label}
             </span>
             {/* Federal-only per MVP scope (FEATURES.md); v2 reintroduces a level/state-code branch. */}
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-ink-10 text-ink-70">
               🇺🇸 Federal
             </span>
           </div>
-          <span className="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">
+          <span className="text-xs text-ink-50 whitespace-nowrap flex-shrink-0">
             {bill.bill_number}
           </span>
         </div>
@@ -56,8 +56,8 @@ export function BillCard({ bill, compact = false }: BillCardProps) {
         {/* Title */}
         <h3
           className={cn(
-            'font-semibold text-slate-900 group-hover:text-ink transition-colors leading-snug',
-            compact ? 'text-sm line-clamp-2' : 'text-base line-clamp-3'
+            'font-semibold text-ink group-hover:text-ink transition-colors leading-snug',
+            compact ? 'text-small line-clamp-2' : 'text-body line-clamp-3'
           )}
         >
           {bill.title}
@@ -65,14 +65,14 @@ export function BillCard({ bill, compact = false }: BillCardProps) {
 
         {/* Summary */}
         {!compact && displaySummary && (
-          <p className="mt-2 text-sm text-slate-500 line-clamp-2 leading-relaxed">
+          <p className="mt-2 text-small text-ink-70 line-clamp-2 leading-relaxed">
             {displaySummary}
           </p>
         )}
 
         {/* Footer */}
         <div className="mt-3 flex items-center justify-between">
-          <span className="text-xs text-slate-400 capitalize">{displayStatus.replace('_', ' ')}</span>
+          <span className="text-xs text-ink-50 capitalize">{displayStatus.replace('_', ' ')}</span>
 
           <span className="text-xs font-medium text-ink group-hover:text-ink">
             Take action →

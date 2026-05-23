@@ -536,6 +536,35 @@ Four WARN-level findings surfaced during the Phase 2 advisor diff. None are expl
 
 ---
 
+## Design system consolidation (Batch 1)
+
+### type-scale-extension
+
+**Priority:** Design (brand-locked design phase)
+**Where in code:** `tailwind.config.ts` `fontSize` tokens; `app/globals.css` `.t-*` utilities. Surfaced during the Batch 1 Chunk 3 sweep.
+
+The type scale (`display/h1/h2/h3/body/small/meta/mono` = 56/36/24/18/16/14/12-uppercase/13px) has **no token for several sizes the pages use**, so "raw size → type scale" could only convert exact matches (`text-base→body`, `text-sm→small`, `text-lg→h3`, `text-2xl→h2`, `text-4xl→h1`). Three gaps left as raw `text-*` pending a design decision:
+
+- **12px non-uppercase** — `text-xs` (~26×) for captions / pill text; the only 12px token is `text-meta` (uppercase + tracked), which would change case. Same gap that blocked the `Badge` primitive (see `components/ui/README.md`).
+- **20px** — `text-xl` (~5×); nothing between `h3` (18) and `h2` (24).
+- **30px** — `text-3xl` (~6×); nothing between `h2` (24) and `h1` (36).
+- **18px body** — `text-lg` on body *paragraphs* (e.g. the landing CTA subhead); the 18px token `text-h3` carries heading line-height (1.15), wrong for multi-line body copy. (`text-lg` on headings maps cleanly to `h3`.)
+
+Resolve by extending the scale (e.g. a non-uppercase 12px `caption`, a 20px step, a 30px step) when brand + visual identity are locked, then convert the remaining raw sizes. Until then those raw `text-*` are intentional, not oversights.
+
+---
+
+### consolidation-followup-offscope-slate-and-semantic-colors
+
+**Priority:** DEBT (consolidation follow-up — not in Chunk 3 scope)
+**Where in code:**
+- `slate-*` still present (31 occurrences) in: `app/(app)/bills/page.tsx`, `app/(app)/bills/[id]/page.tsx`, `components/ImpactMetrics.tsx`, `components/RepCard.tsx` (`app/(app)/layout.tsx` was pulled into the Batch 1 components/landing sub-chunk and swept — no longer deferred)
+- off-palette `red-*` / `green-*` error/success banners (auth pages and elsewhere)
+
+Batch 1 Chunk 3 swept only the listed surfaces (auth, onboarding, dashboard, settings, representatives, NavBar, BillCard, landing body). The files above keep raw `slate-*` and need the same `slate → ink/divider/paper` mapping in a follow-up for full coverage. Separately, error/success banners use Tailwind `red-*`/`green-*`; the system's semantic equivalents are `oxblood` (danger) and `moss` (success) with their `-10` tints — fold into the same follow-up. Neither was in the Chunk 3 instruction; logged so full coverage isn't forgotten.
+
+---
+
 ## Change log
 
 - 2026-04-24 — Initial creation during Feature 2 sweep (Colby + Claude). Captured Feature 2 vacancy edges, four broken pre-existing routes, freemium lib remnant, type debt, three already-commented UX v2 items.
@@ -546,5 +575,6 @@ Four WARN-level findings surfaced during the Phase 2 advisor diff. None are expl
 - 2026-05-21 — Feature 4 (AI call script) end-to-end. Marked `schema-drift-scripts` as RESOLVED, added `feature-4-rep-personalization` (V2; documents the cache-key trade-off) and `dead-civic-classes` (DEBT, high-visibility — surfaced during Feature 4 scoping when `civic-*` was confirmed undefined in the Tailwind config).
 - 2026-05-21 — Feature 5 (1-click calling) end-to-end. Marked `schema-drift-call-logs` and `callflow-bills-detail` as RESOLVED (route rewritten against `call_events`; inline ScriptFlow + CallFlow rebuilt on the bill detail page). Added `onboarding-skip-not-gated` (product decision — skip-onboarding users reach feature surfaces with no address/reps; CallFlow handles the 0-reps case locally with a vacant-seat vs. add-address split).
 - 2026-05-22 — Dead `civic-*` classes fixed (`fix/dead-civic-classes`). Marked `dead-civic-classes` RESOLVED — 64 occurrences across 13 files mechanically remapped to the `ink` family; corrected the stale `CallFlow.tsx` reference (rewritten in Feature 5, no longer contained `civic-*`) and the missing `civic-900` shade. Added `brand-accent-color-pops` (V2/brand-lock) capturing the wordmark/hero/stat color-pop decision — restored to neutral `ink`, no `signal` introduced under a cleanup PR.
+- 2026-05-22 — Frontend design Batch 1 (system consolidation, `feat/design-system-consolidation`). Chunk 1: fonts → next/font + themeColor token. Chunk 2: Input/Card primitives. Chunk 3 sweep logged two deferred items: `type-scale-extension` (3 missing size tokens — sweep converts exact matches only, option A) and `consolidation-followup-offscope-slate-and-semantic-colors` (33 out-of-scope slate occurrences + off-palette red/green banners).
 - 2026-05-22 — Landing stats overstating scope fixed (`fix/landing-stats-federal-scope`): removed the "state & local" / "50 states" claims, leaving a 3-stat federal-true strip.
 - 2026-05-22 — Email verification consciously deferred to pre-launch (docs-only; no code shipped). Added the `## Feature 1` section: `email-verification-deferred` (BLOCK before public beta — "Confirm email" is OFF so `auth.users.email_confirmed_at` is true-for-all and `profiles.email_verified_at` is true-for-none; no proof-of-ownership exists), plus `email-verified-at-dead-column` and `signup-check-email-dead-branch` (DEBT gate-traps). `FEATURES.md` §1 annotated as deferred. Toggle state verified empirically via the public `auth.signUp` path (the `admin.createUser` path gives a false reading).

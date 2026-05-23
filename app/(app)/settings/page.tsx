@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { INTEREST_CATEGORIES } from '@/lib/interests'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -107,7 +109,7 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center text-slate-400">
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center text-ink-50">
         Loading…
       </div>
     )
@@ -115,46 +117,44 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Settings</h1>
+      <h1 className="text-h2 font-bold text-ink mb-6">Settings</h1>
 
       <div className="space-y-6">
         {/* Profile */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="text-base font-semibold text-slate-900 mb-4">Profile</h2>
+        <Card padding="md">
+          <h2 className="text-body font-semibold text-ink mb-4">Profile</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Full name</label>
-              <input
+              <label className="block text-small font-medium text-ink-85 mb-1.5">Full name</label>
+              <Input
                 type="text"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-ink"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">ZIP code</label>
-              <input
+              <label className="block text-small font-medium text-ink-85 mb-1.5">ZIP code</label>
+              <Input
                 type="text"
                 inputMode="numeric"
                 maxLength={5}
                 value={zipCode}
                 onChange={e => setZipCode(e.target.value.replace(/\D/g, ''))}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-ink"
               />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Interests */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="text-base font-semibold text-slate-900 mb-1">My Issues</h2>
-          <p className="text-sm text-slate-500 mb-4">
+        <Card padding="md">
+          <h2 className="text-body font-semibold text-ink mb-1">My Issues</h2>
+          <p className="text-small text-ink-70 mb-4">
             Select the specific topics you want to stay informed about.
           </p>
           <div className="space-y-4">
             {INTEREST_CATEGORIES.map(cat => (
               <div key={cat.id}>
-                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                <div className="text-xs font-semibold text-ink-70 uppercase tracking-wide mb-2">
                   {cat.icon} {cat.label}
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -165,7 +165,7 @@ export default function SettingsPage() {
                       className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                         selectedSubcats.has(sub.id)
                           ? 'bg-ink text-white border-ink'
-                          : 'bg-white text-slate-600 border-slate-300 hover:border-divider-strong'
+                          : 'bg-card text-ink-70 border-divider hover:border-divider-strong'
                       }`}
                     >
                       {sub.label}
@@ -175,7 +175,7 @@ export default function SettingsPage() {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
         <Button
           size="lg"
@@ -187,13 +187,13 @@ export default function SettingsPage() {
         </Button>
 
         {/* Admin: Seed bills */}
-        <div className="border-t border-slate-200 pt-4">
-          <p className="text-xs text-slate-400 mb-2">Admin</p>
+        <div className="border-t border-divider pt-4">
+          <p className="text-xs text-ink-50 mb-2">Admin</p>
           <SyncBillsButton />
         </div>
 
         {/* Sign out */}
-        <div className="border-t border-slate-200 pt-4">
+        <div className="border-t border-divider pt-4">
           <Button variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={handleSignOut}>
             Sign out
           </Button>

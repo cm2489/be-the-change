@@ -373,7 +373,7 @@ No `signal` introduced — the wordmark / hero / stat color-pops were restored t
 **Priority:** V2 (brand-lock)
 **Where in code:**
 - `app/page.tsx` — hero accent span ("Make it heard.") and the four landing stat figures (`100%` / `3 levels` / `50 states` / `< 5 min`)
-- "Be The Change" wordmark logotype — every page header + footer (`app/page.tsx`, `components/NavBar.tsx`, the auth pages, onboarding)
+- "Oravan" wordmark logotype — every page header + footer (`app/page.tsx`, `components/NavBar.tsx`, the auth pages, onboarding)
 
 Hero accent span, wordmark logotype, and landing stat figures were `civic-600` color-pops, restored to neutral `ink` pending brand lock; revisit whether the logotype / hero / stats should carry a brand accent (`signal` or otherwise) when the name + visual identity are decided. Mapping these to `ink` keeps them legible and on-system, but at these specific spots it effectively removes the accent rather than restoring it — which is exactly why the original intent is a brand-identity call, deliberately kept out of the mechanical cleanup PR (see `dead-civic-classes`).
 

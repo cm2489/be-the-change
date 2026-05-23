@@ -1,4 +1,4 @@
-# Be The Change — Master Strategy Document
+# Oravan — Master Strategy Document
 
 **Owner:** Colby
 **Last updated:** 2026-04-28 (restored from project archive; see Section 11 for current decisions)

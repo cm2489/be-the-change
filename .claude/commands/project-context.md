@@ -10,7 +10,7 @@ Also run `git log --oneline -10` to see recent commits.
 
 Then output a summary with these sections (keep each tight — bullet points preferred):
 
-## Project: Be The Change
+## Project: Oravan
 One sentence on what the app does and who it's for.
 
 ## Current Phase

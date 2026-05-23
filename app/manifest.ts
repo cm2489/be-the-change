@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Be The Change',
-    short_name: 'BeTheChange',
+    name: 'Oravan',
+    short_name: 'Oravan',
     description: 'Make your voice heard. One call at a time.',
     start_url: '/dashboard',
     display: 'standalone',

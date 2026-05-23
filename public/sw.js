@@ -1,4 +1,4 @@
-// Be The Change — Service Worker
+// Oravan — Service Worker
 // Handles push notifications and offline caching
 
 const CACHE_NAME = 'btc-v1'
@@ -39,7 +39,7 @@ self.addEventListener('push', event => {
   try {
     data = event.data ? event.data.json() : {}
   } catch {
-    data = { title: 'Be The Change', body: event.data?.text() }
+    data = { title: 'Oravan', body: event.data?.text() }
   }
 
   const options = {
@@ -55,7 +55,7 @@ self.addEventListener('push', event => {
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Be The Change', options)
+    self.registration.showNotification(data.title || 'Oravan', options)
   )
 })
 

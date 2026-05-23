@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <div className="text-2xl font-bold text-ink">Be The Change</div>
+            <div className="text-2xl font-bold text-ink">Oravan</div>
           </Link>
         </div>
 

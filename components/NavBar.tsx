@@ -20,7 +20,7 @@ export function NavBar({ userName }: { userName?: string }) {
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-card border-r border-divider p-6 fixed left-0 top-0">
         <div className="mb-8">
-          <div className="text-xl font-bold text-ink">Be The Change</div>
+          <div className="text-xl font-bold text-ink">Oravan</div>
           <div className="text-xs text-ink-50 mt-0.5">Not political. Just powerful.</div>
         </div>
 

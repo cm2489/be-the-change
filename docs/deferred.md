@@ -583,7 +583,20 @@ The landing still advertises capabilities **out of MVP scope** (FEATURES.md): re
 
 ---
 
+## Launch gates
+
+### noindex-pre-launch
+
+**Priority:** BLOCK before public launch
+**Where in code:** `app/layout.tsx` — `metadata.robots`
+
+Site-wide `robots: { index: false, follow: false }` added 2026-05-23 (Next renders `<meta name="robots" content="noindex, nofollow">` into every page head from this). The app is **live and openly reachable at oravan.org** for dev/demo, but is pre-launch with **formal trademark clearance still pending**, so it must stay out of search indexes. **Remove the `robots` block at public launch, after formal trademark clearance** — fold into the same gate as the nonprofit legal consult and `landing-copy-out-of-scope-features` (the other things that must be true before a public/donor launch).
+
+---
+
 ## Change log
+
+- 2026-05-23 — Pre-launch `noindex` added (`feat/oravan-wordmark-swap`, commit #2). Site-wide `metadata.robots = { index:false, follow:false }` in `app/layout.tsx`; oravan.org is live/reachable but kept out of search indexes until public launch + formal trademark clearance. Logged `noindex-pre-launch` (BLOCK-before-launch removal task).
 
 - 2026-04-24 — Initial creation during Feature 2 sweep (Colby + Claude). Captured Feature 2 vacancy edges, four broken pre-existing routes, freemium lib remnant, type debt, three already-commented UX v2 items.
 - 2026-04-28 — Feature 3 Phase 2 (migration + taxonomy lock). Added `feature-3-backfill-119th-congress` and `feature-3-prewarm-demo-bills` — both deferred from Phase 2 by explicit Phase 1 decision (logged in STRATEGY.md §11). Added `local-supabase-stack` — Docker Desktop + `supabase init` deferred until first destructive migration; additive migrations push-and-verify-via-MCP.

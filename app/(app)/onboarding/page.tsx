@@ -204,7 +204,7 @@ export default function OnboardingPage() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-xl font-bold text-ink mb-1">Be The Change</div>
+          <div className="text-xl font-bold text-ink mb-1">Oravan</div>
           <h1 className="text-h2 font-bold text-ink">
             {step === 'location' && 'Where are you located?'}
             {step === 'categories' && 'What issues matter to you?'}

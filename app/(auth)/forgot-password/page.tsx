@@ -2,8 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { MailCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 
 export default function ForgotPasswordPage() {
   const supabase = createClient()
@@ -42,18 +45,20 @@ export default function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-paper px-4">
         <div className="w-full max-w-md text-center">
-          <div className="text-5xl mb-4">📬</div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Check your email</h1>
+          <div className="mb-4 flex justify-center">
+            <MailCheck className="h-12 w-12 text-ink" />
+          </div>
+          <h1 className="text-h2 font-bold text-ink mb-2">Check your email</h1>
           {/* Intentionally vague: prevents email enumeration. Supabase returns success
               whether or not the address is registered — don't change this to "we sent
               you an email" without understanding the security implication. */}
-          <p className="text-slate-500 text-sm mb-6">
-            If <span className="font-medium text-slate-700">{email}</span> is registered,
+          <p className="text-ink-70 text-small mb-6">
+            If <span className="font-medium text-ink-85">{email}</span> is registered,
             you&apos;ll receive a reset link shortly.
           </p>
-          <Link href="/login" className="text-sm text-ink hover:underline font-medium">
+          <Link href="/login" className="text-small text-ink hover:underline font-medium">
             Back to sign in
           </Link>
         </div>
@@ -62,7 +67,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
@@ -70,31 +75,30 @@ export default function ForgotPasswordPage() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Reset your password</h1>
-          <p className="text-slate-500 text-sm mb-6">
+        <Card padding="lg" className="shadow-sm">
+          <h1 className="text-h2 font-bold text-ink mb-2">Reset your password</h1>
+          <p className="text-ink-70 text-small mb-6">
             Enter your email and we&apos;ll send you a reset link.
           </p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="email" className="block text-small font-medium text-ink-85 mb-1.5">
                 Email
               </label>
-              <input
+              <Input
                 id="email"
                 type="email"
                 required
                 autoComplete="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 placeholder="you@example.com"
               />
             </div>
@@ -104,13 +108,13 @@ export default function ForgotPasswordPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
+          <p className="mt-6 text-center text-small text-ink-70">
             Remember your password?{' '}
             <Link href="/login" className="text-ink font-medium hover:underline">
               Sign in
             </Link>
           </p>
-        </div>
+        </Card>
       </div>
     </div>
   )

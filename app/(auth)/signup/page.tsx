@@ -3,8 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { MailCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -53,18 +56,20 @@ export default function SignupPage() {
 
   if (checkEmail) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-paper px-4">
         <div className="w-full max-w-md text-center">
-          <div className="text-5xl mb-4">📬</div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Check your email</h1>
-          <p className="text-slate-500 text-sm mb-6">
-            We sent a confirmation link to <span className="font-medium text-slate-700">{email}</span>.
+          <div className="mb-4 flex justify-center">
+            <MailCheck className="h-12 w-12 text-ink" />
+          </div>
+          <h1 className="text-h2 font-bold text-ink mb-2">Check your email</h1>
+          <p className="text-ink-70 text-small mb-6">
+            We sent a confirmation link to <span className="font-medium text-ink-85">{email}</span>.
             Click it to activate your account and get started.
           </p>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-ink-50">
             Didn&apos;t get it? Check your spam folder, or{' '}
             <button
-              className="underline hover:text-slate-600"
+              className="underline hover:text-ink-70"
               onClick={() => setCheckEmail(false)}
             >
               try again
@@ -77,68 +82,65 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
             <div className="text-2xl font-bold text-ink">Be The Change</div>
-            <div className="text-sm text-slate-500 mt-1">Your voice matters. Use it.</div>
+            <div className="text-small text-ink-70 mt-1">Your voice matters. Use it.</div>
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Create your account</h1>
-          <p className="text-slate-500 text-sm mb-6">Free forever. No credit card needed.</p>
+        <Card padding="lg" className="shadow-sm">
+          <h1 className="text-h2 font-bold text-ink mb-2">Create your account</h1>
+          <p className="text-ink-70 text-small mb-6">Free forever. No credit card needed.</p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="name" className="block text-small font-medium text-ink-85 mb-1.5">
                 Full name
               </label>
-              <input
+              <Input
                 id="name"
                 type="text"
                 required
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 placeholder="Jane Smith"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="email" className="block text-small font-medium text-ink-85 mb-1.5">
                 Email
               </label>
-              <input
+              <Input
                 id="email"
                 type="email"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="password" className="block text-small font-medium text-ink-85 mb-1.5">
                 Password
               </label>
-              <input
+              <Input
                 id="password"
                 type="password"
                 required
                 minLength={8}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 placeholder="At least 8 characters"
               />
             </div>
@@ -150,10 +152,10 @@ export default function SignupPage() {
 
           <div className="mt-4 relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200" />
+              <div className="w-full border-t border-divider" />
             </div>
-            <div className="relative flex justify-center text-xs text-slate-400">
-              <span className="bg-white px-3">or sign up with</span>
+            <div className="relative flex justify-center text-xs text-ink-50">
+              <span className="bg-card px-3">or sign up with</span>
             </div>
           </div>
 
@@ -174,15 +176,15 @@ export default function SignupPage() {
             Continue with Google
           </Button>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
+          <p className="mt-6 text-center text-small text-ink-70">
             Already have an account?{' '}
             <Link href="/login" className="text-ink font-medium hover:underline">
               Sign in
             </Link>
           </p>
-        </div>
+        </Card>
 
-        <p className="mt-6 text-center text-xs text-slate-400">
+        <p className="mt-6 text-center text-xs text-ink-50">
           By signing up, you agree to our{' '}
           <span className="underline cursor-pointer">Terms</span> and{' '}
           <span className="underline cursor-pointer">Privacy Policy</span>.

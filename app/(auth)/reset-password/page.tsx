@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -46,7 +48,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
@@ -54,14 +56,14 @@ export default function ResetPasswordPage() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Set a new password</h1>
-          <p className="text-slate-500 text-sm mb-6">
+        <Card padding="lg" className="shadow-sm">
+          <h1 className="text-h2 font-bold text-ink mb-2">Set a new password</h1>
+          <p className="text-ink-70 text-small mb-6">
             Must be at least 8 characters.
           </p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
               {error}{' '}
               {error.toLowerCase().includes('session') || error.toLowerCase().includes('expired') ? (
                 <Link href="/forgot-password" className="underline font-medium">
@@ -73,10 +75,10 @@ export default function ResetPasswordPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="password" className="block text-small font-medium text-ink-85 mb-1.5">
                 New password
               </label>
-              <input
+              <Input
                 id="password"
                 type="password"
                 required
@@ -84,16 +86,15 @@ export default function ResetPasswordPage() {
                 autoComplete="new-password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 placeholder="At least 8 characters"
               />
             </div>
 
             <div>
-              <label htmlFor="confirm" className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label htmlFor="confirm" className="block text-small font-medium text-ink-85 mb-1.5">
                 Confirm password
               </label>
-              <input
+              <Input
                 id="confirm"
                 type="password"
                 required
@@ -101,7 +102,6 @@ export default function ResetPasswordPage() {
                 autoComplete="new-password"
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 placeholder="Repeat your new password"
               />
             </div>
@@ -110,7 +110,7 @@ export default function ResetPasswordPage() {
               {loading ? 'Updating…' : 'Update password'}
             </Button>
           </form>
-        </div>
+        </Card>
       </div>
     </div>
   )

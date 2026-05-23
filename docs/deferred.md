@@ -565,6 +565,24 @@ Batch 1 Chunk 3 swept only the listed surfaces (auth, onboarding, dashboard, set
 
 ---
 
+### landing-features-grid-emoji
+
+**Priority:** V2 (brand-lock)
+**Where in code:** `app/page.tsx` — `FEATURES` array `icon` fields (📋 📞 ✍️ 🏆 📍 🔒), rendered in the landing features grid
+
+Batch 1 converted in-scope emoji to lucide everywhere else but left the landing features-grid set. Only 📋/📞 were in the Chunk 3 emoji list; converting just those would orphan them in a six-icon grid, and converting all six needs icon-selection for ✍️/🏆/📍/🔒 — a visual-identity choice. **Deferred to brand-lock** — fold into the type-scale / landing design work, not a consolidation sweep. Convert the whole set to lucide (or the chosen icon system) when the landing visual identity is decided. Related: `brand-accent-color-pops`, `type-scale-extension`.
+
+---
+
+### landing-copy-out-of-scope-features
+
+**Priority:** SCOPE
+**Where in code:** `app/page.tsx` — `FEATURES` array copy + section text
+
+The landing still advertises capabilities **out of MVP scope** (FEATURES.md): representatives "at every level: federal, **state, and local**" and "**City councils, mayors, school boards**" (state/local reps — v2), plus the "**Callenge your community** … commit to a number of calls with friends" card (social/gamification — v2). Same flavor as the "state & local / 50 states" stats copy already fixed (PR #17). Reword to federal-only and drop/defer the gamification card before any public or donor-facing launch. **Copy change, not styling** — separate ticket; surfaced during the Batch 1 landing sweep.
+
+---
+
 ## Change log
 
 - 2026-04-24 — Initial creation during Feature 2 sweep (Colby + Claude). Captured Feature 2 vacancy edges, four broken pre-existing routes, freemium lib remnant, type debt, three already-commented UX v2 items.
@@ -576,5 +594,6 @@ Batch 1 Chunk 3 swept only the listed surfaces (auth, onboarding, dashboard, set
 - 2026-05-21 — Feature 5 (1-click calling) end-to-end. Marked `schema-drift-call-logs` and `callflow-bills-detail` as RESOLVED (route rewritten against `call_events`; inline ScriptFlow + CallFlow rebuilt on the bill detail page). Added `onboarding-skip-not-gated` (product decision — skip-onboarding users reach feature surfaces with no address/reps; CallFlow handles the 0-reps case locally with a vacant-seat vs. add-address split).
 - 2026-05-22 — Dead `civic-*` classes fixed (`fix/dead-civic-classes`). Marked `dead-civic-classes` RESOLVED — 64 occurrences across 13 files mechanically remapped to the `ink` family; corrected the stale `CallFlow.tsx` reference (rewritten in Feature 5, no longer contained `civic-*`) and the missing `civic-900` shade. Added `brand-accent-color-pops` (V2/brand-lock) capturing the wordmark/hero/stat color-pop decision — restored to neutral `ink`, no `signal` introduced under a cleanup PR.
 - 2026-05-22 — Frontend design Batch 1 (system consolidation, `feat/design-system-consolidation`). Chunk 1: fonts → next/font + themeColor token. Chunk 2: Input/Card primitives. Chunk 3 sweep logged two deferred items: `type-scale-extension` (3 missing size tokens — sweep converts exact matches only, option A) and `consolidation-followup-offscope-slate-and-semantic-colors` (33 out-of-scope slate occurrences + off-palette red/green banners).
+- 2026-05-23 — Batch 1 merged (PR #22): slate→token / size→type-scale / emoji→lucide sweep across 12 surfaces (slate 192→3, raw-size 131→46) + next/font + Input/Card primitives. Delisted `layout.tsx` from consolidation-followup (swept; now 31 slate), added the 18px-body gap to `type-scale-extension`, and logged `landing-features-grid-emoji` (V2/brand-lock) and `landing-copy-out-of-scope-features` (SCOPE — state/local + gamification still advertised on the landing). STATUS.md refreshed.
 - 2026-05-22 — Landing stats overstating scope fixed (`fix/landing-stats-federal-scope`): removed the "state & local" / "50 states" claims, leaving a 3-stat federal-true strip.
 - 2026-05-22 — Email verification consciously deferred to pre-launch (docs-only; no code shipped). Added the `## Feature 1` section: `email-verification-deferred` (BLOCK before public beta — "Confirm email" is OFF so `auth.users.email_confirmed_at` is true-for-all and `profiles.email_verified_at` is true-for-none; no proof-of-ownership exists), plus `email-verified-at-dead-column` and `signup-check-email-dead-branch` (DEBT gate-traps). `FEATURES.md` §1 annotated as deferred. Toggle state verified empirically via the public `auth.signUp` path (the `admin.createUser` path gives a false reading).

@@ -1,4 +1,4 @@
-# Be The Change — Weekly Build Plan
+# Oravan — Weekly Build Plan
 
 **Owner:** Colby
 **Cadence:** Revised every Monday (30-min ritual)

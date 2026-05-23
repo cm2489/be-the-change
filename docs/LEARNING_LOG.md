@@ -1,6 +1,6 @@
 # LEARNING_LOG.md
 
-A living record of coding concepts encountered during the Be The Change build.
+A living record of coding concepts encountered during the Oravan build.
 Written for someone building their intuition, not just copying commands.
 
 **How to use this:** Read entries after a session, not during. The goal is to

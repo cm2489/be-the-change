@@ -6,7 +6,7 @@ This file is read by Claude Code at the start of every session. Its rules overri
 
 ## Project Identity
 
-**Name:** Be The Change
+**Name:** Oravan
 **What it is:** A pro-democracy civic engagement web app that reduces friction between citizens and their elected federal representatives.
 **Who uses it:** U.S. voters who want to engage with the federal legislative process but don't know how.
 **Current phase:** Pre-MVP, solo-built, targeting a donor-ready MVP in 6–8 weeks.

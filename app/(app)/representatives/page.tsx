@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { syncRepsForUser, type RepForUi, type SyncRepsResult } from '@/lib/actions/sync-reps'
 import { RepCard } from '@/components/RepCard'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 // Federal-only by design — FEATURES.md scopes state/local reps out of MVP.
 // If state reps are added later, they should NOT be poured into these three
@@ -133,24 +135,23 @@ export default function RepresentativesPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">My Representatives</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="text-h2 font-bold text-ink">My Representatives</h1>
+        <p className="text-small text-ink-70 mt-1">
           Your federal House Representative and two U.S. Senators.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="mb-6 space-y-3">
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-small font-medium text-ink-85">
           Your full address
         </label>
-        <input
+        <Input
           type="text"
           value={address}
           onChange={e => setAddress(e.target.value)}
           placeholder="123 Main St, Springfield, IL 62701"
-          className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
         />
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-ink-50">
           Full street address — required to find your House district.
         </p>
         <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
@@ -159,19 +160,19 @@ export default function RepresentativesPage() {
       </form>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
           {error}
         </div>
       )}
 
       {initialLoading && (
-        <div className="text-center text-slate-400 py-8 text-sm">Loading your reps…</div>
+        <div className="text-center text-ink-50 py-8 text-small">Loading your reps…</div>
       )}
 
       {!initialLoading && storedAddress && (
         <>
-          <p className="text-xs text-slate-400 mb-4">
-            Showing reps for <span className="text-slate-600">{storedAddress}</span>
+          <p className="text-xs text-ink-50 mb-4">
+            Showing reps for <span className="text-ink-70">{storedAddress}</span>
           </p>
           <div className="space-y-3">
             {(['house', 'senate_1', 'senate_2'] as const).map(slot => {
@@ -184,8 +185,10 @@ export default function RepresentativesPage() {
       )}
 
       {!initialLoading && !storedAddress && !error && (
-        <div className="text-center py-12 text-slate-400">
-          <div className="text-4xl mb-3">📬</div>
+        <div className="text-center py-12 text-ink-50">
+          <div className="mb-3 flex justify-center">
+            <MapPin className="h-8 w-8 text-ink-50" />
+          </div>
           <p>Enter your address to find your federal representatives.</p>
         </div>
       )}
@@ -199,9 +202,9 @@ export default function RepresentativesPage() {
 // placeholder rather than implying we lost the rep.
 function VacantSlotCard({ label }: { label: string }) {
   return (
-    <div className="bg-slate-50 rounded-2xl border border-dashed border-slate-300 p-4 text-center">
-      <div className="text-sm font-semibold text-slate-700">{label}</div>
-      <div className="text-xs text-slate-500 mt-1">
+    <div className="bg-paper-dark rounded-2xl border border-dashed border-divider-strong p-4 text-center">
+      <div className="text-small font-semibold text-ink-85">{label}</div>
+      <div className="text-xs text-ink-70 mt-1">
         Seat currently vacant or pending update.{' '}
         <a
           href="https://www.congress.gov/members"

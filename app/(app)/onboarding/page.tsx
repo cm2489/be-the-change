@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { INTEREST_CATEGORIES, type InterestCategory } from '@/lib/interests'
 import { syncRepsForUser } from '@/lib/actions/sync-reps'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 
 type Step = 'location' | 'categories' | 'subcategories' | 'done'
 
@@ -198,23 +200,23 @@ export default function OnboardingPage() {
 
   // --- RENDER ---
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-paper flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-xl font-bold text-ink mb-1">Be The Change</div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-h2 font-bold text-ink">
             {step === 'location' && 'Where are you located?'}
             {step === 'categories' && 'What issues matter to you?'}
             {step === 'subcategories' && `${currentCategory?.icon} ${currentCategory?.label}`}
           </h1>
           {step === 'categories' && (
-            <p className="text-slate-500 text-sm mt-2">
+            <p className="text-ink-70 text-small mt-2">
               Pick as many as you like. You can always update these later.
             </p>
           )}
           {step === 'subcategories' && (
-            <p className="text-slate-500 text-sm mt-2">
+            <p className="text-ink-70 text-small mt-2">
               Which specific areas? ({currentCategoryIndex + 1} of{' '}
               {selectedCategoryList.length})
             </p>
@@ -225,7 +227,7 @@ export default function OnboardingPage() {
         <div className="flex justify-end mb-4">
           <button
             onClick={handleSkip}
-            className="text-sm text-slate-400 hover:text-slate-600 underline underline-offset-2"
+            className="text-small text-ink-50 hover:text-ink-70 underline underline-offset-2"
             disabled={loading}
           >
             Just let me make a call — skip for now
@@ -233,7 +235,7 @@ export default function OnboardingPage() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
             {error}
           </div>
         )}
@@ -248,34 +250,33 @@ export default function OnboardingPage() {
                   ? 'bg-ink'
                   : ['location', 'categories', 'subcategories'].indexOf(step) > i
                   ? 'bg-ink-20'
-                  : 'bg-slate-200'
+                  : 'bg-divider'
               }`}
             />
           ))}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <Card padding="md" className="shadow-sm">
           {/* STEP 1: Location */}
           {step === 'location' && (
             <form onSubmit={handleLocationNext} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-small font-medium text-ink-85 mb-1.5">
                   Your name (optional)
                 </label>
-                <input
+                <Input
                   type="text"
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="Jane Smith"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-small font-medium text-ink-85 mb-1.5">
                   ZIP code <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   inputMode="numeric"
                   maxLength={5}
@@ -283,26 +284,24 @@ export default function OnboardingPage() {
                   onChange={e => setZipCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="e.g. 10001"
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 />
-                <p className="mt-1.5 text-xs text-slate-400">
+                <p className="mt-1.5 text-xs text-ink-50">
                   Used to filter bills relevant to your state. Never shared.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-small font-medium text-ink-85 mb-1.5">
                   Full street address <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   value={fullAddress}
                   onChange={e => setFullAddress(e.target.value)}
                   placeholder="123 Main St, Springfield, IL 62701"
                   required
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ink focus:border-transparent"
                 />
-                <p className="mt-1.5 text-xs text-slate-400">
+                <p className="mt-1.5 text-xs text-ink-50">
                   We need your full address to find your House district.
                   ZIP codes alone can span multiple districts.
                 </p>
@@ -325,7 +324,7 @@ export default function OnboardingPage() {
                     className={`p-3 rounded-xl border-2 text-left transition-all ${
                       selectedCategories.has(cat.id)
                         ? 'border-ink bg-ink-10 text-ink'
-                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                        : 'border-divider hover:border-divider-strong text-ink-85'
                     }`}
                   >
                     <div className="text-2xl mb-1">{cat.icon}</div>
@@ -358,17 +357,17 @@ export default function OnboardingPage() {
           {/* STEP 3: Subcategory drill-down */}
           {step === 'subcategories' && currentCategory && (
             <div className="space-y-4">
-              <p className="text-sm text-slate-500">{currentCategory.description}</p>
+              <p className="text-small text-ink-70">{currentCategory.description}</p>
 
               <div className="space-y-2">
                 {currentCategory.subcategories.map(sub => (
                   <button
                     key={sub.id}
                     onClick={() => toggleSubcategory(sub.id)}
-                    className={`w-full p-3.5 rounded-xl border-2 text-left text-sm font-medium transition-all ${
+                    className={`w-full p-3.5 rounded-xl border-2 text-left text-small font-medium transition-all ${
                       selectedSubcategories.has(sub.id)
                         ? 'border-ink bg-ink-10 text-ink'
-                        : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                        : 'border-divider hover:border-divider-strong text-ink-85'
                     }`}
                   >
                     {sub.label}
@@ -380,7 +379,7 @@ export default function OnboardingPage() {
                 <Button
                   variant="ghost"
                   onClick={handleSubcategorySkipAll}
-                  className="flex-none text-slate-500"
+                  className="flex-none text-ink-70"
                 >
                   All of the above
                 </Button>
@@ -399,7 +398,7 @@ export default function OnboardingPage() {
               </div>
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   )

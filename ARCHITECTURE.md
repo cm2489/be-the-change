@@ -37,7 +37,7 @@ How the system fits together. When Claude or any engineer needs to understand in
 ### Anthropic Claude API
 - **Purpose:** Personalized call script generation
 - **Env var:** `ANTHROPIC_API_KEY`
-- **Cost control:** Hard daily spend cap set in Anthropic dashboard. Script generation is cached server-side per `(user_id, bill_id, stance)` tuple.
+- **Cost control:** Anthropic API is prepaid — the loaded credit balance with auto-reload OFF is the hard spend ceiling (no postpaid daily cap exists on this account type). Script generation is cached server-side per `(user_id, bill_id, stance)` tuple.
 - **Docs:** https://docs.claude.com/
 
 ## Data Flow Diagrams (Text Format)

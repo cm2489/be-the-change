@@ -41,7 +41,7 @@ This file defines exactly what is and isn't in scope. When in doubt, the answer 
 - Generated scripts cached by `(user_id, bill_id, stance)` — never regenerate same tuple
 - Every generation logged to `script_generations` table (anonymized)
 - Scripts include a mandatory disclaimer in the UI (not the script text itself): "AI-drafted. Review and edit before use."
-- Hard cost ceiling: $X/day spend cap on Anthropic API key (set in Anthropic dashboard)
+- Hard cost ceiling: prepaid Anthropic credit balance with auto-reload OFF (no postpaid daily cap on this account type); script caching + Tier 1 rate limits as additional controls
 
 ### 5. 1-Click Calling
 **Acceptance criteria:**

@@ -144,7 +144,7 @@ See `FEATURES.md` in the repo for acceptance criteria on each MVP feature.
 
 - Rate limiting on all public endpoints
 - CAPTCHA/Turnstile on signup
-- Hard daily spend cap on Anthropic API
+- Prepaid credit balance as hard spend ceiling on Anthropic API (auto-reload off)
 - Bill data cached locally, no live dependency on Congress.gov
 - Push notification hard limit (max 2/day/user)
 - Abuse report mechanism in UI
@@ -171,7 +171,7 @@ See `FEATURES.md` in the repo for acceptance criteria on each MVP feature.
 ### Hard limits
 
 - Personal investment ceiling: $5,000 for MVP phase
-- Anthropic API daily spend cap: set in dashboard before any viral event
+- Anthropic API runs prepaid; keep auto-reload OFF so the credit balance acts as a hard ceiling. Before any high-traffic event, verify balance + auto-reload setting rather than relying on a daily cap (which doesn't exist on prepaid). Tier 1 rate limits (50 RPM, 10K output TPM on Haiku) also throttle runaway usage.
 
 ### Volunteer resources being pursued
 
@@ -206,7 +206,7 @@ See `FEATURES.md` in the repo for acceptance criteria on each MVP feature.
 |---|---|---|---|
 | Integration hell recurrence | Medium | High | `.md` scaffolding, weekly reviews, $500 on-call engineer |
 | Timeline slippage past 8 weeks | Medium | Medium | Weekly check-ins, aggressive scope discipline |
-| Claude API cost blowup at launch | Medium | High | Script caching, hard spend cap, rate limits |
+| Claude API cost blowup at launch | Medium | High | Script caching, prepaid balance ceiling (auto-reload off), rate limits |
 | Hallucinated scripts causing trust incident | Low | Very High | Mandatory user review step, disclaimer in UI, logging |
 | Bot flood during viral moment | Medium | High | CAPTCHA on signup, rate limits, abuse reporting |
 | Burnout in weeks 4–6 | Medium | Very High | One day off per week non-negotiable, explicit "done" criteria |

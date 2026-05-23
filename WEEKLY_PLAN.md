@@ -81,7 +81,7 @@
 - Install Playwright (`npm install --save-dev @playwright/test && npx playwright install`)
 - Create `docs/solutions/` directory and write first solution doc (Google Civic migration)
 - Commit one clean feature branch per logical unit of work
-- Set Anthropic API daily spend cap in dashboard
+- Confirm Anthropic API account stays prepaid with auto-reload OFF (credit balance is the spend ceiling — no postpaid daily cap exists on this account type)
 - Set up email for weekly donor check-in (no asks yet, just updates)
 
 ### Week 1 budget check

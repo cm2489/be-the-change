@@ -55,9 +55,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
-        sans: ['"Inter Tight"', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        serif: ['var(--font-instrument-serif)', 'Georgia', 'serif'],
+        sans: ['var(--font-inter-tight)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-jetbrains-mono)', 'ui-monospace', 'monospace'],
       },
       fontSize: {
         display: ['56px', { lineHeight: '1.05', letterSpacing: '-0.02em' }],

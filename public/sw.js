@@ -1,7 +1,7 @@
 // Oravan — Service Worker
 // Handles push notifications and offline caching
 
-const CACHE_NAME = 'btc-v1'
+const CACHE_NAME = 'oravan-v1'
 const STATIC_ASSETS = ['/', '/login', '/signup']
 
 // Install: cache static assets

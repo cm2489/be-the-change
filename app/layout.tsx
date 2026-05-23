@@ -33,6 +33,10 @@ export const metadata: Metadata = {
   description:
     'Hyper-personalized civic engagement. Track legislation you care about and call your representatives in one tap.',
   keywords: ['civic engagement', 'representatives', 'legislation', 'voting', 'democracy'],
+  // Pre-launch noindex: the app is live at oravan.org for dev/demo, but kept
+  // out of search indexes until public launch + formal trademark clearance.
+  // Remove at launch — tracked in docs/deferred.md#noindex-pre-launch.
+  robots: { index: false, follow: false },
   authors: [{ name: 'Oravan' }],
   openGraph: {
     title: 'Oravan',

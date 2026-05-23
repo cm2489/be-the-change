@@ -37,7 +37,7 @@ This file tracks every "we did not handle this" item in the codebase — intenti
 - `profiles.email_verified_at` is **true for no user** (never written; 0/N populated) — see `email-verified-at-dead-column`.
 - Net: **no proof-of-email-ownership exists anywhere in the system.** Anyone can sign up with an address they don't control and immediately use every civic action.
 
-**Why deferring is acceptable now:** accounts are operator-created/controlled through the demo phase, and the abuse/cost vector (unverified accounts burning Anthropic budget) is already capped by the Anthropic dashboard daily spend limit. Verification is not demo-critical.
+**Why deferring is acceptable now:** accounts are operator-created/controlled through the demo phase, and the abuse/cost vector (unverified accounts burning Anthropic budget) is already capped by the Anthropic prepaid credit balance (auto-reload OFF — no postpaid daily limit exists on this account type). Verification is not demo-critical.
 
 **Must be resolved before any uncontrolled signup / public beta.** Two viable paths, teed up so the decision isn't re-derived:
 1. **Flip "Confirm email" ON** (Supabase dashboard) — near-zero work. Native verification enforced at the login boundary: unverified users can't obtain a session at all, so they can't reach any civic action. Stricter than the "browse-then-gate" wording (users can't do anything until verified), which is fine/better for MVP. Once ON, `auth.users.email_confirmed_at` becomes a real signal and any action-level gate is optional belt-and-suspenders.

@@ -7,8 +7,10 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Make your voice heard. One call at a time.',
     start_url: '/dashboard',
     display: 'standalone',
-    background_color: '#f8fafc',
-    theme_color: '#1d4ed8',
+    // Design tokens (was generic slate `#f8fafc` + leftover blue `#1d4ed8`,
+    // neither in the palette). Matches the layout.tsx themeColor fix from Batch 1.
+    background_color: '#F7F4EE', // paper
+    theme_color: '#1F2E2A', // ink
     icons: [
       {
         src: '/icons/icon-192.png',

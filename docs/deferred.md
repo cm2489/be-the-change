@@ -548,6 +548,7 @@ The type scale (`display/h1/h2/h3/body/small/meta/mono` = 56/36/24/18/16/14/12-u
 - **12px non-uppercase** — `text-xs` (~26×) for captions / pill text; the only 12px token is `text-meta` (uppercase + tracked), which would change case. Same gap that blocked the `Badge` primitive (see `components/ui/README.md`).
 - **20px** — `text-xl` (~5×); nothing between `h3` (18) and `h2` (24).
 - **30px** — `text-3xl` (~6×); nothing between `h2` (24) and `h1` (36).
+- **18px body** — `text-lg` on body *paragraphs* (e.g. the landing CTA subhead); the 18px token `text-h3` carries heading line-height (1.15), wrong for multi-line body copy. (`text-lg` on headings maps cleanly to `h3`.)
 
 Resolve by extending the scale (e.g. a non-uppercase 12px `caption`, a 20px step, a 30px step) when brand + visual identity are locked, then convert the remaining raw sizes. Until then those raw `text-*` are intentional, not oversights.
 
@@ -557,7 +558,7 @@ Resolve by extending the scale (e.g. a non-uppercase 12px `caption`, a 20px step
 
 **Priority:** DEBT (consolidation follow-up — not in Chunk 3 scope)
 **Where in code:**
-- `slate-*` still present (33 occurrences) in: `app/(app)/layout.tsx`, `app/(app)/bills/page.tsx`, `app/(app)/bills/[id]/page.tsx`, `components/ImpactMetrics.tsx`, `components/RepCard.tsx`
+- `slate-*` still present (31 occurrences) in: `app/(app)/bills/page.tsx`, `app/(app)/bills/[id]/page.tsx`, `components/ImpactMetrics.tsx`, `components/RepCard.tsx` (`app/(app)/layout.tsx` was pulled into the Batch 1 components/landing sub-chunk and swept — no longer deferred)
 - off-palette `red-*` / `green-*` error/success banners (auth pages and elsewhere)
 
 Batch 1 Chunk 3 swept only the listed surfaces (auth, onboarding, dashboard, settings, representatives, NavBar, BillCard, landing body). The files above keep raw `slate-*` and need the same `slate → ink/divider/paper` mapping in a follow-up for full coverage. Separately, error/success banners use Tailwind `red-*`/`green-*`; the system's semantic equivalents are `oxblood` (danger) and `moss` (success) with their `-10` tints — fold into the same follow-up. Neither was in the Chunk 3 instruction; logged so full coverage isn't forgotten.

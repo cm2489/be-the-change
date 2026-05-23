@@ -21,7 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const userName = profile?.full_name || session.user.email?.split('@')[0] || 'there'
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-paper">
       <NavBar userName={userName} />
       {/* Desktop: offset for sidebar; Mobile: offset for bottom nav */}
       <main className="lg:ml-64 pb-20 lg:pb-0 min-h-screen">{children}</main>

@@ -579,7 +579,7 @@ Batch 1 converted in-scope emoji to lucide everywhere else but left the landing 
 **Priority:** SCOPE
 **Where in code:** `app/page.tsx` — `FEATURES` array copy + section text
 
-The landing still advertises capabilities **out of MVP scope** (FEATURES.md): representatives "at every level: federal, **state, and local**" and "**City councils, mayors, school boards**" (state/local reps — v2), plus the "**Callenge your community** … commit to a number of calls with friends" card (social/gamification — v2). Same flavor as the "state & local / 50 states" stats copy already fixed (PR #17). Reword to federal-only and drop/defer the gamification card before any public or donor-facing launch. **Copy change, not styling** — separate ticket; surfaced during the Batch 1 landing sweep.
+The landing still advertises capabilities **out of MVP scope** (FEATURES.md): representatives "at every level: federal, **state, and local**" and "**City councils, mayors, school boards**" (state/local reps — v2), plus the "**Callenge your community** … commit to a number of calls with friends" card (social/gamification — v2). Same flavor as the "state & local / 50 states" stats copy already fixed (PR #17). Reword to federal-only and drop/defer the gamification card before any public or donor-facing launch. **Copy change, not styling** — separate ticket; surfaced during the Batch 1 landing sweep. **Also: the `Challenge` nav item in `NavBar.tsx`** (mobile bottom-tab + desktop sidebar, route `/callenge`) is the same out-of-MVP gamification — remove it from the nav alongside the landing card. Surfaced during the bill-detail floor session (2026-05-23); logged only, not acted on (shell paradigm itself is intentional and stays).
 
 ---
 
@@ -591,6 +591,21 @@ The landing still advertises capabilities **out of MVP scope** (FEATURES.md): re
 **Where in code:** `app/layout.tsx` — `metadata.robots`
 
 Site-wide `robots: { index: false, follow: false }` added 2026-05-23 (Next renders `<meta name="robots" content="noindex, nofollow">` into every page head from this). The app is **live and openly reachable at oravan.org** for dev/demo, but is pre-launch with **formal trademark clearance still pending**, so it must stay out of search indexes. **Remove the `robots` block at public launch, after formal trademark clearance** — fold into the same gate as the nonprofit legal consult and `landing-copy-out-of-scope-features` (the other things that must be true before a public/donor launch).
+
+---
+
+## Future feature ideas — bill detail (parked, post-MVP)
+
+Surfaced during the bill-detail floor session (2026-05-23). **Not in MVP scope** — each needs a new data source or model. Captured as product ideas, not committed work. Both serve the same user-need the "Decoded" block targets: *"is this even worth my time?"*
+
+### bill-progress-meter
+A compact at-a-glance status indicator on `/bills/[id]` — almost a "battery meter" — showing:
+- **How far along** the bill is in the process (could build on `deriveDisplayStatus` / `bills.status`)
+- **Current odds of passing** (needs a prediction signal — external model or heuristic; no current data source)
+- **How impactful** it would be (ties to `issue_analysis`)
+
+### bill-impact-projections
+A droppable container surfacing **official projections/studies** on the bill's effects — OMB/CBO-style cost-and-effect estimates — to clear the noise: *is this worth my time, who does it affect, what's the long-term picture if it passes.* Needs an external source (CBO/OMB) and a lazy-fill pattern like `issue_analysis`. Sits alongside the "Decoded" + "Why this matters to you" beats as the deeper-evidence layer.
 
 ---
 

@@ -96,6 +96,16 @@ At the start of every coding session, Claude should:
 5. Review recent `git log` (last 5 commits) to understand current state
 6. State the plan before writing code, and wait for confirmation on non-trivial tasks
 
+## Design Workflow
+
+The front-end / design phase has its own operating doc: **`docs/DESIGN_PLAYBOOK.md`** — read it before any design work. It holds the full workflow, toolkit, guardrails, and reference set; this section is only the pointer.
+
+- **`docs/DESIGN_PLAYBOOK.md` is the source of truth for the phase.** Don't design from training-data defaults — build against the playbook, the tokens in `tailwind.config.ts` / `globals.css`, and the decisions doc below.
+- **Tools, by job:** `frontend-design` skill = the **build spine** (generates/edits code inside the tokens). Impeccable = **critique, not building** — run **`npx impeccable detect` first** as a deterministic slop-check (trust it over the LLM for "is this slop?"), *then* **`/critique`** for the judgment pass. `creative-director` skill = the **ceiling pass**, run only after a screen is at a competent baseline. Floor before ceiling.
+- **Restraint is the brief; tokens are the cage.** Snap to the token system — fewer fonts, colors, effects. When in doubt, `/quieter` and `/distill`, not `/bolder`.
+- **`docs/DESIGN_DECISIONS.md` is the cross-screen memory.** Every locked choice goes there with its exact class string — the build tools are single-generation, so that doc is what keeps screen #6 consistent with screen #1.
+- **Screenshots at 390px + desktop every iteration are non-negotiable.** If you didn't look at the render, you didn't verify it.
+
 ## Hard "Do Not Do" Rules
 
 - Do not silently add new env vars. Any new env var requires explicit discussion.

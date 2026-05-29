@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 interface Bill {
   id: string
   bill_number: number
+  bill_type: string
   title: string
   summary_text: string | null
   ai_summary: string | null
@@ -21,6 +22,26 @@ interface Bill {
   urgency_score: number
   congress_gov_url: string | null
   issue_tags: string[] | null
+}
+
+// Iteration-only fallback so body-type comparisons have real prose to read
+// against when a bill's summary hasn't been synced. Remove when slot 3 locks.
+const STUB_DECODED =
+  "Establishes a federal grant program to modernize how constituents reach their representatives, requiring House and Senate offices to publish a direct constituent-services line and to report quarterly on response times. Authorizes new funding over five years and directs the GAO to study accessibility for rural and disabled callers."
+
+// Format bill identifier as a Congress citation, e.g. "H.R. 4821" / "S. 1234".
+function billIdentifier(billType: string, billNumber: number): string {
+  const prefixes: Record<string, string> = {
+    hr: 'H.R.',
+    s: 'S.',
+    hjres: 'H.J.Res.',
+    sjres: 'S.J.Res.',
+    hres: 'H.Res.',
+    sres: 'S.Res.',
+    hconres: 'H.Con.Res.',
+    sconres: 'S.Con.Res.',
+  }
+  return `${prefixes[billType.toLowerCase()] ?? billType.toUpperCase()} ${billNumber}`
 }
 
 export default function BillDetailPage() {
@@ -81,77 +102,105 @@ export default function BillDetailPage() {
 
   const urgency = urgencyLabel(bill.urgency_score)
   const displaySummary = bill.ai_summary || bill.summary_text
+  const identifier = billIdentifier(bill.bill_type, bill.bill_number)
 
+  // FLOOR — Option A, bones pass. Outer vertical structure only: six labeled
+  // slots so the stack order, proportions, and spacing rhythm are legible
+  // before any slot is filled. No internals, no copy, no tokens yet.
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
-      {/* Back */}
+
+      {/* Back (kept as-is; restyled when we reach it) */}
       <button
         onClick={() => router.back()}
-        className="text-sm text-slate-400 hover:text-slate-600 mb-4 flex items-center gap-1"
+        className="text-sm text-slate-400 hover:text-slate-600 mb-6 flex items-center gap-1"
       >
         ← Back
       </button>
 
-      {/* Bill header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
-        <div className="flex items-center gap-2 flex-wrap mb-3">
-          <span
-            className={cn(
-              'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-              urgency.color
-            )}
-          >
-            {urgency.label}
-          </span>
-          {/* Federal-only per MVP scope (FEATURES.md); v2 reintroduces a level/state-code branch. */}
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-            🇺🇸 Federal
-          </span>
-          <span className="text-xs text-slate-400">{bill.bill_number}</span>
-        </div>
-
-        <h1 className="text-xl font-bold text-slate-900 leading-tight mb-4">{bill.title}</h1>
-
-        {displaySummary && (
-          <p className="text-sm text-slate-600 leading-relaxed mb-4">{displaySummary}</p>
-        )}
-
-        <div className="flex items-center gap-4 text-xs text-slate-400 border-t border-slate-100 pt-4">
-          {bill.last_action_text && (
-            <span className="line-clamp-1">
-              Last action: {bill.last_action_text}
-              {bill.last_action_date && (
-                <span className="text-slate-500"> ({formatDate(bill.last_action_date)})</span>
-              )}
-            </span>
-          )}
-          {bill.congress_gov_url && (
-            <a
-              href={bill.congress_gov_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-ink hover:underline ml-auto flex-shrink-0"
-            >
-              Full text →
-            </a>
-          )}
-        </div>
+      {/* SLOT 1 — status bar · ring-outline neutral pills + mono citation id */}
+      <div className="flex items-center gap-2 flex-wrap mb-4">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase">{urgency.label}</span>
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase">Federal</span>
+        <span className="font-mono text-meta text-ink-50 ml-1">{identifier}</span>
       </div>
 
-      {/* Script generation (Feature 4) → call surface (Feature 5). CallFlow
-          appears once a script is saved; scriptGenerationId is null only if
-          the script's cache insert failed, which CallFlow tolerates. */}
-      <div className="space-y-4">
-        <ScriptFlow
-          billId={bill.id}
-          onSavedChange={(saved, id) => {
-            setScriptSaved(saved)
-            setScriptGenerationId(id)
-          }}
-        />
-        {scriptSaved && (
-          <CallFlow billId={bill.id} scriptGenerationId={scriptGenerationId} />
-        )}
+      {/* SLOT 2 — official title · sans "Official title" kicker (text-meta uppercase
+          ink-50) + serif italic body (22px / font-medium / ink-70 / leading-relaxed /
+          tracking 0.02em). LOCKED. Two arbitrary values used (22px, 0.02em) — both
+          candidates for the type-scale-extension item in deferred.md. */}
+      <div className="mb-8">
+        <p className="text-meta uppercase tracking-widest text-ink-50 mb-1.5">Official title</p>
+        <p className="font-serif italic font-medium text-[22px] text-ink-70 leading-relaxed tracking-[0.02em]">{bill.title}</p>
+      </div>
+
+      {/* SLOT 3 — Decoded hero card. SURFACE LOCKED.
+          Iterating BODY TYPE. Four variants stacked; label held to a brief-baseline
+          (text-meta uppercase tracking-widest ink-50, centered) so the only variable
+          is the body. All variants lean warm-subtle per project memory. Label
+          iterates after body locks. */}
+      <div className="mb-8 space-y-8">
+
+        {/* option 1 — classical editorial · Instrument Serif body · relaxed · ink-85 */}
+        <div>
+          <p className="text-xs font-mono text-slate-400 mb-1.5">option 1 · serif body · relaxed · ink-85</p>
+          <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
+            <p className="text-meta uppercase tracking-widest text-ink-50 text-center mb-5">Decoded</p>
+            <p className="font-serif text-body text-ink-85 leading-relaxed max-w-[65ch] mx-auto">
+              {displaySummary ?? STUB_DECODED}
+            </p>
+          </div>
+        </div>
+
+        {/* option 2 — bigger editorial · Instrument Serif 18px · relaxed · ink-85 */}
+        <div>
+          <p className="text-xs font-mono text-slate-400 mb-1.5">option 2 · serif 18px · relaxed · ink-85</p>
+          <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
+            <p className="text-meta uppercase tracking-widest text-ink-50 text-center mb-5">Decoded</p>
+            <p className="font-serif text-[18px] text-ink-85 leading-relaxed max-w-[65ch] mx-auto">
+              {displaySummary ?? STUB_DECODED}
+            </p>
+          </div>
+        </div>
+
+        {/* option 3 — airy sans · Inter Tight body · loose leading · ink-85
+            (warmth via breathing + softened ink, family stays neutral/legible) */}
+        <div>
+          <p className="text-xs font-mono text-slate-400 mb-1.5">option 3 · sans body · loose · ink-85</p>
+          <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
+            <p className="text-meta uppercase tracking-widest text-ink-50 text-center mb-5">Decoded</p>
+            <p className="text-body text-ink-85 leading-loose max-w-[65ch] mx-auto">
+              {displaySummary ?? STUB_DECODED}
+            </p>
+          </div>
+        </div>
+
+        {/* option 4 — spacious editorial · Instrument Serif body · loose leading · ink-85 (warmest of the four) */}
+        <div>
+          <p className="text-xs font-mono text-slate-400 mb-1.5">option 4 · serif body · loose · ink-85</p>
+          <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
+            <p className="text-meta uppercase tracking-widest text-ink-50 text-center mb-5">Decoded</p>
+            <p className="font-serif text-body text-ink-85 leading-loose max-w-[65ch] mx-auto">
+              {displaySummary ?? STUB_DECODED}
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      {/* SLOT 4 — RELEVANCE LINE (quiet supporting line beneath the card) */}
+      <div className="mb-8 h-4 w-72 rounded bg-slate-100" />
+
+      {/* SLOT 5 — METADATA ROW (last action · Full text) */}
+      <div className="mb-10 flex items-center justify-between gap-4 border-t border-slate-100 pt-4">
+        <div className="h-3 w-1/2 rounded bg-slate-100" />
+        <div className="h-3 w-16 rounded bg-slate-100" />
+      </div>
+
+      {/* SLOT 6 — CALL-SCRIPT SECTION (shell only) */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="mb-6 h-3 w-28 rounded bg-slate-100" />
+        <div className="h-28 rounded bg-slate-100" />
       </div>
 
     </div>

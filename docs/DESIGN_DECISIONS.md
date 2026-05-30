@@ -96,3 +96,19 @@ The **load-bearing thematic intent** for the Decoded card — the lens every slo
 - **Boundary:** warm-subtle is the *flavor*, not a license to break a floor lock. It does not override neutrals-only, no-`signal`-color, the ~65ch measure, or the centered-label/left-aligned-body mix. When a warm candidate fights a brief lock, **the brief wins**.
 
 Full capture: project memory `project_decoded_card_warm_polar_opposite.md`. When proposing slot-3 interior variants, filter each through *"does this add a subtle warm note, or bring in cold institutional energy?"* — cold-clinical options only as explicit contrast baselines.
+
+### Slot 4 — Relevance line ("Why this matters to you") — LOCKED (2026-05-30)
+
+**Treatment:** A quiet supporting line **beneath** the Decoded card (not a second card), at the column's left edge — one consistent left margin runs card → relevance → metadata (brief §4.3). `text-small`, `ink-50`, low weight. Picked treatment **C** from a 3-way emphasis render (one-tone / area-bold / area-ink-only): the matched area is lifted with **ink alone** (`ink-85`, no weight bump) — guides the eye without the line getting loud.
+
+**Three states (brief §4.4), driven by `resolveRelevance`:**
+
+| State | Copy | Classes |
+|---|---|---|
+| populated | `Touches your priorities — {areas}` (comma-joined) | line `text-small text-ink-50`; matched area `text-ink-85` |
+| empty | `Set your issue priorities to see why this matters to you.` | link `underline underline-offset-2 text-ink-70 hover:text-ink` → **`/onboarding`** (Next `<Link>`) |
+| no-match | `This bill is outside your current priorities.` | `text-small text-ink-50` |
+
+Wrapper: `mb-8 text-small text-ink-50`. The link is **neutral** (underline + ink) — link color is a ceiling decision, not the floor's.
+
+**Matching semantics (the data decision — locked by `lib/__tests__/relevance.test.ts`):** a **raw intersection on top-level category ids** (`user_interests.category` ∩ `bills.issue_tags`), mirroring `get_personalized_feed` so the detail page and the feed badge can never disagree. The matcher does **not** walk subcategory → parent — the tagger guarantees `issue_tags` carries the parent whenever it emits a subcategory (STRATEGY.md 2026-04-28 rejected matcher-side parent-walking; the prior bug was the tagger emitting subcategories *without* parents). Consequence, pinned by the test: a **bare subcategory without its parent does not match** (malformed input, intended), and parent + subcategory + duplicates **collapse to one** (no double-counting). Logic + rationale: `lib/relevance.ts`.

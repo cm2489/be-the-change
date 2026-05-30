@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -8,6 +9,7 @@ import { ScriptFlow } from '@/components/ScriptFlow'
 import { CallFlow } from '@/components/CallFlow'
 import { urgencyLabel, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { resolveRelevance } from '@/lib/relevance'
 
 interface Bill {
   id: string
@@ -50,6 +52,7 @@ export default function BillDetailPage() {
   // thread the script_generations id into call_events.
   const [scriptSaved, setScriptSaved] = useState(false)
   const [scriptGenerationId, setScriptGenerationId] = useState<string | null>(null)
+  const [userCategoryIds, setUserCategoryIds] = useState<string[]>([])
 
   useEffect(() => {
     async function load() {
@@ -68,6 +71,16 @@ export default function BillDetailPage() {
         .single()
 
       if (billData) setBill(billData)
+
+      // Relevance inputs: the user's selected top-level interest categories,
+      // intersected with bill.issue_tags at render via resolveRelevance().
+      const { data: interestRows } = await supabase
+        .from('user_interests')
+        .select('category')
+        .eq('user_id', session.user.id)
+      const interestCats = (interestRows ?? []) as Array<{ category: string }>
+      setUserCategoryIds([...new Set(interestCats.map(r => r.category))])
+
       setLoading(false)
     }
 
@@ -98,6 +111,7 @@ export default function BillDetailPage() {
   const urgency = urgencyLabel(bill.urgency_score)
   const displaySummary = bill.ai_summary || bill.summary_text
   const identifier = billIdentifier(bill.bill_type, bill.bill_number)
+  const relevance = resolveRelevance(userCategoryIds, bill.issue_tags)
 
   // FLOOR — Option A, bones pass. Outer vertical structure only: six labeled
   // slots so the stack order, proportions, and spacing rhythm are legible
@@ -153,8 +167,36 @@ export default function BillDetailPage() {
         </div>
       </div>
 
-      {/* SLOT 4 — RELEVANCE LINE (quiet supporting line beneath the card) */}
-      <div className="mb-8 h-4 w-72 rounded bg-slate-100" />
+      {/* SLOT 4 — RELEVANCE LINE. Quiet supporting line beneath the card, at the
+          column's left edge (shares the card's left edge). Neutrals only;
+          treatment C — the matched area is lifted with ink alone (ink-85, no
+          extra weight); the empty-state link is a neutral underline. Three
+          states from resolveRelevance(user categories ∩ bill.issue_tags) —
+          parent-category match, see lib/relevance.ts. */}
+      <div className="mb-8 text-small text-ink-50">
+        {relevance.state === 'populated' && (
+          <p>
+            Touches your priorities —{' '}
+            <span className="text-ink-85">
+              {relevance.matchedCategories.map(c => c.label).join(', ')}
+            </span>
+          </p>
+        )}
+        {relevance.state === 'empty' && (
+          <p>
+            <Link
+              href="/onboarding"
+              className="underline underline-offset-2 text-ink-70 hover:text-ink"
+            >
+              Set your issue priorities
+            </Link>{' '}
+            to see why this matters to you.
+          </p>
+        )}
+        {relevance.state === 'no_match' && (
+          <p>This bill is outside your current priorities.</p>
+        )}
+      </div>
 
       {/* SLOT 5 — METADATA ROW (last action · Full text) */}
       <div className="mb-10 flex items-center justify-between gap-4 border-t border-slate-100 pt-4">

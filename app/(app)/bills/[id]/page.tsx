@@ -129,24 +129,27 @@ export default function BillDetailPage() {
         <p className="font-serif italic font-medium text-[22px] text-ink-70 leading-relaxed tracking-[0.02em]">{bill.title}</p>
       </div>
 
-      {/* SLOT 3 — Decoded hero card. LOCKED (surface + body + label).
-          Surface: floating warmth — bg-paper-dark / shadow-md / rounded-xl, no border.
-          Body: SANS (Inter Tight) — text-body / ink-85 / leading-loose at ~65ch; the
-          plain-spoken voice breaks from the serif-italic citation title so the family
-          contrast itself is the warm/cold signal.
-          Label: editorial marker — ink-70 meta-uppercase caption + a short centered
-          hairline rule (divider-strong) beneath. Centered per brief §4.2.
-          mb-4 so the relevance line (slot 4) hugs the card it explains.
-          NEXT: §4.6 empty state (displaySummary null → "Not decoded yet…"). */}
+      {/* SLOT 3 — Decoded hero card. LOCKED (surface + body + label + empty state).
+          Card / label / rule are always present; only the body paragraph swaps:
+          displaySummary → the Decoded body (sans / ink-85 / leading-loose); null
+          (no summary synced yet) → the §4.6 empty state, a muted "Not decoded yet"
+          line at the SAME ~65ch left measure so the card holds its shape between
+          states. mb-4 so the relevance line (slot 4) hugs the card it explains. */}
       <div className="mb-4">
         <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
           <div className="text-center mb-5">
             <p className="text-meta uppercase tracking-widest text-ink-70">Decoded</p>
             <div className="mx-auto mt-3 h-px w-8 bg-divider-strong" />
           </div>
-          <p className="text-body text-ink-85 leading-loose max-w-[65ch] mx-auto">
-            {displaySummary}
-          </p>
+          {displaySummary ? (
+            <p className="text-body text-ink-85 leading-loose max-w-[65ch] mx-auto">
+              {displaySummary}
+            </p>
+          ) : (
+            <p className="text-body text-ink-50 max-w-[65ch] mx-auto">
+              Not decoded yet — we’ll translate this bill into plain language shortly.
+            </p>
+          )}
         </div>
       </div>
 

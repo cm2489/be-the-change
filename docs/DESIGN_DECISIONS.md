@@ -56,7 +56,7 @@ Branch `feat/bill-detail-floor`, Batch 2. Source brief: `docs/bill-detail-floor-
 - `tracking-[0.02em]` — sits between `tracking-normal` (0) and `tracking-wide` (0.025em); no token exists.
 - **Decision owed at screen-lock:** formalize one/both into the scale **or** document them as deliberate one-offs. Per `type-scale-extension`, only formalize a 22px step if it recurs on another surface — otherwise it stays a one-off. Either way, the call is made *once, here*; don't keep inventing inline type values on other surfaces in the meantime.
 
-### Slot 3 — "Decoded" hero card — SURFACE + BODY + LABEL LOCKED (2026-05-29); empty state open
+### Slot 3 — "Decoded" hero card — LOCKED (surface + body + label + empty state)
 
 **Surface treatment (LOCKED):** "Floating warmth" — a warm fill + soft shadow lift, **no border**, large radius, generous padding. Realizes the brief §4.1 "distinct-from-shell" intent via *depth* rather than a frame. Chosen from 4 surface variants (bordered editorial / floating warmth / sharp callout / spacious magazine).
 
@@ -80,7 +80,11 @@ Branch `feat/bill-detail-floor`, Batch 2. Source brief: `docs/bill-detail-floor-
 
 **Why C:** `ink-70` fixes the baseline's faintness (`ink-50` nearly receded into the warm fill) so the label anchors as the card's title; the short `divider-strong` hairline (warm tan, 32px) adds an editorial magazine-kicker structure with no color and no glyph (icon system is brand-locked). It's the most "designed" of the three — a deliberate small warm touch consistent with the hero's accumulate-warmth-from-many-small-moves intent. Centered per brief §4.2 (label centered, body left).
 
-**Still open (not locked):** the **§4.6 empty state** (when `displaySummary` is null: card + frame stay, body swaps to "Not decoded yet — we'll translate this bill into plain language shortly.").
+**Empty state (LOCKED — picked B from a 3-way centered / left / centered-italic render, 2026-05-30):** When `displaySummary` is null (no summary synced yet), the card / label / rule stay; only the body paragraph swaps to a muted "Not decoded yet" line.
+
+**Exact empty-body classes:** `text-body text-ink-50 max-w-[65ch] mx-auto` — the **same `~65ch` left measure** as the filled body, just `ink-50` (muted). **Copy:** "Not decoded yet — we'll translate this bill into plain language shortly." (em-dash + curly apostrophe, per the editorial type).
+
+**Why B (left at measure) over centered (A/C):** holding the empty body at the same measure + alignment as the filled body means the card **doesn't change shape** when it goes empty → decoded — only the text changes. Centered reads more like a conventional placeholder but makes the card "jump" between states. Implemented as a single conditional around the **body paragraph only** (card / label / rule render once, shared by both states).
 
 ### Concept (LOCKED) — "Decoded" as the warm polar opposite of the cold institutional bill
 

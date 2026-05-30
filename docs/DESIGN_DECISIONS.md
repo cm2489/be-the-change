@@ -112,3 +112,15 @@ Full capture: project memory `project_decoded_card_warm_polar_opposite.md`. When
 Wrapper: `mb-8 text-small text-ink-50`. The link is **neutral** (underline + ink) — link color is a ceiling decision, not the floor's.
 
 **Matching semantics (the data decision — locked by `lib/__tests__/relevance.test.ts`):** a **raw intersection on top-level category ids** (`user_interests.category` ∩ `bills.issue_tags`), mirroring `get_personalized_feed` so the detail page and the feed badge can never disagree. The matcher does **not** walk subcategory → parent — the tagger guarantees `issue_tags` carries the parent whenever it emits a subcategory (STRATEGY.md 2026-04-28 rejected matcher-side parent-walking; the prior bug was the tagger emitting subcategories *without* parents). Consequence, pinned by the test: a **bare subcategory without its parent does not match** (malformed input, intended), and parent + subcategory + duplicates **collapse to one** (no double-counting). Logic + rationale: `lib/relevance.ts`.
+
+### Slot 5 — Metadata row (last action · Full text) — LOCKED (2026-05-30)
+
+**Treatment:** Picked **B (labeled, stacked)** from a 3-way (no-label one-row / labeled-stacked / labeled-inline-one-row). A top `divider` rule, then a "Last action" meta-label + a neutral external "Full text" link on one row, with the verbose `last_action_text` on its **own full-width line** below, clamped to one line.
+
+**Exact classes:**
+
+- Row wrapper: `mb-10 border-t border-divider pt-4`
+- Label + link row: `flex items-baseline justify-between gap-6`; label `text-meta uppercase tracking-widest text-ink-50`; link `text-small text-ink-70 underline underline-offset-2 hover:text-ink` (`target="_blank" rel="noopener noreferrer"` → `congress_gov_url`)
+- Action line: `text-small text-ink-70 line-clamp-1 mt-1.5`; content `{date} · {last_action_text}` (date via `formatDate`; falls back to "No recorded action yet." when text is null)
+
+**Why:** Metadata is the quietest reference on the page — `text-small` + ink-tints + a single hairline divider keep it subordinate to the Decoded card and relevance line. Stacking gives the verbose committee-speak its own line so it never squeezes the link, and `line-clamp-1` honors brief §9 (`last_action_text` is metadata, not prose). The "Full text" link is **neutral** (underline/ink) — link color is a ceiling decision.

@@ -112,6 +112,7 @@ export default function BillDetailPage() {
   const displaySummary = bill.ai_summary || bill.summary_text
   const identifier = billIdentifier(bill.bill_type, bill.bill_number)
   const relevance = resolveRelevance(userCategoryIds, bill.issue_tags)
+  const lastActionDate = bill.last_action_date ? formatDate(bill.last_action_date) : null
 
   // FLOOR — Option A, bones pass. Outer vertical structure only: six labeled
   // slots so the stack order, proportions, and spacing rhythm are legible
@@ -198,10 +199,29 @@ export default function BillDetailPage() {
         )}
       </div>
 
-      {/* SLOT 5 — METADATA ROW (last action · Full text) */}
-      <div className="mb-10 flex items-center justify-between gap-4 border-t border-slate-100 pt-4">
-        <div className="h-3 w-1/2 rounded bg-slate-100" />
-        <div className="h-3 w-16 rounded bg-slate-100" />
+      {/* SLOT 5 — METADATA ROW. LOCKED (B — labeled, stacked). Top divider
+          rule; "Last action" meta-label + a neutral external "Full text" link
+          on one row; the verbose last_action_text on its own full-width line
+          below, clamped to one line (metadata, not prose — brief §9). Tokens +
+          neutrals; the link is neutral (underline/ink) — link color is ceiling. */}
+      <div className="mb-10 border-t border-divider pt-4">
+        <div className="flex items-baseline justify-between gap-6">
+          <p className="text-meta uppercase tracking-widest text-ink-50">Last action</p>
+          {bill.congress_gov_url && (
+            <a
+              href={bill.congress_gov_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-small text-ink-70 underline underline-offset-2 hover:text-ink"
+            >
+              Full text
+            </a>
+          )}
+        </div>
+        <p className="text-small text-ink-70 line-clamp-1 mt-1.5">
+          {lastActionDate && <span>{lastActionDate} · </span>}
+          {bill.last_action_text ?? 'No recorded action yet.'}
+        </p>
       </div>
 
       {/* SLOT 6 — CALL-SCRIPT SECTION (shell only) */}

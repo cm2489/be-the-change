@@ -24,11 +24,6 @@ interface Bill {
   issue_tags: string[] | null
 }
 
-// Iteration-only fallback so body-type comparisons have real prose to read
-// against when a bill's summary hasn't been synced. Remove when slot 3 locks.
-const STUB_DECODED =
-  "Establishes a federal grant program to modernize how constituents reach their representatives, requiring House and Senate offices to publish a direct constituent-services line and to report quarterly on response times. Authorizes new funding over five years and directs the GAO to study accessibility for rural and disabled callers."
-
 // Format bill identifier as a Congress citation, e.g. "H.R. 4821" / "S. 1234".
 function billIdentifier(billType: string, billNumber: number): string {
   const prefixes: Record<string, string> = {
@@ -134,58 +129,25 @@ export default function BillDetailPage() {
         <p className="font-serif italic font-medium text-[22px] text-ink-70 leading-relaxed tracking-[0.02em]">{bill.title}</p>
       </div>
 
-      {/* SLOT 3 — Decoded hero card. SURFACE LOCKED.
-          Iterating BODY TYPE. Four variants stacked; label held to a brief-baseline
-          (text-meta uppercase tracking-widest ink-50, centered) so the only variable
-          is the body. All variants lean warm-subtle per project memory. Label
-          iterates after body locks. */}
-      <div className="mb-8 space-y-8">
-
-        {/* option 1 — classical editorial · Instrument Serif body · relaxed · ink-85 */}
-        <div>
-          <p className="text-xs font-mono text-slate-400 mb-1.5">option 1 · serif body · relaxed · ink-85</p>
-          <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
-            <p className="text-meta uppercase tracking-widest text-ink-50 text-center mb-5">Decoded</p>
-            <p className="font-serif text-body text-ink-85 leading-relaxed max-w-[65ch] mx-auto">
-              {displaySummary ?? STUB_DECODED}
-            </p>
-          </div>
+      {/* SLOT 3 — Decoded hero card. LOCKED (surface + body).
+          Surface: floating warmth — bg-paper-dark / shadow-md / rounded-xl, no
+          border; distinct-from-shell via depth, not a frame.
+          Body: SANS (Inter Tight) — text-body / ink-85 / leading-loose at ~65ch.
+          Picked A from a 3-way A/B/C render: the plain-spoken voice breaks from
+          the serif-italic citation title, so the family contrast itself is the
+          warm/cold signal (the "Decoded = polar opposite of the cold bill"
+          concept). Warmth = loose leading + softened ink + warm surface, no
+          single overt move. Centered editorial label.
+          mb-4 so the relevance line (slot 4) hugs the card it explains.
+          NEXT: label treatment (still the provisional baseline below) + the
+          §4.6 empty state (displaySummary null → "Not decoded yet…"). */}
+      <div className="mb-4">
+        <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
+          <p className="text-meta uppercase tracking-widest text-ink-50 text-center mb-5">Decoded</p>
+          <p className="text-body text-ink-85 leading-loose max-w-[65ch] mx-auto">
+            {displaySummary}
+          </p>
         </div>
-
-        {/* option 2 — bigger editorial · Instrument Serif 18px · relaxed · ink-85 */}
-        <div>
-          <p className="text-xs font-mono text-slate-400 mb-1.5">option 2 · serif 18px · relaxed · ink-85</p>
-          <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
-            <p className="text-meta uppercase tracking-widest text-ink-50 text-center mb-5">Decoded</p>
-            <p className="font-serif text-[18px] text-ink-85 leading-relaxed max-w-[65ch] mx-auto">
-              {displaySummary ?? STUB_DECODED}
-            </p>
-          </div>
-        </div>
-
-        {/* option 3 — airy sans · Inter Tight body · loose leading · ink-85
-            (warmth via breathing + softened ink, family stays neutral/legible) */}
-        <div>
-          <p className="text-xs font-mono text-slate-400 mb-1.5">option 3 · sans body · loose · ink-85</p>
-          <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
-            <p className="text-meta uppercase tracking-widest text-ink-50 text-center mb-5">Decoded</p>
-            <p className="text-body text-ink-85 leading-loose max-w-[65ch] mx-auto">
-              {displaySummary ?? STUB_DECODED}
-            </p>
-          </div>
-        </div>
-
-        {/* option 4 — spacious editorial · Instrument Serif body · loose leading · ink-85 (warmest of the four) */}
-        <div>
-          <p className="text-xs font-mono text-slate-400 mb-1.5">option 4 · serif body · loose · ink-85</p>
-          <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
-            <p className="text-meta uppercase tracking-widest text-ink-50 text-center mb-5">Decoded</p>
-            <p className="font-serif text-body text-ink-85 leading-loose max-w-[65ch] mx-auto">
-              {displaySummary ?? STUB_DECODED}
-            </p>
-          </div>
-        </div>
-
       </div>
 
       {/* SLOT 4 — RELEVANCE LINE (quiet supporting line beneath the card) */}

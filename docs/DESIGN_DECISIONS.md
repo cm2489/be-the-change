@@ -56,7 +56,7 @@ Branch `feat/bill-detail-floor`, Batch 2. Source brief: `docs/bill-detail-floor-
 - `tracking-[0.02em]` — sits between `tracking-normal` (0) and `tracking-wide` (0.025em); no token exists.
 - **Decision owed at screen-lock:** formalize one/both into the scale **or** document them as deliberate one-offs. Per `type-scale-extension`, only formalize a 22px step if it recurs on another surface — otherwise it stays a one-off. Either way, the call is made *once, here*; don't keep inventing inline type values on other surfaces in the meantime.
 
-### Slot 3 — "Decoded" hero card — SURFACE LOCKED (2026-05-29); body iterating
+### Slot 3 — "Decoded" hero card — SURFACE + BODY LOCKED (2026-05-29); label + empty state open
 
 **Surface treatment (LOCKED):** "Floating warmth" — a warm fill + soft shadow lift, **no border**, large radius, generous padding. Realizes the brief §4.1 "distinct-from-shell" intent via *depth* rather than a frame. Chosen from 4 surface variants (bordered editorial / floating warmth / sharp callout / spacious magazine).
 
@@ -64,7 +64,13 @@ Branch `feat/bill-detail-floor`, Batch 2. Source brief: `docs/bill-detail-floor-
 
 **Why:** `paper-dark` (`#EDE7D8`) reads warmer than both the `paper` app shell and the white (`card`) supporting surfaces, so the hero is the warm thing and its neighbors stay cool-white — the contrast that makes it *the hero*. `shadow-md` lifts it without a cold, rigid border; `rounded-xl` (20px) softens; the padding gives the translation room to breathe.
 
-**Still open (not locked):** the body type (serif vs sans, leading, ink shade — see the central tension in `docs/bill-detail-floor-handoff.md` §8) and the card's interior label. The label is held to a provisional baseline (`text-meta uppercase tracking-widest text-ink-50 text-center mb-5`, centered) so the only variable during the body comparison is the body itself; it iterates after the body locks.
+**Body treatment (LOCKED — picked A from a 3-way A/B/C render, 2026-05-29):** Sans (Inter Tight) at the readable measure, softened ink, loose leading.
+
+**Exact body classes:** `text-body text-ink-85 leading-loose max-w-[65ch] mx-auto`
+
+**Why A over the serif candidates (B/C):** The fork was framed as *family contrast vs warmth* (handoff §8). Sans **breaks from the serif-italic citation title**, so the plain-spoken translation reads in its own voice and the family contrast itself becomes the warm/cold signal — exactly the "Decoded = polar opposite of the cold institutional bill" concept. The serif candidates (which share the title's family) read as editorial coherence but blurred that distinction. Warmth here comes from `leading-loose` + `ink-85` + the warm surface, **not** the typeface — many subtle touches, no overt move. The card sits in a `mb-4` slot wrapper (not `mb-8`) so the relevance line (slot 4) hugs the card it explains.
+
+**Still open (not locked):** the interior **label** (still the provisional `text-meta uppercase tracking-widest text-ink-50 text-center mb-5` baseline — iterates next) and the **§4.6 empty state** (when `displaySummary` is null: card + frame stay, body swaps to "Not decoded yet — we'll translate this bill into plain language shortly.").
 
 ### Concept (LOCKED) — "Decoded" as the warm polar opposite of the cold institutional bill
 

@@ -56,7 +56,7 @@ Branch `feat/bill-detail-floor`, Batch 2. Source brief: `docs/bill-detail-floor-
 - `tracking-[0.02em]` — sits between `tracking-normal` (0) and `tracking-wide` (0.025em); no token exists.
 - **Decision owed at screen-lock:** formalize one/both into the scale **or** document them as deliberate one-offs. Per `type-scale-extension`, only formalize a 22px step if it recurs on another surface — otherwise it stays a one-off. Either way, the call is made *once, here*; don't keep inventing inline type values on other surfaces in the meantime.
 
-### Slot 3 — "Decoded" hero card — SURFACE + BODY LOCKED (2026-05-29); label + empty state open
+### Slot 3 — "Decoded" hero card — SURFACE + BODY + LABEL LOCKED (2026-05-29); empty state open
 
 **Surface treatment (LOCKED):** "Floating warmth" — a warm fill + soft shadow lift, **no border**, large radius, generous padding. Realizes the brief §4.1 "distinct-from-shell" intent via *depth* rather than a frame. Chosen from 4 surface variants (bordered editorial / floating warmth / sharp callout / spacious magazine).
 
@@ -70,7 +70,17 @@ Branch `feat/bill-detail-floor`, Batch 2. Source brief: `docs/bill-detail-floor-
 
 **Why A over the serif candidates (B/C):** The fork was framed as *family contrast vs warmth* (handoff §8). Sans **breaks from the serif-italic citation title**, so the plain-spoken translation reads in its own voice and the family contrast itself becomes the warm/cold signal — exactly the "Decoded = polar opposite of the cold institutional bill" concept. The serif candidates (which share the title's family) read as editorial coherence but blurred that distinction. Warmth here comes from `leading-loose` + `ink-85` + the warm surface, **not** the typeface — many subtle touches, no overt move. The card sits in a `mb-4` slot wrapper (not `mb-8`) so the relevance line (slot 4) hugs the card it explains.
 
-**Still open (not locked):** the interior **label** (still the provisional `text-meta uppercase tracking-widest text-ink-50 text-center mb-5` baseline — iterates next) and the **§4.6 empty state** (when `displaySummary` is null: card + frame stay, body swaps to "Not decoded yet — we'll translate this bill into plain language shortly.").
+**Label treatment (LOCKED — picked C from a 3-way quiet/present/editorial render, 2026-05-29):** "Editorial marker" — the centered meta-uppercase caption in deeper `ink-70`, with a short centered hairline rule beneath it.
+
+**Exact label classes:**
+
+- Wrapper: `text-center mb-5`
+- Caption: `text-meta uppercase tracking-widest text-ink-70`
+- Rule: `mx-auto mt-3 h-px w-8 bg-divider-strong`
+
+**Why C:** `ink-70` fixes the baseline's faintness (`ink-50` nearly receded into the warm fill) so the label anchors as the card's title; the short `divider-strong` hairline (warm tan, 32px) adds an editorial magazine-kicker structure with no color and no glyph (icon system is brand-locked). It's the most "designed" of the three — a deliberate small warm touch consistent with the hero's accumulate-warmth-from-many-small-moves intent. Centered per brief §4.2 (label centered, body left).
+
+**Still open (not locked):** the **§4.6 empty state** (when `displaySummary` is null: card + frame stay, body swaps to "Not decoded yet — we'll translate this bill into plain language shortly.").
 
 ### Concept (LOCKED) — "Decoded" as the warm polar opposite of the cold institutional bill
 

@@ -129,21 +129,21 @@ export default function BillDetailPage() {
         <p className="font-serif italic font-medium text-[22px] text-ink-70 leading-relaxed tracking-[0.02em]">{bill.title}</p>
       </div>
 
-      {/* SLOT 3 — Decoded hero card. LOCKED (surface + body).
-          Surface: floating warmth — bg-paper-dark / shadow-md / rounded-xl, no
-          border; distinct-from-shell via depth, not a frame.
-          Body: SANS (Inter Tight) — text-body / ink-85 / leading-loose at ~65ch.
-          Picked A from a 3-way A/B/C render: the plain-spoken voice breaks from
-          the serif-italic citation title, so the family contrast itself is the
-          warm/cold signal (the "Decoded = polar opposite of the cold bill"
-          concept). Warmth = loose leading + softened ink + warm surface, no
-          single overt move. Centered editorial label.
+      {/* SLOT 3 — Decoded hero card. LOCKED (surface + body + label).
+          Surface: floating warmth — bg-paper-dark / shadow-md / rounded-xl, no border.
+          Body: SANS (Inter Tight) — text-body / ink-85 / leading-loose at ~65ch; the
+          plain-spoken voice breaks from the serif-italic citation title so the family
+          contrast itself is the warm/cold signal.
+          Label: editorial marker — ink-70 meta-uppercase caption + a short centered
+          hairline rule (divider-strong) beneath. Centered per brief §4.2.
           mb-4 so the relevance line (slot 4) hugs the card it explains.
-          NEXT: label treatment (still the provisional baseline below) + the
-          §4.6 empty state (displaySummary null → "Not decoded yet…"). */}
+          NEXT: §4.6 empty state (displaySummary null → "Not decoded yet…"). */}
       <div className="mb-4">
         <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
-          <p className="text-meta uppercase tracking-widest text-ink-50 text-center mb-5">Decoded</p>
+          <div className="text-center mb-5">
+            <p className="text-meta uppercase tracking-widest text-ink-70">Decoded</p>
+            <div className="mx-auto mt-3 h-px w-8 bg-divider-strong" />
+          </div>
           <p className="text-body text-ink-85 leading-loose max-w-[65ch] mx-auto">
             {displaySummary}
           </p>

@@ -138,10 +138,10 @@ export default function BillDetailPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
 
-      {/* Back (kept as-is; restyled when we reach it) */}
+      {/* Back — neutral tokens (the last raw-slate holdout, restyled at close-out). */}
       <button
         onClick={() => router.back()}
-        className="text-sm text-slate-400 hover:text-slate-600 mb-6 flex items-center gap-1"
+        className="text-small text-ink-50 hover:text-ink mb-6 flex items-center gap-1 transition-colors"
       >
         ← Back
       </button>

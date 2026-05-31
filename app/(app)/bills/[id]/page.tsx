@@ -4,11 +4,9 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
 import { ScriptFlow } from '@/components/ScriptFlow'
 import { CallFlow } from '@/components/CallFlow'
 import { urgencyLabel, formatDate } from '@/lib/utils'
-import { cn } from '@/lib/utils'
 import { resolveRelevance } from '@/lib/relevance'
 
 interface Bill {
@@ -88,22 +86,42 @@ export default function BillDetailPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
+  // LOADING — in-system skeleton mirroring the locked layout (back · pills ·
+  // title · Decoded card), animate-pulse with neutral ink-10 placeholders.
+  // Holds the shape so the real content doesn't pop in / shift on load.
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-12 text-center text-slate-400">
-        Loading…
+      <div className="max-w-3xl mx-auto px-4 py-6 animate-pulse" aria-hidden>
+        <div className="h-3 w-16 rounded bg-ink-10 mb-6" />
+        <div className="flex gap-2 mb-4">
+          <div className="h-5 w-20 rounded-pill bg-ink-10" />
+          <div className="h-5 w-16 rounded-pill bg-ink-10" />
+        </div>
+        <div className="h-3 w-24 rounded bg-ink-10 mb-2" />
+        <div className="h-6 w-3/4 rounded bg-ink-10 mb-8" />
+        <div className="bg-paper-dark rounded-xl px-8 py-9 mb-4">
+          <div className="h-3 w-20 rounded bg-ink-10 mx-auto mb-5" />
+          <div className="space-y-2.5 max-w-[65ch] mx-auto">
+            <div className="h-3 w-full rounded bg-ink-10" />
+            <div className="h-3 w-full rounded bg-ink-10" />
+            <div className="h-3 w-2/3 rounded bg-ink-10" />
+          </div>
+        </div>
       </div>
     )
   }
 
+  // NOT FOUND — in-system empty state, no emoji. The "Not found" kicker echoes
+  // the screen's editorial vocabulary; "Back to issues" is a neutral link (no
+  // signal) — same floor rule as the slot 4/5 links.
   if (!bill) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <div className="text-4xl mb-3">😕</div>
-        <p className="text-slate-500">Bill not found.</p>
-        <Button className="mt-4" onClick={() => router.push('/bills')}>
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+        <p className="text-meta uppercase tracking-widest text-ink-50 mb-3">Not found</p>
+        <p className="text-h3 text-ink mb-6">We couldn’t find that bill.</p>
+        <Link href="/bills" className="text-small text-ink-70 underline underline-offset-2 hover:text-ink">
           Back to issues
-        </Button>
+        </Link>
       </div>
     )
   }

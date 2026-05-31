@@ -134,3 +134,10 @@ Wrapper: `mb-8 text-small text-ink-50`. The link is **neutral** (underline + ink
 **Internals are off-limits.** `ScriptFlow`/`CallFlow` (shipped Features 4 & 5) are framed, not modified — the wiring (`onSavedChange` → `scriptSaved`/`scriptGenerationId`; the `{scriptSaved && <CallFlow>}` gate) is **behavior-identical to the pre-floor version**, restored verbatim from git history rather than reconstructed.
 
 **Lock condition (both required, both met):** the section reads intentionally pre/post-save **and** the Feature 4 & 5 Playwright specs pass green again. Getting the specs green required restoring slot 2's title from the bones-era `<p>` back to **`<h1>`** (identical classes, identical look) — the bones pass had dropped the heading, breaking the specs' "page loaded" check and leaving the page with `<h2>`s under no `<h1>`.
+
+### States (loading · not-found) — LOCKED (2026-05-30)
+
+Non-happy states are part of the design, not cleanup (brief §6). The Decoded-empty, relevance 3-state, and call-shell pre/post-save states live in their slots above; the two full-screen early returns:
+
+- **Loading — skeleton.** Pulsing neutral placeholders mirroring the locked layout (back · pills · title · Decoded card shape) so the real content doesn't pop in or shift. Classes: container `max-w-3xl mx-auto px-4 py-6 animate-pulse`; placeholders `bg-ink-10` with `rounded` / `rounded-pill`; the Decoded shape reuses `bg-paper-dark rounded-xl px-8 py-9`. Picked over a bare "Loading…" line — the skeleton is the more considered state.
+- **Not-found — text-only, no emoji.** A "Not found" meta-kicker (echoing the screen's OFFICIAL TITLE / DECODED / TAKE ACTION vocabulary) + a `text-h3` message ("We couldn't find that bill.") + a **neutral** "Back to issues" link (`text-small text-ink-70 underline underline-offset-2 hover:text-ink` → `/bills`; no signal — same floor rule as the slot 4/5 links). Picked over a lucide-glyph variant to stay on the editorial vocabulary.

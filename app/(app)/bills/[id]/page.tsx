@@ -228,22 +228,27 @@ export default function BillDetailPage() {
         </p>
       </div>
 
-      {/* SLOT 6 — CALL-SCRIPT SECTION. Re-mounted behavior-identical to the
-          shipped pre-floor wiring (Features 4 & 5) — minimal space-y-4 stack for
-          now; the section shell + header framing (brief §5) is the next step.
-          ScriptFlow → CallFlow; CallFlow appears once a script is saved;
-          scriptGenerationId is null only if the cache insert failed (tolerated). */}
-      <div className="space-y-4">
-        <ScriptFlow
-          billId={bill.id}
-          onSavedChange={(saved, id) => {
-            setScriptSaved(saved)
-            setScriptGenerationId(id)
-          }}
-        />
-        {scriptSaved && (
-          <CallFlow billId={bill.id} scriptGenerationId={scriptGenerationId} />
-        )}
+      {/* SLOT 6 — CALL-SCRIPT SECTION. LOCKED (B — top rule + kicker). A "Take
+          action" section: a top divider rule + a meta kicker (a <p>, NOT a
+          heading — keeps the hierarchy h1 → the cards' own <h2>s) frames the
+          shipped ScriptFlow/CallFlow cards as a deliberate section (brief §5),
+          reading intentionally pre-save (script only) and post-save (CallFlow
+          on the scriptSaved gate). Internals off-limits; the wiring is
+          behavior-identical to the shipped pre-floor version (Features 4 & 5). */}
+      <div className="border-t border-divider pt-6">
+        <p className="text-meta uppercase tracking-widest text-ink-50 mb-4">Take action</p>
+        <div className="space-y-4">
+          <ScriptFlow
+            billId={bill.id}
+            onSavedChange={(saved, id) => {
+              setScriptSaved(saved)
+              setScriptGenerationId(id)
+            }}
+          />
+          {scriptSaved && (
+            <CallFlow billId={bill.id} scriptGenerationId={scriptGenerationId} />
+          )}
+        </div>
       </div>
 
     </div>

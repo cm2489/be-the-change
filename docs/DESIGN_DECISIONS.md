@@ -46,7 +46,7 @@ Branch `feat/bill-detail-floor`, Batch 2. Source brief: `docs/bill-detail-floor-
 **Exact classes:**
 
 - Kicker: `text-meta uppercase tracking-widest text-ink-50 mb-1.5`
-- Body: `font-serif italic font-medium text-[22px] text-ink-70 leading-relaxed tracking-[0.02em]`
+- Body: `font-serif italic font-medium text-[22px] text-ink-70 leading-relaxed tracking-[0.02em]` — element is **`<h1>`** (the page heading; restored from a bones-era `<p>` on 2026-05-30 to fix the heading hierarchy + the Feature 4/5 specs — visual is byte-identical, see slot 6)
 
 **Why:** Serif italic in a tightened, tracked setting reads as formal citation form — accurate to what a federal bill *is* (procedural, excluding). Placing it under a small kicker and *below* the would-be hero inverts the instinct to lead with the official title; leading with the plain-language translation is the whole point of the product. `ink-70` (not full `ink`) keeps it present but secondary.
 
@@ -124,3 +124,13 @@ Wrapper: `mb-8 text-small text-ink-50`. The link is **neutral** (underline + ink
 - Action line: `text-small text-ink-70 line-clamp-1 mt-1.5`; content `{date} · {last_action_text}` (date via `formatDate`; falls back to "No recorded action yet." when text is null)
 
 **Why:** Metadata is the quietest reference on the page — `text-small` + ink-tints + a single hairline divider keep it subordinate to the Decoded card and relevance line. Stacking gives the verbose committee-speak its own line so it never squeezes the link, and `line-clamp-1` honors brief §9 (`last_action_text` is metadata, not prose). The "Full text" link is **neutral** (underline/ink) — link color is a ceiling decision.
+
+### Slot 6 — Call-script section ("Take action") — LOCKED (2026-05-30)
+
+**Treatment:** Picked **B (top rule + kicker)** from a 3-way (kicker-only / rule+kicker / rule+kicker+lead-line). A top `divider` rule + a "Take action" meta-kicker frame the shipped `ScriptFlow` + `CallFlow` cards as a deliberate section (brief §5), reading intentionally **pre-save** (script card only) and **post-save** (CallFlow appears on the `scriptSaved` gate). The kicker is a `<p>`, **not a heading**, so it doesn't collide with the cards' own `<h2>`s or re-break the hierarchy. (C's lead line was dropped — the cards already self-describe.)
+
+**Exact classes:** section `border-t border-divider pt-6`; kicker `text-meta uppercase tracking-widest text-ink-50 mb-4`; cards stack `space-y-4`. Copy: "Take action".
+
+**Internals are off-limits.** `ScriptFlow`/`CallFlow` (shipped Features 4 & 5) are framed, not modified — the wiring (`onSavedChange` → `scriptSaved`/`scriptGenerationId`; the `{scriptSaved && <CallFlow>}` gate) is **behavior-identical to the pre-floor version**, restored verbatim from git history rather than reconstructed.
+
+**Lock condition (both required, both met):** the section reads intentionally pre/post-save **and** the Feature 4 & 5 Playwright specs pass green again. Getting the specs green required restoring slot 2's title from the bones-era `<p>` back to **`<h1>`** (identical classes, identical look) — the bones pass had dropped the heading, breaking the specs' "page loaded" check and leaving the page with `<h2>`s under no `<h1>`.

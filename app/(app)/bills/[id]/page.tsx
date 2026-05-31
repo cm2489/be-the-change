@@ -141,7 +141,11 @@ export default function BillDetailPage() {
           candidates for the type-scale-extension item in deferred.md. */}
       <div className="mb-8">
         <p className="text-meta uppercase tracking-widest text-ink-50 mb-1.5">Official title</p>
-        <p className="font-serif italic font-medium text-[22px] text-ink-70 leading-relaxed tracking-[0.02em]">{bill.title}</p>
+        {/* <h1> (not <p>): the page's heading — restores the shipped semantics
+            the bones pass dropped, fixes heading hierarchy (ScriptFlow/CallFlow
+            supply the <h2>s), and satisfies the Feature 4/5 specs. Visual is
+            byte-identical to the prior <p>; the locked treatment is unchanged. */}
+        <h1 className="font-serif italic font-medium text-[22px] text-ink-70 leading-relaxed tracking-[0.02em]">{bill.title}</h1>
       </div>
 
       {/* SLOT 3 — Decoded hero card. LOCKED (surface + body + label + empty state).
@@ -224,10 +228,22 @@ export default function BillDetailPage() {
         </p>
       </div>
 
-      {/* SLOT 6 — CALL-SCRIPT SECTION (shell only) */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
-        <div className="mb-6 h-3 w-28 rounded bg-slate-100" />
-        <div className="h-28 rounded bg-slate-100" />
+      {/* SLOT 6 — CALL-SCRIPT SECTION. Re-mounted behavior-identical to the
+          shipped pre-floor wiring (Features 4 & 5) — minimal space-y-4 stack for
+          now; the section shell + header framing (brief §5) is the next step.
+          ScriptFlow → CallFlow; CallFlow appears once a script is saved;
+          scriptGenerationId is null only if the cache insert failed (tolerated). */}
+      <div className="space-y-4">
+        <ScriptFlow
+          billId={bill.id}
+          onSavedChange={(saved, id) => {
+            setScriptSaved(saved)
+            setScriptGenerationId(id)
+          }}
+        />
+        {scriptSaved && (
+          <CallFlow billId={bill.id} scriptGenerationId={scriptGenerationId} />
+        )}
       </div>
 
     </div>

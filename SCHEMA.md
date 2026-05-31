@@ -395,6 +395,14 @@ Writes on shared tables are done via `SUPABASE_SERVICE_ROLE_KEY` from server-onl
 
 ---
 
+## Migration History & Integrity
+
+Tracked migrations: `supabase/migrations/001`–`006`. **Verified 2026-05-31: every table documented above is defined in a tracked migration — all tables tracked, no drift.** The apparent mismatch (6 files vs. ~12 tables) is only because `002_align_to_schema.sql` defines 10 tables on its own (`user_interests` → `003`, `sync_state` → `006`, all others → `002`).
+
+⚠️ **`002_align_to_schema.sql` is a destructive full reset:** it `DROP ... CASCADE`s the `001` draft schema and recreates from scratch. Safe pre-MVP (no user data), but **`001`→`002` is NOT replayable against a database with real data** — treat `002` as the historical baseline, not a re-runnable step, before any prod migration post-launch.
+
+---
+
 ## Schema Change Process
 
 1. Create a new file in `supabase/migrations/` with format `YYYYMMDDHHMMSS_description.sql`

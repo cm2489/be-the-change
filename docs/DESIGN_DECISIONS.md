@@ -80,11 +80,13 @@ Branch `feat/bill-detail-floor`, Batch 2. Source brief: `docs/bill-detail-floor-
 
 **Why C:** `ink-70` fixes the baseline's faintness (`ink-50` nearly receded into the warm fill) so the label anchors as the card's title; the short `divider-strong` hairline (warm tan, 32px) adds an editorial magazine-kicker structure with no color and no glyph (icon system is brand-locked). It's the most "designed" of the three — a deliberate small warm touch consistent with the hero's accumulate-warmth-from-many-small-moves intent. Centered per brief §4.2 (label centered, body left).
 
-**Empty state (LOCKED — picked B from a 3-way centered / left / centered-italic render, 2026-05-30):** When `displaySummary` is null (no summary synced yet), the card / label / rule stay; only the body paragraph swaps to a muted "Not decoded yet" line.
+**Empty state (LOCKED — picked B from a 3-way centered / left / centered-italic render, 2026-05-30; re-warmed 2026-05-30 after the /critique pass):** When `displaySummary` is null (no summary synced yet), the card / label / rule stay; only the body paragraph swaps to a warm, present reassurance line.
 
-**Exact empty-body classes:** `text-body text-ink-50 max-w-[65ch] mx-auto` — the **same `~65ch` left measure** as the filled body, just `ink-50` (muted). **Copy:** "Not decoded yet — we'll translate this bill into plain language shortly." (em-dash + curly apostrophe, per the editorial type).
+**Exact empty-body classes:** `text-body text-ink-70 leading-relaxed max-w-[65ch] mx-auto` — the **same `~65ch` left measure** as the filled body. **Copy:** "We're still translating this bill into plain language. A clear read is on the way."
 
-**Why B (left at measure) over centered (A/C):** holding the empty body at the same measure + alignment as the filled body means the card **doesn't change shape** when it goes empty → decoded — only the text changes. Centered reads more like a conventional placeholder but makes the card "jump" between states. Implemented as a single conditional around the **body paragraph only** (card / label / rule render once, shared by both states).
+**Why B (left at measure):** holding the empty body at the same measure + alignment as the filled body means the card **doesn't change shape** when it goes empty → decoded; only the text changes. (Centered variants read more like a conventional placeholder and make the card "jump" between states.) Implemented as a single conditional around the **body paragraph only** (card / label / rule render once, shared by both states).
+
+**Re-warm (2026-05-30, /critique-driven, neutral — no color):** the original lock rendered the empty body at faint `ink-50` with terse "Not decoded yet" copy, which read as a cold *system placeholder* (critique [P2]) — the first-timer's weakest moment, since null-summary bills are common and that's exactly when the translation they came for is absent. Warmed **within the neutral palette only**: present `ink-70` (not faint), `leading-relaxed` breathing to match the filled body's voice, and kinder first-person copy. Color stays the ceiling's call.
 
 ### Concept (LOCKED) — "Decoded" as the warm polar opposite of the cold institutional bill
 
@@ -105,7 +107,7 @@ Full capture: project memory `project_decoded_card_warm_polar_opposite.md`. When
 
 | State | Copy | Classes |
 |---|---|---|
-| populated | `Touches your priorities — {areas}` (comma-joined) | line `text-small text-ink-50`; matched area `text-ink-85` |
+| populated | `Touches your priorities: {areas}` (comma-joined) | line `text-small text-ink-50`; matched area `text-ink-85` |
 | empty | `Set your issue priorities to see why this matters to you.` | link `underline underline-offset-2 text-ink-70 hover:text-ink` → **`/onboarding`** (Next `<Link>`) |
 | no-match | `This bill is outside your current priorities.` | `text-small text-ink-50` |
 
@@ -141,3 +143,11 @@ Non-happy states are part of the design, not cleanup (brief §6). The Decoded-em
 
 - **Loading — skeleton.** Pulsing neutral placeholders mirroring the locked layout (back · pills · title · Decoded card shape) so the real content doesn't pop in or shift. Classes: container `max-w-3xl mx-auto px-4 py-6 animate-pulse`; placeholders `bg-ink-10` with `rounded` / `rounded-pill`; the Decoded shape reuses `bg-paper-dark rounded-xl px-8 py-9`. Picked over a bare "Loading…" line — the skeleton is the more considered state.
 - **Not-found — text-only, no emoji.** A "Not found" meta-kicker (echoing the screen's OFFICIAL TITLE / DECODED / TAKE ACTION vocabulary) + a `text-h3` message ("We couldn't find that bill.") + a **neutral** "Back to issues" link (`text-small text-ink-70 underline underline-offset-2 hover:text-ink` → `/bills`; no signal — same floor rule as the slot 4/5 links). Picked over a lucide-glyph variant to stay on the editorial vocabulary.
+
+---
+
+## Ceiling inputs (deferred to the palette / signal-boldness pass)
+
+Findings surfaced during the floor that are entangled with *how bold `signal` (or any accent) gets* — so they belong to the ceiling pass, not the floor. Logged here so they're the opening agenda for the palette exercise, not lost.
+
+1. **Decoded hero weight vs. long titles** (`/critique` P2, 2026-05-30). The Decoded card earns hero-ness through *warmth + elevation alone* — it has no size or position advantage over the official title (which is first, and larger at `text-[22px]` serif). On long real titles (e.g. `hr-8577`, 262 chars → 3 lines desktop / 6 mobile) the serif title visually dominates the card, undercutting the brief's "Decoded is the largest / first reading element" intent. Rebalancing (more weight or space on the card, or quieting the title) is entangled with the accent / boldness decision, so it is the **first input to the ceiling palette exercise** — revisit there with Colby; not on the floor (slots 2 / 3 are locked).

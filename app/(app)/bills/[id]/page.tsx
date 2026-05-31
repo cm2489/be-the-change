@@ -169,7 +169,7 @@ export default function BillDetailPage() {
       {/* SLOT 3 — Decoded hero card. LOCKED (surface + body + label + empty state).
           Card / label / rule are always present; only the body paragraph swaps:
           displaySummary → the Decoded body (sans / ink-85 / leading-loose); null
-          (no summary synced yet) → the §4.6 empty state, a muted "Not decoded yet"
+          (no summary synced yet) → the §4.6 empty state, a warm, present (ink-70) reassurance
           line at the SAME ~65ch left measure so the card holds its shape between
           states. mb-4 so the relevance line (slot 4) hugs the card it explains. */}
       <div className="mb-4">
@@ -183,8 +183,8 @@ export default function BillDetailPage() {
               {displaySummary}
             </p>
           ) : (
-            <p className="text-body text-ink-50 max-w-[65ch] mx-auto">
-              Not decoded yet — we’ll translate this bill into plain language shortly.
+            <p className="text-body text-ink-70 leading-relaxed max-w-[65ch] mx-auto">
+              We’re still translating this bill into plain language. A clear read is on the way.
             </p>
           )}
         </div>
@@ -199,7 +199,7 @@ export default function BillDetailPage() {
       <div className="mb-8 text-small text-ink-50">
         {relevance.state === 'populated' && (
           <p>
-            Touches your priorities —{' '}
+            Touches your priorities:{' '}
             <span className="text-ink-85">
               {relevance.matchedCategories.map(c => c.label).join(', ')}
             </span>

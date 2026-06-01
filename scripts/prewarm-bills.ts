@@ -18,7 +18,7 @@
  * - Writes bills.ai_summary only — never script_generations (that cache is
  *   keyed (user_id, bill_id, stance); a summary has neither).
  *
- * Run:  tsx --env-file=.env.local scripts/prewarm-bills.ts
+ * Run:  npx tsx --env-file=.env.local scripts/prewarm-bills.ts
  * Env:  NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY,
  *       CONGRESS_API_KEY
  */

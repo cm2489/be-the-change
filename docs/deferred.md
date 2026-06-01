@@ -163,7 +163,7 @@ The Phase 2 cron rewrite is incremental — it pulls only bills updated since `s
 
 A one-shot backfill script paginates `/bill?congress=119` and pulls every bill in the active Congress, chunked to respect the 5,000/hour Congress.gov quota. Idempotent via `bills.full_identifier` upsert, so it can be re-run safely.
 
-**Why script and not admin route:** runs once, takes too long for a 60s Vercel function, and the cost ceiling is local laptop runtime not a serverless invocation timer. Live in `scripts/backfill-bills.ts`, invoked with `tsx scripts/backfill-bills.ts` (or similar) using `SUPABASE_SERVICE_ROLE_KEY` and `CONGRESS_API_KEY` from `.env.local`.
+**Why script and not admin route:** runs once, takes too long for a 60s Vercel function, and the cost ceiling is local laptop runtime not a serverless invocation timer. Live in `scripts/backfill-bills.ts`, invoked with `npx tsx scripts/backfill-bills.ts` (or similar) using `SUPABASE_SERVICE_ROLE_KEY` and `CONGRESS_API_KEY` from `.env.local`.
 
 **Trigger to build it:** before the first donor demo, or whenever a beta tester reports an empty feed for a non-trending issue tag.
 

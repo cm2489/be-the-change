@@ -1,37 +1,40 @@
 # STATUS — Oravan
 
-**Updated:** 2026-05-31
+**Updated:** 2026-06-01
 
 ## Last shipped
-- **Bill-detail floor (PR #29) — merged.** Floor-level design pass on `/bills/[id]`: plain-language "Decoded" hero (warm `paper-dark` card), serif-italic `<h1>` official title, 3-state relevance line, labeled metadata row, and a "Take action" section framing the shipped ScriptFlow/CallFlow (internals untouched). Every state designed: loading skeleton, text-only not-found, Decoded-empty (warm, neutral), relevance populated/empty/no-match. Added `lib/relevance.ts` + a regression test pinning the parent-only matching semantics (guards the prior tagger bug); `docs/DESIGN_DECISIONS.md` (every locked choice + exact classes); a Design Workflow pointer in `CLAUDE.md`; moved the playbook to `docs/DESIGN_PLAYBOOK.md`. Full Playwright suite 6/6 green; co-designed slot-by-slot, screenshot-verified at 390 + desktop.
-- **Design system consolidation Batch 1 (PR #22) — merged.** `next/font` self-host + `Input`/`Card` primitives + `slate→token` / raw-size→type-scale / emoji→lucide sweep across 12 consumer surfaces.
-- Features 4 & 5 end-to-end (PRs #13, #14); Batch-1-era refreshes and fixes (PRs #15–#21).
+- **Bill-detail ceiling (PR #34) — merged.** Ceiling design pass on `/bills/[id]`, locking the flagship as a **calm neutral editorial article**: contained `max-w-2xl` reader's column, the "Decoded" hero card given generous `px-12 py-14` air, official title quieted to a `text-h3`/`ink-50` reference caption (full, no clamp — the title is the legal object). One motivated rule-break (via the **creative-director** skill): the hero's label is a **serif "Decoded" at display scale** (`text-h2`) — the signature Instrument Serif carrying the hero. **No accent color** — fan-out-tested (signal orange + a teal alt) and dropped; color earned nothing. AI-summary **disclaimer designed into the card**. Every decision (incl. what was tested + rejected) recorded in `docs/DESIGN_DECISIONS.md → Ceiling pass — LOCKED`. lint + build + bill-detail Playwright green.
+- **AI-summary pre-warm (PR #31) — merged.** `scripts/prewarm-bills.ts` generates plain-language Decoded summaries from each bill's **full text** (Congress.gov `/text`, Sonnet) for a curated ~20-bill sample, written straight to `bills.ai_summary`. Ran once: **19/19 written, ~$0.34.** A design/demo accelerant — NOT the production pipeline. Doc follow-ups: PRs #30/#32/#33 (migration-integrity note, prewarm follow-ups, summary-prompt length constraint).
+- **Bill-detail floor (PR #29) — merged.** The floor pass the ceiling built on (slots, every state, neutral hierarchy on tokens).
+- Earlier: Design Batch 1 (PR #22); Features 4 & 5 (PRs #13/#14); fixes #15–#21.
 
-## 🚩 Flagged — summarization not wired (blocks the flagship's value)
-**The "Decoded" hero renders EMPTY on all 482 real bills.** `bills.summary_text` and `ai_summary` are both null across the board: the Feature 4 lazy AI-summary generation isn't producing summaries, and Congress.gov `summary_text` comes back null on synced bills. The floor handles this gracefully (the warm empty state), but the plain-language translation — the screen's whole point and the donor-demo "wow" — is absent in production. **Before any donor demo, pre-warm summaries (script tracked in `docs/deferred.md`) or wire/trigger the Feature 4 generation.** Verify against real data, never a seeded fixture. (Discovered capturing pre-merge visuals for the floor, 2026-05-31.)
+## 🚩 Flagged — production summary pipeline still deferred
+The Decoded hero now renders **real plain-language translations on the ~20 pre-warmed bills** (demoable). But: (1) the other ~461/482 bills still show the warm empty state (`ai_summary` null); (2) the **real lazy-on-view / sync-time summary pipeline was never built** (verified this session — `ai_summary` is read everywhere, written only by the pre-warm script); (3) **summary accuracy is unverified** — the 3 truncated bills (`hr-1`/`s-1776`/`s-3923`) were summarized from a capped text slice and need a spot-check against Congress.gov. Demoable on the curated set; **before a broad demo or public launch**, backfill more bills (or build the real cache-first pipeline) and spot-check accuracy. Tracked: `docs/deferred.md#feature-3-prewarm-demo-bills`.
 
 ## Branch state
-`main` current with origin, includes the merged floor (PR #29, merge commit). `feat/bill-detail-floor` merged and pruned (local + remote).
+`main` current with origin at the #34 merge. All session branches merged + pruned (local + remote): `feat/bill-detail-ceiling`, `feat/ai-summary-prewarm`, and the docs branches (#30/#32/#33).
 
 ## Feature status (consumer MVP, 7 total)
-1. Account + profile — built. **Email verification deferred to pre-launch** (Confirm-email OFF → no real ownership check; BLOCK before public beta, `docs/deferred.md#email-verification-deferred`). Still missing account-delete (GDPR). Onboarding "skip for now" ungated.
+1. Account + profile — built. **Email verification deferred to pre-launch** (Confirm-email OFF → no ownership check; BLOCK before public beta, `docs/deferred.md#email-verification-deferred`). Still missing account-delete (GDPR); onboarding "skip" ungated.
 2. Rep lookup — built (has test); confirm end-to-end once.
-3. Bill feed — built. The bill **detail** screen `/bills/[id]` is now **floor-complete** (PR #29).
-4. AI call script — **done (PR #13).** Cache-first `/api/scripts` keyed by `(user_id, bill_id, stance)`; ScriptFlow UI; cost/token/hash audit; cache-hit spec. ⚠ See the summarization flag: the lazy `ai_summary` generation isn't producing summaries, so the Decoded hero is empty in prod.
+3. Bill feed — built. `/bills/[id]` is now **floor + ceiling complete** (PR #34). ⚠ Relevance is undercut by the `issue_tags` coverage gap (below).
+4. AI call script — **done (PR #13).** `ai_summary`: pre-warmed for a ~20-bill sample (PR #31); the production lazy/sync generation is **still deferred** (see flag).
 5. 1-click calling — **done (PR #14).** `/api/calls` writes `call_events`; CallFlow; full-loop + no-reps specs.
-6. Web push — not started. Schema in place (`push_subscriptions`, `notifications_sent`); no client subscription flow, cron sender, or rate-limit/quiet-hours.
-7. Activity tracking — **unblocked, not built.** Dashboard over `followed_bills` / `call_events` / `script_generations`, personal-only (FEATURES.md).
+6. Web push — not started. Schema in place (`push_subscriptions`, `notifications_sent`); no client flow, cron sender, or rate-limit/quiet-hours.
+7. Activity tracking — **unblocked, not built.** Dashboard over `followed_bills` / `call_events` / `script_generations`, personal-only.
 
-**Design:** `/bills/[id]` is **floor-complete** (structure/hierarchy/neutrals/states on tokens; color deferred). **Ceiling pass is the next design step:** color and how-bold-`signal`-gets, with the Decoded-weight-vs-long-titles rebalance queued as the opening input (`docs/DESIGN_DECISIONS.md → Ceiling inputs`). Then propagate the floor's patterns to the feed/dashboard. Brand identity (wordmark, logo, landing hero) still **unlocked**.
+**Design:** `/bills/[id]` is **floor + ceiling complete** — locked as a neutral editorial article (serif "Decoded" hero, no accent, contained column, disclaimer), recorded in `docs/DESIGN_DECISIONS.md`. **Next design step: propagate this vocabulary to the feed + dashboard** (the playbook's "one screen to a high bar, then propagate"). Brand identity (wordmark, logo, landing hero) still **unlocked**.
 
 ## Next action (single)
-**Make the Decoded hero real** — pre-warm summaries (`docs/deferred.md`) or wire the Feature 4 lazy generation, so the flagship screen's translation actually renders (see the summarization flag). Highest-leverage step toward a demo-worthy MVP. Alternatives once that's moving: the **ceiling pass** (color on bill-detail), or the next unbuilt feature — **Feature 7 (activity tracking)**.
+**The backend / data-quality session** (reserved): (a) **`issue_tags` coverage diagnosis** — 377/482 bills (~78%) are untagged, so the values-based relevance feed silently under-delivers on most content (`docs/deferred.md#feature-3-issue-tags-coverage-gap`); (b) **summary-accuracy spot-check** of the pre-warmed bills against Congress.gov (esp. the 3 truncated). The `email-verification` BLOCK is the other pre-launch must. Alternatives: **propagate the design vocabulary** to feed/dashboard, or build **Feature 7 (activity tracking)**.
 
 ## Open decisions / debt (see docs/deferred.md)
-- **`summarization-not-wired` (FLAGGED, see above)** — Decoded hero empty on all real bills; pre-warm or wire Feature 4 generation before any demo.
-- `email-verification-deferred` — **BLOCK before public beta.** No ownership check (Confirm-email OFF). Flip Confirm-email ON (~zero work) or a custom Resend token flow.
-- **Ceiling pass / brand:** Decoded-weight-vs-long-titles (first ceiling input, `DESIGN_DECISIONS.md`); `brand-accent-color-pops`; `type-scale-extension` (the bill-detail title uses arbitrary `text-[22px]` / `tracking-[0.02em]` pending a formalize-or-one-off call); `landing-features-grid-emoji`.
-- `consolidation-followup-offscope-slate-and-semantic-colors` — `/bills/[id]` slate resolved by the floor; remaining: `bills/page.tsx` (feed), `ImpactMetrics`, `RepCard` + off-palette red/green banners.
-- `landing-copy-out-of-scope-features` — **SCOPE.** Landing still advertises state/local reps + the "Callenge" gamification (out of MVP); reword and drop the nav item before public/donor launch.
+- **`feature-3-issue-tags-coverage-gap` (NEW, this session)** — 377/482 untagged; the relevance feed (the product's core differentiator) silently under-delivers on ~78% of bills. Diagnose before any donor demo (a diagnosis query first, not a code change).
+- **Summary accuracy + production pipeline** — see the flag; `feature-3-prewarm-demo-bills` (pre-warm built; real cache-first pipeline + broad backfill deferred; accuracy spot-check owed).
+- `email-verification-deferred` — **BLOCK before public beta.** Flip Confirm-email ON (~zero work) or a custom Resend token flow.
+- **`ai-disclaimer-decoded-hero` — RESOLVED (PR #34):** disclaimer shipped in the Decoded card.
+- **Design / brand:** bill-detail ceiling **done** (no-accent locked; serif hero); the title's arbitrary type values **resolved** (on-token). Remaining: propagate to feed/dashboard; `type-scale-extension` (20/30px + non-uppercase-12px caption gaps on other surfaces — tokens-only, resolve as surfaces are touched); `landing-features-grid-emoji`; brand identity (wordmark/logo/landing hero) unlocked.
+- `consolidation-followup-offscope-slate-and-semantic-colors` — remaining: `bills/page.tsx` (feed), `ImpactMetrics`, `RepCard` + off-palette red/green banners.
+- `landing-copy-out-of-scope-features` — **SCOPE.** Landing still advertises state/local reps + the "Callenge" gamification (out of MVP); reword + drop the nav item before public/donor launch.
 - `onboarding-skip-not-gated` — product decision on nudging incomplete-profile users.
 - `untyped-browser-supabase-client` — `lib/supabase/client.ts` returns `null as any`; client queries unchecked at compile time (v1.1).

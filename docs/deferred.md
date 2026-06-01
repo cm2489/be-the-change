@@ -239,6 +239,8 @@ The product question for v1.1 is: **how do we keep the introduced-display window
 
 **Summary quality is a separate, deferred concern (v1.1+).** Today's `scripts/prewarm-bills.ts` prompt is an acknowledged **DESIGN PLACEHOLDER** — it produces plausible, real, varied plain-language text so the Decoded hero can be judged for layout/length in the ceiling pass; it is NOT the production summarization voice, and the prompt is intentionally left as-is. The real pipeline should **orchestrate prompts to surface a bill's most consequential provisions** (not summarize top-down), and likely produce **issue-specific summaries pre-loaded per category** — adjacent to the abandoned `issue_analysis` jsonb concept (STRATEGY.md decision log). Revisit the prompt design when the real pipeline is built; do not promote the placeholder.
 
+**The production prompt must enforce a length constraint** — a `max_tokens` ceiling plus a target character band. This is a real design constraint on the future prompt, not a nicety, and it serves two purposes: (1) **bounds the hero layout** — the Decoded card is designed for a one-paragraph measure, so a hard ceiling guarantees a runaway summary can never blow out the card or the page rhythm (the placeholder sample already spans 467–1490 chars; the production band should be tighter and tuned to the hero's final measure from the ceiling pass); and (2) **weakly bounds the trust/hallucination surface** — fewer sentences leave less room to invent provisions not in the source text. Set the band as part of the prompt spec, not left to the model's discretion.
+
 **Why script and not admin route:**
 - No public surface area = no auth/CSRF/rate-limit concerns.
 - Runs from your laptop before a demo, no redeploy cycle.

@@ -222,6 +222,8 @@ The product question for v1.1 is: **how do we keep the introduced-display window
 
 **Still deferred — the real pipeline:** the spec'd lazy-on-view (or sync-time) `ai_summary` generation in FEATURES.md §4. When built it **must be cache-first** — skip generation when `ai_summary` is already set — so these pre-filled rows read as cache hits rather than being regenerated and re-billed.
 
+**Summary quality is a separate, deferred concern (v1.1+).** Today's `scripts/prewarm-bills.ts` prompt is an acknowledged **DESIGN PLACEHOLDER** — it produces plausible, real, varied plain-language text so the Decoded hero can be judged for layout/length in the ceiling pass; it is NOT the production summarization voice, and the prompt is intentionally left as-is. The real pipeline should **orchestrate prompts to surface a bill's most consequential provisions** (not summarize top-down), and likely produce **issue-specific summaries pre-loaded per category** — adjacent to the abandoned `issue_analysis` jsonb concept (STRATEGY.md decision log). Revisit the prompt design when the real pipeline is built; do not promote the placeholder.
+
 **Why script and not admin route:**
 - No public surface area = no auth/CSRF/rate-limit concerns.
 - Runs from your laptop before a demo, no redeploy cycle.

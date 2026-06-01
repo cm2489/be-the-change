@@ -596,6 +596,24 @@ Site-wide `robots: { index: false, follow: false }` added 2026-05-23 (Next rende
 
 ---
 
+### ai-disclaimer-decoded-hero
+
+**Priority:** BLOCK (pre-public-launch — before any public or donor-facing exposure of the Decoded hero)
+**Where in code:**
+- `app/(app)/bills/[id]/page.tsx` slot 3 — the Decoded hero renders `bills.ai_summary` as neutral fact, with NO disclaimer
+- `lib/anthropic.ts` `summarizeBill` / `scripts/prewarm-bills.ts` — generators of `ai_summary`
+- Contrast: FEATURES.md §4 + `ScriptFlow` — the AI *script* surface carries the mandated "AI-drafted. Review and edit before use." disclaimer
+
+**Situation:** FEATURES.md §4 mandates an "AI-drafted. Review and edit before use." disclaimer on generated call scripts — content the user reviews and speaks themselves. The Decoded hero shows `ai_summary` with **no disclaimer**, and it's arguably **higher-risk than the script**: it reads as a neutral, authoritative plain-English statement of what a bill does, not as user-authored text the user is expected to edit. An inaccurate or subtly-off summary reads as fact from the app.
+
+**Required before public/donor launch:** a visible disclaimer on the Decoded hero, honest about both limits — incompleteness (truncation) and possible inaccuracy (generation): **"AI-generated summary — may be incomplete or inaccurate. Not an official source."** Deliberately does NOT promise verification against the official text — bills like `hr-1` were summarized from ~15k of 167k tokens, so a citizen cannot realistically verify against the full-text link; the disclaimer must not imply a workflow that doesn't exist.
+
+**Design note:** the disclaimer's visual treatment must be folded **into the upcoming ceiling pass on the hero** — designed in from the start, sitting inside the warm/editorial treatment, not bolted on after. Add to the ceiling agenda (`docs/DESIGN_DECISIONS.md → Ceiling inputs`).
+
+**Trigger to resolve:** before any public/donor-facing exposure of the Decoded hero — same gate as `noindex-pre-launch` and `email-verification-deferred`.
+
+---
+
 ## Future feature ideas — bill detail (parked, post-MVP)
 
 Surfaced during the bill-detail floor session (2026-05-23). **Not in MVP scope** — each needs a new data source or model. Captured as product ideas, not committed work. Both serve the same user-need the "Decoded" block targets: *"is this even worth my time?"*

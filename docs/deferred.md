@@ -213,19 +213,21 @@ The product question for v1.1 is: **how do we keep the introduced-display window
 
 ### feature-3-prewarm-demo-bills
 
-**Priority:** MVP-OK (deferred from Phase 2; needs to run before each donor demo)
-**Where in code:** to live at `scripts/prewarm-bills.ts` (does not exist yet)
+**Priority:** MVP-OK (demo accelerant built; the real ai_summary pipeline is still deferred)
+**Where in code:** `scripts/prewarm-bills.ts` (exists as of 2026-05-31)
 
-`bills.ai_summary` and `bills.issue_analysis` are generated lazily on the first detail-page view (Feature 4). That's the right call for cost control — we don't pay Anthropic for bills nobody opens — but it produces an awkward "generating…" spinner during a donor demo where every "Open this bill" tap should feel instant.
+**Reality check (2026-05-31):** the original entry assumed `ai_summary`/`issue_analysis` are "generated lazily on first detail-page view (Feature 4)" and that a pre-warm script would "run the same generation pipeline as the lazy path." Verified false during the bill-summary work: **no lazy/sync ai_summary generation was ever built** — `ai_summary` is read in three places and written nowhere (`lib/congress.ts` hardcodes `summary_text: null` and defers `ai_summary` to "Phase 3b/4"). The Decoded hero therefore renders empty on all 482 real bills.
 
-A pre-warm script accepts a list of bill ids (CLI args or a `demo-bills.txt` file) and runs the same generation pipeline as the lazy path, just upserting the result. Caching is shared across all users, so once a demo bill is pre-warmed, every viewer gets the cached result.
+**What `scripts/prewarm-bills.ts` is:** a DESIGN/DEMO accelerant, not the product mechanism. It generates a plain-language summary from each bill's **full text** (Congress.gov `/text`, Sonnet) for a bounded curated sample, and writes straight to `bills.ai_summary` via the service role. It does NOT route through `script_generations` (keyed `(user_id, bill_id, stance)` — a summary has neither). Idempotent (skips rows already summarized). `issue_analysis` stays deferred and untouched — no surface reads it.
+
+**Still deferred — the real pipeline:** the spec'd lazy-on-view (or sync-time) `ai_summary` generation in FEATURES.md §4. When built it **must be cache-first** — skip generation when `ai_summary` is already set — so these pre-filled rows read as cache hits rather than being regenerated and re-billed.
 
 **Why script and not admin route:**
 - No public surface area = no auth/CSRF/rate-limit concerns.
-- Runs from your laptop the morning of a demo, no redeploy cycle.
+- Runs from your laptop before a demo, no redeploy cycle.
 - Iteration cost is your laptop time, not serverless invocation cost.
 
-**Trigger to build it:** before the first scheduled donor demo. Until then, the lazy path works for ad-hoc usage.
+**Trigger to build the real pipeline:** before relying on `ai_summary` for bills outside the pre-warmed sample (broad demo or public launch).
 
 ---
 

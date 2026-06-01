@@ -154,6 +154,21 @@ Theoretical risk that `partyHistory` is empty on a brand-new member before Congr
 
 ## Feature 3 — Bill Feed
 
+### feature-3-issue-tags-coverage-gap
+
+**Priority:** DEBT — but heavier than the label implies (see "Why this is heavier"); it silently undermines the product's core differentiator, not a cosmetic gap.
+**Where in code:** `lib/bill-tagger.ts` (emits `issue_tags`); `lib/relevance.ts` + bill-detail slot 4; `get_personalized_feed` (006) — all key off the user-categories ∩ `issue_tags` intersection.
+
+**Situation:** 377 of 482 synced bills (~78%) have NULL/empty `issue_tags` (verified 2026-05-31: `count(*) FILTER (WHERE issue_tags IS NULL OR cardinality(issue_tags)=0) = 377`).
+
+**Why this is heavier than DEBT:** values-based filtering — showing each user the bills that match *their* priorities — is the product's central differentiator (STRATEGY.md). With ~78% of bills untagged, that differentiator is **silently not working on most content**: the bill-detail relevance line renders its no-match/empty state on ~78% of bills regardless of priorities, and `get_personalized_feed` can only ever rank among the ~105 tagged bills. The personalized feed quietly degenerates toward "the ~20% of bills that happened to get tagged" rather than "the bills that matter to you" — nothing errors, it just under-delivers the core promise with no visible signal.
+
+**Cause not yet diagnosed** — candidates: the tagger only matches descriptive titles (many bills are opaque acronym names / procedural joint resolutions), the taxonomy in `lib/interests.ts` is too narrow for what Congress is actually doing, or genuine non-match. Distinct from `feature-3-backfill-119th-congress` (that's row *count*; this is tag *coverage* on the rows we have). Surfaced 2026-05-31 during the bill-summary work; logged standalone.
+
+**Trigger to investigate:** before first donor demo / public launch — a demo that leans on "see the bills that match your values" will visibly fall flat on most bills. First step is a diagnosis query (tag-frequency distribution + spot-check untagged bills against the taxonomy), not a code change.
+
+---
+
 ### feature-3-backfill-119th-congress
 
 **Priority:** MVP-OK (deferred from Phase 2; needs to run before first donor demo)

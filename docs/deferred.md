@@ -154,6 +154,21 @@ Theoretical risk that `partyHistory` is empty on a brand-new member before Congr
 
 ## Feature 3 — Bill Feed
 
+### feature-3-issue-tags-coverage-gap
+
+**Priority:** DEBT — but heavier than the label implies (see "Why this is heavier"); it silently undermines the product's core differentiator, not a cosmetic gap.
+**Where in code:** `lib/bill-tagger.ts` (emits `issue_tags`); `lib/relevance.ts` + bill-detail slot 4; `get_personalized_feed` (006) — all key off the user-categories ∩ `issue_tags` intersection.
+
+**Situation:** 377 of 482 synced bills (~78%) have NULL/empty `issue_tags` (verified 2026-05-31: `count(*) FILTER (WHERE issue_tags IS NULL OR cardinality(issue_tags)=0) = 377`).
+
+**Why this is heavier than DEBT:** values-based filtering — showing each user the bills that match *their* priorities — is the product's central differentiator (STRATEGY.md). With ~78% of bills untagged, that differentiator is **silently not working on most content**: the bill-detail relevance line renders its no-match/empty state on ~78% of bills regardless of priorities, and `get_personalized_feed` can only ever rank among the ~105 tagged bills. The personalized feed quietly degenerates toward "the ~20% of bills that happened to get tagged" rather than "the bills that matter to you" — nothing errors, it just under-delivers the core promise with no visible signal.
+
+**Cause not yet diagnosed** — candidates: the tagger only matches descriptive titles (many bills are opaque acronym names / procedural joint resolutions), the taxonomy in `lib/interests.ts` is too narrow for what Congress is actually doing, or genuine non-match. Distinct from `feature-3-backfill-119th-congress` (that's row *count*; this is tag *coverage* on the rows we have). Surfaced 2026-05-31 during the bill-summary work; logged standalone.
+
+**Trigger to investigate:** before first donor demo / public launch — a demo that leans on "see the bills that match your values" will visibly fall flat on most bills. First step is a diagnosis query (tag-frequency distribution + spot-check untagged bills against the taxonomy), not a code change.
+
+---
+
 ### feature-3-backfill-119th-congress
 
 **Priority:** MVP-OK (deferred from Phase 2; needs to run before first donor demo)
@@ -163,7 +178,7 @@ The Phase 2 cron rewrite is incremental — it pulls only bills updated since `s
 
 A one-shot backfill script paginates `/bill?congress=119` and pulls every bill in the active Congress, chunked to respect the 5,000/hour Congress.gov quota. Idempotent via `bills.full_identifier` upsert, so it can be re-run safely.
 
-**Why script and not admin route:** runs once, takes too long for a 60s Vercel function, and the cost ceiling is local laptop runtime not a serverless invocation timer. Live in `scripts/backfill-bills.ts`, invoked with `tsx scripts/backfill-bills.ts` (or similar) using `SUPABASE_SERVICE_ROLE_KEY` and `CONGRESS_API_KEY` from `.env.local`.
+**Why script and not admin route:** runs once, takes too long for a 60s Vercel function, and the cost ceiling is local laptop runtime not a serverless invocation timer. Live in `scripts/backfill-bills.ts`, invoked with `npx tsx scripts/backfill-bills.ts` (or similar) using `SUPABASE_SERVICE_ROLE_KEY` and `CONGRESS_API_KEY` from `.env.local`.
 
 **Trigger to build it:** before the first donor demo, or whenever a beta tester reports an empty feed for a non-trending issue tag.
 
@@ -221,6 +236,8 @@ The product question for v1.1 is: **how do we keep the introduced-display window
 **What `scripts/prewarm-bills.ts` is:** a DESIGN/DEMO accelerant, not the product mechanism. It generates a plain-language summary from each bill's **full text** (Congress.gov `/text`, Sonnet) for a bounded curated sample, and writes straight to `bills.ai_summary` via the service role. It does NOT route through `script_generations` (keyed `(user_id, bill_id, stance)` — a summary has neither). Idempotent (skips rows already summarized). `issue_analysis` stays deferred and untouched — no surface reads it.
 
 **Still deferred — the real pipeline:** the spec'd lazy-on-view (or sync-time) `ai_summary` generation in FEATURES.md §4. When built it **must be cache-first** — skip generation when `ai_summary` is already set — so these pre-filled rows read as cache hits rather than being regenerated and re-billed.
+
+**Summary quality is a separate, deferred concern (v1.1+).** Today's `scripts/prewarm-bills.ts` prompt is an acknowledged **DESIGN PLACEHOLDER** — it produces plausible, real, varied plain-language text so the Decoded hero can be judged for layout/length in the ceiling pass; it is NOT the production summarization voice, and the prompt is intentionally left as-is. The real pipeline should **orchestrate prompts to surface a bill's most consequential provisions** (not summarize top-down), and likely produce **issue-specific summaries pre-loaded per category** — adjacent to the abandoned `issue_analysis` jsonb concept (STRATEGY.md decision log). Revisit the prompt design when the real pipeline is built; do not promote the placeholder.
 
 **Why script and not admin route:**
 - No public surface area = no auth/CSRF/rate-limit concerns.
@@ -593,6 +610,24 @@ The landing still advertises capabilities **out of MVP scope** (FEATURES.md): re
 **Where in code:** `app/layout.tsx` — `metadata.robots`
 
 Site-wide `robots: { index: false, follow: false }` added 2026-05-23 (Next renders `<meta name="robots" content="noindex, nofollow">` into every page head from this). The app is **live and openly reachable at oravan.org** for dev/demo, but is pre-launch with **formal trademark clearance still pending**, so it must stay out of search indexes. **Remove the `robots` block at public launch, after formal trademark clearance** — fold into the same gate as the nonprofit legal consult and `landing-copy-out-of-scope-features` (the other things that must be true before a public/donor launch).
+
+---
+
+### ai-disclaimer-decoded-hero
+
+**Priority:** BLOCK (pre-public-launch — before any public or donor-facing exposure of the Decoded hero)
+**Where in code:**
+- `app/(app)/bills/[id]/page.tsx` slot 3 — the Decoded hero renders `bills.ai_summary` as neutral fact, with NO disclaimer
+- `lib/anthropic.ts` `summarizeBill` / `scripts/prewarm-bills.ts` — generators of `ai_summary`
+- Contrast: FEATURES.md §4 + `ScriptFlow` — the AI *script* surface carries the mandated "AI-drafted. Review and edit before use." disclaimer
+
+**Situation:** FEATURES.md §4 mandates an "AI-drafted. Review and edit before use." disclaimer on generated call scripts — content the user reviews and speaks themselves. The Decoded hero shows `ai_summary` with **no disclaimer**, and it's arguably **higher-risk than the script**: it reads as a neutral, authoritative plain-English statement of what a bill does, not as user-authored text the user is expected to edit. An inaccurate or subtly-off summary reads as fact from the app.
+
+**Required before public/donor launch:** a visible disclaimer on the Decoded hero, honest about both limits — incompleteness (truncation) and possible inaccuracy (generation): **"AI-generated summary — may be incomplete or inaccurate. Not an official source."** Deliberately does NOT promise verification against the official text — bills like `hr-1` were summarized from ~15k of 167k tokens, so a citizen cannot realistically verify against the full-text link; the disclaimer must not imply a workflow that doesn't exist.
+
+**Design note:** the disclaimer's visual treatment must be folded **into the upcoming ceiling pass on the hero** — designed in from the start, sitting inside the warm/editorial treatment, not bolted on after. Add to the ceiling agenda (`docs/DESIGN_DECISIONS.md → Ceiling inputs`).
+
+**Trigger to resolve:** before any public/donor-facing exposure of the Decoded hero — same gate as `noindex-pre-launch` and `email-verification-deferred`.
 
 ---
 

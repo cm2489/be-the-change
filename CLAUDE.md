@@ -116,6 +116,8 @@ The front-end / design phase has its own operating doc: **`docs/DESIGN_PLAYBOOK.
 - Do not commit directly to `main`. Use feature branches. Every feature = one branch.
 - Do not ship a feature without at least one Playwright test covering the happy path.
 - **Do not run destructive MCP operations on production Supabase without an explicit approval prompt.** TRUNCATE, DELETE, DROP, ALTER (data or schema), and anything else that removes data or modifies schema outside a tracked migration must be confirmed with the user before execution — same approval gate as destructive bash commands. A pre-action "heads up" notice is not approval. "Risk is essentially zero" framing is not sufficient justification. Default = ask, not act. Schema changes belong in `supabase/migrations/`, not in ad-hoc MCP DDL.
+- Do not jump ahead in a gated or multi-step task. Complete each step or batch fully and wait for explicit sign-off before starting the next; never skip ahead to a later gate, commit, or feature out of sequence. "One step at a time" means stop and report at each checkpoint, even when the next step seems obvious.
+- Do not add scope you weren't asked for — no fallbacks, error handling, or "while I'm here" extras beyond the stated task, and never re-introduce something you explicitly said you would not add. When asked to stop a behavior (e.g. repeated screenshot/approval loops, or re-confirming before a change already requested), stop it and make the requested change directly rather than asking again.
 
 ## Commit Discipline
 

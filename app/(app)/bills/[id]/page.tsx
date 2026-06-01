@@ -86,20 +86,20 @@ export default function BillDetailPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
-  // LOADING — in-system skeleton mirroring the locked layout (back · pills ·
-  // title · Decoded card), animate-pulse with neutral ink-10 placeholders.
-  // Holds the shape so the real content doesn't pop in / shift on load.
+  // LOADING — skeleton mirroring the locked layout (contained max-w-2xl column,
+  // quiet title, generous Decoded card). animate-pulse, neutral ink-10
+  // placeholders; holds the shape so real content doesn't pop in / shift.
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-6 animate-pulse" aria-hidden>
+      <div className="max-w-2xl mx-auto px-4 py-6 animate-pulse" aria-hidden>
         <div className="h-3 w-16 rounded bg-ink-10 mb-6" />
         <div className="flex gap-2 mb-4">
           <div className="h-5 w-20 rounded-pill bg-ink-10" />
           <div className="h-5 w-16 rounded-pill bg-ink-10" />
         </div>
         <div className="h-3 w-24 rounded bg-ink-10 mb-2" />
-        <div className="h-6 w-3/4 rounded bg-ink-10 mb-8" />
-        <div className="bg-paper-dark rounded-xl px-8 py-9 mb-4">
+        <div className="h-5 w-3/4 rounded bg-ink-10 mb-8" />
+        <div className="bg-paper-dark rounded-xl px-12 py-14 mb-4">
           <div className="h-3 w-20 rounded bg-ink-10 mx-auto mb-5" />
           <div className="space-y-2.5 max-w-[65ch] mx-auto">
             <div className="h-3 w-full rounded bg-ink-10" />
@@ -112,11 +112,10 @@ export default function BillDetailPage() {
   }
 
   // NOT FOUND — in-system empty state, no emoji. The "Not found" kicker echoes
-  // the screen's editorial vocabulary; "Back to issues" is a neutral link (no
-  // signal) — same floor rule as the slot 4/5 links.
+  // the screen's editorial vocabulary; "Back to issues" is a neutral link.
   if (!bill) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
         <p className="text-meta uppercase tracking-widest text-ink-50 mb-3">Not found</p>
         <p className="text-h3 text-ink mb-6">We couldn’t find that bill.</p>
         <Link href="/bills" className="text-small text-ink-70 underline underline-offset-2 hover:text-ink">
@@ -132,13 +131,13 @@ export default function BillDetailPage() {
   const relevance = resolveRelevance(userCategoryIds, bill.issue_tags)
   const lastActionDate = bill.last_action_date ? formatDate(bill.last_action_date) : null
 
-  // FLOOR — Option A, bones pass. Outer vertical structure only: six labeled
-  // slots so the stack order, proportions, and spacing rhythm are legible
-  // before any slot is filled. No internals, no copy, no tokens yet.
+  // CEILING-LOCKED — Direction D1+air (2026-06-01). Contained editorial reader's
+  // column (max-w-2xl); neutrals only — color was fan-out-tested (signal orange,
+  // a teal alt) and dropped, the accent did ~nothing here. See docs/DESIGN_DECISIONS.md.
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="max-w-2xl mx-auto px-4 py-6">
 
-      {/* Back — neutral tokens (the last raw-slate holdout, restyled at close-out). */}
+      {/* Back — neutral tokens. */}
       <button
         onClick={() => router.back()}
         className="text-small text-ink-50 hover:text-ink mb-6 flex items-center gap-1 transition-colors"
@@ -153,33 +152,31 @@ export default function BillDetailPage() {
         <span className="font-mono text-meta text-ink-50 ml-1">{identifier}</span>
       </div>
 
-      {/* SLOT 2 — official title · sans "Official title" kicker (text-meta uppercase
-          ink-50) + serif italic body (22px / font-medium / ink-70 / leading-relaxed /
-          tracking 0.02em). LOCKED. Two arbitrary values used (22px, 0.02em) — both
-          candidates for the type-scale-extension item in deferred.md. */}
+      {/* SLOT 2 — official title · "Official title" kicker + serif-italic body at
+          text-h3 / ink-50. Ceiling pass quieted it to a reference caption so the
+          Decoded card leads; shown in FULL (no clamp — the official title is the
+          legal object, never hidden behind a link). All on-token (no arbitrary
+          values). <h1> is the page heading: hierarchy + the Feature 4/5 specs. */}
       <div className="mb-8">
         <p className="text-meta uppercase tracking-widest text-ink-50 mb-1.5">Official title</p>
-        {/* <h1> (not <p>): the page's heading — restores the shipped semantics
-            the bones pass dropped, fixes heading hierarchy (ScriptFlow/CallFlow
-            supply the <h2>s), and satisfies the Feature 4/5 specs. Visual is
-            byte-identical to the prior <p>; the locked treatment is unchanged. */}
-        <h1 className="font-serif italic font-medium text-[22px] text-ink-70 leading-relaxed tracking-[0.02em]">{bill.title}</h1>
+        <h1 className="font-serif italic text-h3 text-ink-50 leading-relaxed">{bill.title}</h1>
       </div>
 
-      {/* SLOT 3 — Decoded hero card. LOCKED (surface + body + label + empty state).
-          Card / label / rule are always present; only the body paragraph swaps:
-          displaySummary → the Decoded body (sans / ink-85 / leading-loose); null
-          (no summary synced yet) → the §4.6 empty state, a warm, present (ink-70) reassurance
-          line at the SAME ~65ch left measure so the card holds its shape between
-          states. mb-4 so the relevance line (slot 4) hugs the card it explains. */}
+      {/* SLOT 3 — Decoded hero card. The page's centerpiece. "Floating warmth"
+          surface (paper-dark + soft shadow, no border) with generous px-12 py-14
+          padding ("air") so the translation breathes. Label + hairline always
+          present; the body swaps filled (text-h3 / ink-85 / leading-loose) vs the
+          empty reassurance line, both at the same ~65ch measure so the card holds
+          its shape. Disclaimer (filled state only) is designed in, not bolted on.
+          mb-4 so the relevance line (slot 4) hugs the card it explains. */}
       <div className="mb-4">
-        <div className="bg-paper-dark shadow-md rounded-xl px-8 py-9">
+        <div className="bg-paper-dark shadow-md rounded-xl px-12 py-14">
           <div className="text-center mb-5">
-            <p className="text-meta uppercase tracking-widest text-ink-70">Decoded</p>
+            <p className="font-serif text-h2 text-ink">Decoded</p>
             <div className="mx-auto mt-3 h-px w-8 bg-divider-strong" />
           </div>
           {displaySummary ? (
-            <p className="text-body text-ink-85 leading-loose max-w-[65ch] mx-auto">
+            <p className="text-h3 text-ink-85 leading-loose max-w-[65ch] mx-auto">
               {displaySummary}
             </p>
           ) : (
@@ -187,15 +184,17 @@ export default function BillDetailPage() {
               We’re still translating this bill into plain language. A clear read is on the way.
             </p>
           )}
+          {displaySummary && (
+            <p className="text-small italic text-ink-50 max-w-[65ch] mx-auto mt-5">
+              AI-generated summary — may be incomplete or inaccurate. Not an official source.
+            </p>
+          )}
         </div>
       </div>
 
-      {/* SLOT 4 — RELEVANCE LINE. Quiet supporting line beneath the card, at the
-          column's left edge (shares the card's left edge). Neutrals only;
-          treatment C — the matched area is lifted with ink alone (ink-85, no
-          extra weight); the empty-state link is a neutral underline. Three
-          states from resolveRelevance(user categories ∩ bill.issue_tags) —
-          parent-category match, see lib/relevance.ts. */}
+      {/* SLOT 4 — RELEVANCE LINE. Quiet supporting line beneath the card. Neutrals
+          only; matched area lifted with ink alone (ink-85). Three states from
+          resolveRelevance(user categories ∩ bill.issue_tags) — see lib/relevance.ts. */}
       <div className="mb-8 text-small text-ink-50">
         {relevance.state === 'populated' && (
           <p>
@@ -221,11 +220,9 @@ export default function BillDetailPage() {
         )}
       </div>
 
-      {/* SLOT 5 — METADATA ROW. LOCKED (B — labeled, stacked). Top divider
-          rule; "Last action" meta-label + a neutral external "Full text" link
-          on one row; the verbose last_action_text on its own full-width line
-          below, clamped to one line (metadata, not prose — brief §9). Tokens +
-          neutrals; the link is neutral (underline/ink) — link color is ceiling. */}
+      {/* SLOT 5 — METADATA ROW (labeled, stacked). Top divider rule; "Last action"
+          meta-label + a neutral external "Full text" link on one row; the verbose
+          last_action_text on its own full-width line below, clamped to one line. */}
       <div className="mb-10 border-t border-divider pt-4">
         <div className="flex items-baseline justify-between gap-6">
           <p className="text-meta uppercase tracking-widest text-ink-50">Last action</p>
@@ -246,13 +243,10 @@ export default function BillDetailPage() {
         </p>
       </div>
 
-      {/* SLOT 6 — CALL-SCRIPT SECTION. LOCKED (B — top rule + kicker). A "Take
-          action" section: a top divider rule + a meta kicker (a <p>, NOT a
-          heading — keeps the hierarchy h1 → the cards' own <h2>s) frames the
-          shipped ScriptFlow/CallFlow cards as a deliberate section (brief §5),
-          reading intentionally pre-save (script only) and post-save (CallFlow
-          on the scriptSaved gate). Internals off-limits; the wiring is
-          behavior-identical to the shipped pre-floor version (Features 4 & 5). */}
+      {/* SLOT 6 — CALL-SCRIPT SECTION (top rule + "Take action" kicker). Frames the
+          shipped ScriptFlow/CallFlow cards as a deliberate section, pre-save (script
+          only) and post-save (CallFlow on the scriptSaved gate). Internals off-limits;
+          wiring is behavior-identical to the shipped Features 4 & 5. */}
       <div className="border-t border-divider pt-6">
         <p className="text-meta uppercase tracking-widest text-ink-50 mb-4">Take action</p>
         <div className="space-y-4">

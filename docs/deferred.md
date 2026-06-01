@@ -571,6 +571,8 @@ The type scale (`display/h1/h2/h3/body/small/meta/mono` = 56/36/24/18/16/14/12-u
 - **30px** — `text-3xl` (~6×); nothing between `h2` (24) and `h1` (36).
 - **18px body** — `text-lg` on body *paragraphs* (e.g. the landing CTA subhead); the 18px token `text-h3` carries heading line-height (1.15), wrong for multi-line body copy. (`text-lg` on headings maps cleanly to `h3`.)
 
+**Update (2026-06-01):** the bill-detail title's arbitrary values (`text-[22px]`, `tracking-[0.02em]`) are **resolved** — the ceiling pass put it on-token (`text-h3`). The gaps above (12px caption, 20px, 30px, 18px-body) still stand on other surfaces; per the tokens-only rule they get resolved (snap-to-token or a real new step) when each surface is touched — not deferred indefinitely.
+
 Resolve by extending the scale (e.g. a non-uppercase 12px `caption`, a 20px step, a 30px step) when brand + visual identity are locked, then convert the remaining raw sizes. Until then those raw `text-*` are intentional, not oversights.
 
 ---
@@ -617,7 +619,7 @@ Site-wide `robots: { index: false, follow: false }` added 2026-05-23 (Next rende
 
 ### ai-disclaimer-decoded-hero
 
-**Priority:** BLOCK (pre-public-launch — before any public or donor-facing exposure of the Decoded hero)
+**Priority:** RESOLVED (2026-06-01, ceiling pass — disclaimer implemented; no longer a launch blocker)
 **Where in code:**
 - `app/(app)/bills/[id]/page.tsx` slot 3 — the Decoded hero renders `bills.ai_summary` as neutral fact, with NO disclaimer
 - `lib/anthropic.ts` `summarizeBill` / `scripts/prewarm-bills.ts` — generators of `ai_summary`
@@ -627,7 +629,7 @@ Site-wide `robots: { index: false, follow: false }` added 2026-05-23 (Next rende
 
 **Required before public/donor launch:** a visible disclaimer on the Decoded hero, honest about both limits — incompleteness (truncation) and possible inaccuracy (generation): **"AI-generated summary — may be incomplete or inaccurate. Not an official source."** Deliberately does NOT promise verification against the official text — bills like `hr-1` were summarized from ~15k of 167k tokens, so a citizen cannot realistically verify against the full-text link; the disclaimer must not imply a workflow that doesn't exist.
 
-**Design note:** the disclaimer's visual treatment must be folded **into the upcoming ceiling pass on the hero** — designed in from the start, sitting inside the warm/editorial treatment, not bolted on after. Add to the ceiling agenda (`docs/DESIGN_DECISIONS.md → Ceiling inputs`).
+**Resolution (2026-06-01):** implemented in the ceiling pass, designed into the Decoded card (not bolted on) — `text-small italic text-ink-50 max-w-[65ch] mx-auto mt-5`, filled-summary state only, with the approved copy above. See `docs/DESIGN_DECISIONS.md → Ceiling pass`. The hero is no longer a no-disclaimer surface.
 
 **Trigger to resolve:** before any public/donor-facing exposure of the Decoded hero — same gate as `noindex-pre-launch` and `email-verification-deferred`.
 

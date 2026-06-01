@@ -18,7 +18,7 @@
 
 ## Foundations (inherited — see `docs/DESIGN_PLAYBOOK.md` §1–§2, §7)
 
-Not re-derived here; the playbook is the source. In one breath: a **warm, editorial, civic identity** — `paper` (`#F7F4EE`) not white, dark-green `ink` (`#1F2E2A`) not slate/black, Instrument Serif headings + Inter Tight body + JetBrains Mono. **The token system is the cage; restraint is the brief.** How bold `signal`-orange gets (and whether any non-neutral color beyond it is needed) is **still being discovered through the bill-detail ceiling pass**, not decided in the abstract — so no accent-color choice is recorded as LOCKED until that pass runs.
+Not re-derived here; the playbook is the source. In one breath: a **warm, editorial, civic identity** — `paper` (`#F7F4EE`) not white, dark-green `ink` (`#1F2E2A`) not slate/black, Instrument Serif headings + Inter Tight body + JetBrains Mono. **The token system is the cage; restraint is the brief.** The bill-detail ceiling pass (2026-06-01) tested whether the screen needs any accent at all and **locked neutrals-only** (see the Ceiling pass section) — the old "how bold does `signal`-orange get" framing baked in an accent that was never actually chosen. Accent is decided **per-screen, never assumed**.
 
 ---
 
@@ -50,11 +50,7 @@ Branch `feat/bill-detail-floor`, Batch 2. Source brief: `docs/bill-detail-floor-
 
 **Why:** Serif italic in a tightened, tracked setting reads as formal citation form — accurate to what a federal bill *is* (procedural, excluding). Placing it under a small kicker and *below* the would-be hero inverts the instinct to lead with the official title; leading with the plain-language translation is the whole point of the product. `ink-70` (not full `ink`) keeps it present but secondary.
 
-**⚠ Arbitrary (non-token) values — flagged, cross-ref `docs/deferred.md#type-scale-extension`:**
-
-- `text-[22px]` — sits in the `text-h3` (18px) → `text-h2` (24px) gap that `type-scale-extension` already flags (it lists a missing **20px** step in exactly this gap; 22px is the value this title landed on).
-- `tracking-[0.02em]` — sits between `tracking-normal` (0) and `tracking-wide` (0.025em); no token exists.
-- **Decision owed at screen-lock:** formalize one/both into the scale **or** document them as deliberate one-offs. Per `type-scale-extension`, only formalize a 22px step if it recurs on another surface — otherwise it stays a one-off. Either way, the call is made *once, here*; don't keep inventing inline type values on other surfaces in the meantime.
+**✓ RESOLVED (ceiling pass, 2026-06-01):** the arbitrary `text-[22px]` and `tracking-[0.02em]` are **gone** — the ceiling quieted the title to on-token `text-h3` (18px) / `ink-50` (see the Ceiling pass section). No arbitrary type values remain on this screen.
 
 ### Slot 3 — "Decoded" hero card — LOCKED (surface + body + label + empty state)
 
@@ -146,8 +142,28 @@ Non-happy states are part of the design, not cleanup (brief §6). The Decoded-em
 
 ---
 
-## Ceiling inputs (deferred to the palette / signal-boldness pass)
+## Ceiling pass — LOCKED (2026-06-01)
 
-Findings surfaced during the floor that are entangled with *how bold `signal` (or any accent) gets* — so they belong to the ceiling pass, not the floor. Logged here so they're the opening agenda for the palette exercise, not lost.
+Ran on `/bills/[id]` against real warmed summaries (`hr-8577`, the 262-char-title case). Co-designed via rendered fan-outs at 390 + desktop. Direction **D1 + air**.
 
-1. **Decoded hero weight vs. long titles** (`/critique` P2, 2026-05-30). The Decoded card earns hero-ness through *warmth + elevation alone* — it has no size or position advantage over the official title (which is first, and larger at `text-[22px]` serif). On long real titles (e.g. `hr-8577`, 262 chars → 3 lines desktop / 6 mobile) the serif title visually dominates the card, undercutting the brief's "Decoded is the largest / first reading element" intent. Rebalancing (more weight or space on the card, or quieting the title) is entangled with the accent / boldness decision, so it is the **first input to the ceiling palette exercise** — revisit there with Colby; not on the floor (slots 2 / 3 are locked).
+### Accent / color — NONE (LOCKED)
+
+**No accent color.** A 3-way fan-out — neutrals-only (A) vs the existing `signal` orange (`#E65A2B`, B) vs a teal alt (`#1C5F66`, C), all at the same placement (Decoded label + hairline + links) — read **~95% identical**: the accent did almost nothing here. **Neutrals carry it** (paper / ink / divider); the screen reads as a calm editorial article, which is the intent. The prior "how bold does `signal` get" framing presumed an accent that was never chosen — retired for this screen. Revisit accent **per-screen, never assume**.
+
+### Layout — D1 "contained editorial" + air (LOCKED)
+
+**Column:** `max-w-2xl mx-auto px-4 py-6` (was `max-w-3xl` at floor). The empty desktop margin is **intentional reader's-measure calm**, not dead space — a two-column "use the width" variant (D2) was tried and rejected for pulling the screen toward dashboard. This is an article, not a record.
+
+**Decoded hero — the rebalance (resolves the floor's old Ceiling-input #1).** The card now clearly leads, via neutrals alone:
+
+- Card surface gets **air**: `bg-paper-dark shadow-md rounded-xl px-12 py-14` (was `px-8 py-9`).
+- Body bumped to `text-h3 text-ink-85 leading-loose max-w-[65ch] mx-auto` (was `text-body`) — the translation is now the largest reading element.
+- Official title **quieted to a reference caption**: `font-serif italic text-h3 text-ink-50 leading-relaxed` (was `text-[22px] font-medium text-ink-70 tracking-[0.02em]`). Shown in **FULL, no clamp** — a one-line-clamp variant (D3) was rejected: the official title is the legal object, never hidden behind a "Full text" link. Resolves slot 2's arbitrary values → on-token.
+
+### Disclaimer — designed in (LOCKED)
+
+Filled-summary state only, inside the card beneath the body: `text-small italic text-ink-50 max-w-[65ch] mx-auto mt-5`. **Copy:** "AI-generated summary — may be incomplete or inaccurate. Not an official source." Honest about both truncation (incomplete) and generation (inaccurate); deliberately does NOT promise verification against the official text. Resolves `docs/deferred.md#ai-disclaimer-decoded-hero` (was a pre-launch BLOCK).
+
+### Hero label — serif masthead (LOCKED — creative-director Break 1)
+
+The Decoded card's label is a serif display word, not a meta-kicker: `font-serif text-h2 text-ink` (centered), replacing `text-meta uppercase tracking-widest text-ink-70`. Hairline beneath unchanged (`mx-auto mt-3 h-px w-8 bg-divider-strong`). **Why:** the one motivated rule-break from the creative-director ceiling pass. Instrument Serif (the system's signature face) was benched on the quiet title caption; at display scale on the hero's own name it gives the screen an editorial *voice* instead of a whisper — the single bold move in an otherwise restrained composition (the canon meta-rule). It breaks the type-scale + de-emphasize-secondary rules on purpose, and escapes "looks accidental" because it is the only scale-break on the screen and it sits on the hero. **Break 2 (left-anchoring the label) was rejected** — the asymmetry didn't earn its place; centered symmetry holds.

@@ -96,6 +96,10 @@ At the start of every coding session, Claude should:
 5. Review recent `git log` (last 5 commits) to understand current state
 6. State the plan before writing code, and wait for confirmation on non-trivial tasks
 
+## Review & Working Agreement
+
+Your work is reviewed by Claude.ai acting as a redline reviewer. Expect claims, scope, and confidence to be verified against the actual repo. Pre-justify non-trivial decisions, and never fold deferred work into an unrelated task — surface it as its own step instead.
+
 ## Design Workflow
 
 The front-end / design phase has its own operating doc: **`docs/DESIGN_PLAYBOOK.md`** — read it before any design work. It holds the full workflow, toolkit, guardrails, and reference set; this section is only the pointer.

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { cn, urgencyLabel } from '@/lib/utils'
 import { deriveDisplayStatus, type BillStatus } from '@/lib/congress'
 
@@ -35,17 +36,12 @@ export function BillCard({ bill, compact = false }: BillCardProps) {
         {/* Header row */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className={cn(
-                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                urgency.color
-              )}
-            >
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase">
               {urgency.label}
             </span>
             {/* Federal-only per MVP scope (FEATURES.md); v2 reintroduces a level/state-code branch. */}
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-ink-10 text-ink-70">
-              🇺🇸 Federal
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase">
+              Federal
             </span>
           </div>
           <span className="text-xs text-ink-50 whitespace-nowrap flex-shrink-0">
@@ -72,10 +68,11 @@ export function BillCard({ bill, compact = false }: BillCardProps) {
 
         {/* Footer */}
         <div className="mt-3 flex items-center justify-between">
-          <span className="text-xs text-ink-50 capitalize">{displayStatus.replace('_', ' ')}</span>
+          <span className="text-meta text-ink-50 capitalize">{displayStatus.replace('_', ' ')}</span>
 
-          <span className="text-xs font-medium text-ink group-hover:text-ink">
-            Take action →
+          <span className="inline-flex items-center gap-1 text-small font-medium text-ink">
+            Take action
+            <ArrowRight className="h-4 w-4" />
           </span>
         </div>
       </div>

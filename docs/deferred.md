@@ -154,12 +154,12 @@ Theoretical risk that `partyHistory` is empty on a brand-new member before Congr
 
 ### representatives-e2e-failing
 
-**Priority:** BLOCK before launch — Feature 2 is core MVP (untriaged)
+**Priority:** RESOLVED (2026-06-03) — was BLOCK/untriaged; root cause was the test harness, not a Feature 2 regression (real users never affected).
 **Where in code:** `tests/representatives.spec.ts` (address → 3 reps; asserts the mock rep `Charlie Repman` renders); the `/representatives` → `syncRepsForUser` → `tests/mocks/external-apis.mjs` path
 
 `representatives.spec.ts` **fails on clean `main`** as of 2026-06-02 — verified pre-existing during the CRS-reanchor branch (`feat/crs-reanchor` / PR #41) by stashing that branch's changes, checking out clean `main`, and running the spec there: it fails identically with none of the branch's changes present. The other 5 e2e specs pass.
 
-Unknown whether this is a **broken mock/harness** (e.g. the external-API mock or the test fixture drifted) or a **real Feature 2 regression** (rep lookup / sync actually broken in the app). Feature 2 (federal rep lookup) is core MVP, so this must be investigated before launch. **Not yet triaged** — first step is to reproduce locally and determine mock-vs-app by checking whether `/representatives` renders reps for a real address in the running app.
+**Resolution (2026-06-03):** root cause was **test-harness server reuse**, NOT a Feature 2 regression — real users were never affected. `playwright.config.ts` had `reuseExistingServer: true` on the dev webServer at the default port 3000, so a standalone `next dev` on `:3000` (started without the mock env vars) got reused and shadowed the mock-wired server; the spec then hit the **real** Google Civic + Congress.gov and never rendered the fixture reps. Fixed in **PR #42** — dedicated e2e port (3100) + `reuseExistingServer: false`, so Playwright always starts a fresh mock-wired server and errors loudly on a clash rather than silently reusing the wrong one. Full Playwright suite **6/6 green, including `representatives.spec`**, on the isolated server. Related hardening: `rep-lookup-cache-inconsistency`.
 
 ---
 

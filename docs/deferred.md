@@ -167,7 +167,7 @@ Unknown whether this is a **broken mock/harness** (e.g. the external-API mock or
 
 ### feature-3-issue-tags-coverage-gap
 
-**Priority:** DEBT — but heavier than the label implies (see "Why this is heavier"); it silently undermines the product's core differentiator, not a cosmetic gap.
+**Priority:** RESOLVED (2026-06-02 — CRS re-anchor). _Was: DEBT, but heavier than the label — it silently undermined the product's core differentiator (the values-based feed), not a cosmetic gap._
 **Where in code:** `lib/bill-tagger.ts` (emits `issue_tags`); `lib/relevance.ts` + bill-detail slot 4; `get_personalized_feed` (006) — all key off the user-categories ∩ `issue_tags` intersection.
 
 **Situation:** 377 of 482 synced bills (~78%) have NULL/empty `issue_tags` (verified 2026-05-31: `count(*) FILTER (WHERE issue_tags IS NULL OR cardinality(issue_tags)=0) = 377`).
@@ -179,6 +179,8 @@ Unknown whether this is a **broken mock/harness** (e.g. the external-API mock or
 **Trigger to investigate:** before first donor demo / public launch — a demo that leans on "see the bills that match your values" will visibly fall flat on most bills. First step is a diagnosis query (tag-frequency distribution + spot-check untagged bills against the taxonomy), not a code change.
 
 **Diagnosis run (2026-06-02, read-only — nothing persisted):** the 377 untagged bills are **empty arrays, not nulls** (`null_tags=0`), uniform across both sync runs (78.7% / 74.0%) and the full date range — so the tagger *runs on every bill* and matches only ~22%. Not a backfill/sync miss; a tagging-**quality** problem. Root cause is title-only matching: `lib/congress.ts` calls `tagBill(detail.title ?? '', '')` (summary hard-coded empty), so keyword rules only ever see the bill's official title. The feed intersection itself is structurally sound (tagger imports the canonical taxonomy and emits subcategory + parent ids; all 10 parent categories are present in stored tags). Resolution direction folded into `taxonomy-crs-reassess` below.
+
+**Resolution (2026-06-02):** closed by the **CRS re-anchor** (see `taxonomy-crs-reassess`). The taxonomy was re-anchored on CRS Policy Areas (PR #41), `bills.policy_area` captured (migration 007), and all bills re-tagged via the G4 backfill. **Coverage: 78% untagged → 0.2%** — 481/482 bills now carry a flat category tag (479 via Policy Area, 2 via keyword fallback), **0 bills on old ids**, and exactly **1** genuinely untaggable bill (`hr-8330-119` — no Policy Area, no keyword match; appears in the default feed only). The values-based feed now works across ~all content.
 
 ---
 
@@ -232,6 +234,8 @@ The 3 with no Policy Area: `hr-8330-119`, `hr-8573-119`, `hr-8553-119`.
 **Not done this pass:** the mapping design — CRS Policy Areas → user-facing categories, how `lib/interests.ts` / the tagger / `get_personalized_feed` change, whether to also pull Legislative Subject Terms for finer granularity, and the backfill — is a **separate gated step** Colby will scope. This entry records the decision + the evidence only.
 
 **Update (2026-06-02 — board landed):** the final taxonomy is **12 flat categories**, each mapping 1:1 to CRS Policy Areas with all 32 areas covered (the module-load coverage lock passes). Notable resolutions: **AI & Technology is its own standalone category** (← Science, Technology, Communications); the economy is **one merged "Jobs & the Economy"** (Labor, Commerce, Finance, Taxation, Economics & Public Finance, Agriculture, Transportation); guns folded into Crime & Justice (see `guns-under-crime-mvp`); affordability deliberately NOT a category (see `affordability-cross-cutting-filter`). The 4 areas unmapped in the first scoping draft are resolved: Transportation → Jobs & the Economy, Science/Tech → its own AI & Technology, Social Sciences & History → Education, Arts/Culture/Religion → Family & Community. Granularity/labels still revisit at the 500-users / 2026-08-15 trigger above.
+
+**Update (2026-06-02 — shipped + backfilled):** the re-anchor is live. PR #41 merged; migration 007 applied (**G3**: `bills.policy_area` added, `user_interests` wiped); the **G4** backfill re-tagged 481/482 bills onto the new flat ids (479 via Policy Area, 2 via keyword; 1 untaggable — `hr-8330-119`). Tag coverage **78% untagged → 0.2%**. Closes `feature-3-issue-tags-coverage-gap`. The **500-users / 2026-08-15** granularity reassessment trigger still stands.
 
 ---
 

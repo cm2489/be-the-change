@@ -266,3 +266,33 @@ Use this section to capture major decisions, their rationale, and the alternativ
 When weeks get long and the to-do list feels infinite, return here:
 
 We are building a tool that helps Americans participate in their democracy with less friction and more dignity. The product is a means; the outcome is citizens who feel heard. If a feature doesn't serve that outcome, it doesn't belong in the MVP.
+
+---
+
+## 15. Future Directions (V2+)
+
+Forward-looking product directions captured so they stay in the pipeline. Each is explicitly **out of MVP scope** — recorded here, not being built now. (Added as a new section so the existing numbered sections, some referenced by number elsewhere, aren't renumbered.)
+
+### Action Moments — callable civic events alongside bills
+
+**Status:** V1.5 / V2 — out of MVP scope. **Additive, not a rewrite.**
+
+Today the only unit of action is a Congress.gov **bill**. **Action Moments** ADD a second, parallel source of callable events **on top of** the bill feed — they do **not** replace bills. The bill feed stays exactly as-is; Action Moments are layered alongside it.
+
+An Action Moment is any **timely civic moment with a specific ask to a representative that isn't anchored to an introduced bill** — e.g.:
+
+- **(a) Pre-legislative lobbying fights** the president is waging *before a bill exists*, where news names the specific members being pressured.
+- **(b) Local triggering events** (e.g. a school shooting in-district) where a constituent wants to urge their rep toward action.
+
+The bill is the most *structured* instance of "a reason to call right now"; Action Moments capture the **timely, less-structured** reasons that have no `bill_id` yet.
+
+**Known hard parts** (so future scoping stays honest):
+
+- **No structured Congress.gov feed** — ingestion is news-sourced.
+- A **harder relevance/credibility problem** — distinguishing real + callable from noise.
+- **No `bill_id`** to anchor content to.
+- **Higher factual/provenance risk** than restating an existing bill.
+
+**Why it's tractable:** because it's *additive* — a new content type beside bills, not a rewrite of the feed — it can be built **without disturbing the existing bill pipeline**.
+
+Explicitly **V1.5 / V2**; recorded now so it stays in the pipeline. Pointer: `docs/deferred.md#action-moments-v2`.

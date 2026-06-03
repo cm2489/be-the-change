@@ -738,6 +738,16 @@ A droppable container surfacing **official projections/studies** on the bill's e
 
 ---
 
+## Future product directions (V2+)
+
+### action-moments-v2
+
+**Priority:** product-direction (V2)
+
+A second callable-event type layered **ALONGSIDE** the bill feed (additive, not a replacement) — timely civic moments with a specific ask to a rep but no `bill_id` (pre-legislative lobbying fights named in the news; local triggering events in-district). Primary home + full write-up: `STRATEGY.md` §15 (Action Moments — callable civic events alongside bills).
+
+---
+
 ## Change log
 
 - 2026-06-02 — Read-only diagnosis of the `issue_tags` coverage gap (no writes, no re-tagging). Confirmed the 377/482 (78.2%) untagged bills are *empty arrays not nulls*, uniform across both sync runs — a tagging-**quality** problem (title-only keyword matching), not a backfill/sync miss; feed intersection itself is structurally sound. Confirmed we store **no** CRS Policy Area / Subject Terms anywhere (no column; `issue_analysis` 0/482). Then pulled Congress.gov Policy Area read-only for all 482 bills (in-memory tally, nothing persisted): **479/482 present, 30 distinct areas**. Logged `taxonomy-crs-reassess` (MVP taxonomy re-anchoring on CRS Policy Areas; mapping/backfill deferred to a separate gated step) and added a diagnosis note to `feature-3-issue-tags-coverage-gap`.

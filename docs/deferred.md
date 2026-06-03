@@ -775,6 +775,23 @@ Site-wide `robots: { index: false, follow: false }` added 2026-05-23 (Next rende
 
 ---
 
+### e2e-cold-start-login-flake
+
+**Priority:** DEBT (testing harness)
+**Where in code:** `playwright.config.ts` (`actionTimeout: 15_000`; the `npx next dev` webServer on port 3100); every spec's `login()` helper — `page.goto('/login')` then `page.fill('input[type=email]', …)`
+
+On a **cold dev-server start**, the first spec's first on-demand `/login` compile (Next dev compiles routes lazily) can race Playwright's first-navigation / `actionTimeout`: `page.goto('/login')` resolves on the loading shell, then `page.fill('input[type=email]')` times out before the form renders. Because the suite runs serially (`workers: 1`) against one freshly-started server, this fails the **first** test and the symptom repeats down the run — observed 2026-06-03 as **all 8 specs red at the login form**, then **green on a clean re-run with zero code change**.
+
+**Risk:** the "all-red then green" signature trains reviewers to dismiss a red suite as "just the flake" — which can mask a real regression hiding behind the same symptom.
+
+**Candidate fixes (record only — not implemented):**
+- Raise the first-navigation / action timeout (e.g. a one-off longer timeout on the first `login()`), or
+- Pre-warm `/login` before the first spec (a `globalSetup` GET that triggers compilation) so no test pays the cold-compile cost.
+
+**Cross-link:** `e2e-tests-seed-live-prod` (same harness).
+
+---
+
 ## Future feature ideas — bill detail (parked, post-MVP)
 
 Surfaced during the bill-detail floor session (2026-05-23). **Not in MVP scope** — each needs a new data source or model. Captured as product ideas, not committed work. Both serve the same user-need the "Decoded" block targets: *"is this even worth my time?"*

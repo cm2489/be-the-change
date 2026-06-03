@@ -220,6 +220,26 @@ The 3 with no Policy Area: `hr-8330-119`, `hr-8573-119`, `hr-8553-119`.
 
 **Not done this pass:** the mapping design — CRS Policy Areas → user-facing categories, how `lib/interests.ts` / the tagger / `get_personalized_feed` change, whether to also pull Legislative Subject Terms for finer granularity, and the backfill — is a **separate gated step** Colby will scope. This entry records the decision + the evidence only.
 
+**Update (2026-06-02 — board landed):** the final taxonomy is **12 flat categories**, each mapping 1:1 to CRS Policy Areas with all 32 areas covered (the module-load coverage lock passes). Notable resolutions: **AI & Technology is its own standalone category** (← Science, Technology, Communications); the economy is **one merged "Jobs & the Economy"** (Labor, Commerce, Finance, Taxation, Economics & Public Finance, Agriculture, Transportation); guns folded into Crime & Justice (see `guns-under-crime-mvp`); affordability deliberately NOT a category (see `affordability-cross-cutting-filter`). The 4 areas unmapped in the first scoping draft are resolved: Transportation → Jobs & the Economy, Science/Tech → its own AI & Technology, Social Sciences & History → Education, Arts/Culture/Religion → Family & Community. Granularity/labels still revisit at the 500-users / 2026-08-15 trigger above.
+
+---
+
+### guns-under-crime-mvp
+
+**Priority:** V1.1 (taxonomy calibration) — revisit with `taxonomy-crs-reassess`
+**Where in code:** `lib/interests.ts` — `crime_justice` category
+
+Gun-policy bills are folded into **Crime & Justice** for MVP rather than a standalone category. CRS has no dedicated "guns" Policy Area (gun bills land in "Crime and Law Enforcement"), so a 1:1 CRS re-anchor can't surface guns on its own without a sub-rule. Revisit guns as its own category post-feedback — it's a high-salience issue that may warrant first-class status once we're past the CRS-anchored MVP. Cross-link: `taxonomy-crs-reassess`.
+
+---
+
+### affordability-cross-cutting-filter
+
+**Priority:** V1.1 (taxonomy calibration) — revisit with `taxonomy-crs-reassess`
+**Where in code:** `lib/interests.ts` — considered for, and deliberately excluded from, the 12-category board
+
+Affordability (rent, food, utilities, wages, medical costs) is deferred as a future **cross-cutting FILTER across categories**, NOT a standalone category. The cost-of-living lens spans multiple CRS areas (Labor, Transportation, Health, Housing, Agriculture…), so making it a category would **steal whole CRS areas** from their natural homes (e.g. Labor, Transportation) and **mis-tag non-cost bills** within those areas. Considered and rejected as a category for MVP. Revisit as a filter dimension with `taxonomy-crs-reassess`.
+
 ---
 
 ### feature-3-backfill-119th-congress
@@ -706,6 +726,8 @@ A droppable container surfacing **official projections/studies** on the bill's e
 ## Change log
 
 - 2026-06-02 — Read-only diagnosis of the `issue_tags` coverage gap (no writes, no re-tagging). Confirmed the 377/482 (78.2%) untagged bills are *empty arrays not nulls*, uniform across both sync runs — a tagging-**quality** problem (title-only keyword matching), not a backfill/sync miss; feed intersection itself is structurally sound. Confirmed we store **no** CRS Policy Area / Subject Terms anywhere (no column; `issue_analysis` 0/482). Then pulled Congress.gov Policy Area read-only for all 482 bills (in-memory tally, nothing persisted): **479/482 present, 30 distinct areas**. Logged `taxonomy-crs-reassess` (MVP taxonomy re-anchoring on CRS Policy Areas; mapping/backfill deferred to a separate gated step) and added a diagnosis note to `feature-3-issue-tags-coverage-gap`.
+
+- 2026-06-02 — CRS re-anchor taxonomy locked (G1 resolved). Final board = **12 flat categories**, all 32 CRS Policy Areas mapped 1:1 (AI & Technology is standalone; the economy is one merged Jobs & the Economy). Logged `guns-under-crime-mvp` and `affordability-cross-cutting-filter`, and updated `taxonomy-crs-reassess` with the landed board. Implementation (`feat/crs-reanchor`: new `lib/interests.ts`, policy-area-primary tagger, `bills.policy_area` capture, flat onboarding/settings) + migration 007 (add-column + `user_interests` wipe) are the next gated steps; feed RPCs unchanged.
 
 - 2026-05-23 — Pre-launch `noindex` added (`feat/oravan-wordmark-swap`, commit #2). Site-wide `metadata.robots = { index:false, follow:false }` in `app/layout.tsx`; oravan.org is live/reachable but kept out of search indexes until public launch + formal trademark clearance. Logged `noindex-pre-launch` (BLOCK-before-launch removal task).
 

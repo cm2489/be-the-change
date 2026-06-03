@@ -14,7 +14,7 @@ export default function SettingsPage() {
 
   const [fullName, setFullName] = useState('')
   const [zipCode, setZipCode] = useState('')
-  const [selectedSubcats, setSelectedSubcats] = useState<Set<string>>(new Set())
+  const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -42,13 +42,17 @@ export default function SettingsPage() {
 
       const { data: interests } = await supabase
         .from('user_interests')
-        .select('subcategory')
+        .select('category')
         .eq('user_id', session.user.id)
 
-      const subs = new Set<string>(
-        (interests ?? []).map((i: any) => i.subcategory).filter(Boolean)
+      // Browser supabase client is untyped (see docs/deferred.md
+      // #untyped-browser-supabase-client) — cast the rows to read `category`.
+      const cats = new Set<string>(
+        ((interests ?? []) as { category: string | null }[])
+          .map(i => i.category)
+          .filter((c): c is string => Boolean(c))
       )
-      setSelectedSubcats(subs)
+      setSelectedCats(cats)
 
       setLoading(false)
     }
@@ -56,8 +60,8 @@ export default function SettingsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function toggleSub(id: string) {
-    setSelectedSubcats(prev => {
+  function toggleCat(id: string) {
+    setSelectedCats(prev => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
@@ -80,18 +84,15 @@ export default function SettingsPage() {
       zip_code: zipCode,
     }, { onConflict: 'user_id' })
 
-    // Rebuild interests
+    // Rebuild interests (flat categories; subcategory always null post-re-anchor)
     await supabase.from('user_interests').delete().eq('user_id', session.user.id)
 
-    const rows = Array.from(selectedSubcats).map((subId, i) => {
-      const cat = INTEREST_CATEGORIES.find(c => c.subcategories.some(s => s.id === subId))
-      return {
-        user_id: session.user.id,
-        category: cat?.id || 'other',
-        subcategory: subId,
-        rank: i + 1,
-      }
-    })
+    const rows = Array.from(selectedCats).map((category, i) => ({
+      user_id: session.user.id,
+      category,
+      subcategory: null,
+      rank: i + 1,
+    }))
 
     if (rows.length > 0) {
       await supabase.from('user_interests').insert(rows)
@@ -149,30 +150,22 @@ export default function SettingsPage() {
         <Card padding="md">
           <h2 className="text-body font-semibold text-ink mb-1">My Issues</h2>
           <p className="text-small text-ink-70 mb-4">
-            Select the specific topics you want to stay informed about.
+            Select the topics you want to stay informed about.
           </p>
-          <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
             {INTEREST_CATEGORIES.map(cat => (
-              <div key={cat.id}>
-                <div className="text-xs font-semibold text-ink-70 uppercase tracking-wide mb-2">
-                  {cat.icon} {cat.label}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {cat.subcategories.map(sub => (
-                    <button
-                      key={sub.id}
-                      onClick={() => toggleSub(sub.id)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                        selectedSubcats.has(sub.id)
-                          ? 'bg-ink text-white border-ink'
-                          : 'bg-card text-ink-70 border-divider hover:border-divider-strong'
-                      }`}
-                    >
-                      {sub.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <button
+                key={cat.id}
+                onClick={() => toggleCat(cat.id)}
+                title={cat.subline}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                  selectedCats.has(cat.id)
+                    ? 'bg-ink text-white border-ink'
+                    : 'bg-card text-ink-70 border-divider hover:border-divider-strong'
+                }`}
+              >
+                {cat.label}
+              </button>
             ))}
           </div>
         </Card>

@@ -121,10 +121,11 @@ Federal bills synced from Congress.gov.
 | `last_action_date` | date | |
 | `last_action_text` | text | |
 | `status` | text | "introduced", "committee", "markup", "floor_vote", "passed_chamber", "conference", "signed", "vetoed" |
-| `issue_tags` | text[] | Tagger-emitted ids, both subcategory and derived parent-category (per `lib/bill-tagger.ts`); used for feed filtering and the relevance badge |
+| `issue_tags` | text[] | Flat category ids, one per bill, mapped 1:1 from `policy_area` via `lib/bill-tagger.ts` (keyword fallback when no Policy Area). Re-anchored on CRS Policy Areas in migration 007 — previously carried subcategory + parent ids. Used for feed filtering and the relevance badge |
 | `urgency_score` | numeric(4,3), NOT NULL DEFAULT 0 | Range [0.000, 1.000] enforced by CHECK; recomputed by cron on every upsert; see formula below |
 | `issue_analysis` | jsonb, nullable | Per-bill structured impact analysis; one record covering all 10 top-level categories from `lib/interests.ts`; lazily generated on first detail-page view (Feature 4); never bulk-backfilled; shape below |
 | `congress_gov_url` | text | |
+| `policy_area` | text, nullable | Congress.gov CRS Policy Area (`bill.policyArea.name`); one per bill from a ~32-term controlled vocabulary. The 1:1 source for `issue_tags` (see `lib/interests.ts` → `POLICY_AREA_TO_CATEGORY`). Null for the ~0.6% of bills with no Policy Area. Added in migration 007 |
 | `last_synced_at` | timestamptz | |
 | `created_at`, `updated_at` | timestamptz | |
 
@@ -397,7 +398,9 @@ Writes on shared tables are done via `SUPABASE_SERVICE_ROLE_KEY` from server-onl
 
 ## Migration History & Integrity
 
-Tracked migrations: `supabase/migrations/001`–`006`. **Verified 2026-05-31: every table documented above is defined in a tracked migration — all tables tracked, no drift.** The apparent mismatch (6 files vs. ~12 tables) is only because `002_align_to_schema.sql` defines 10 tables on its own (`user_interests` → `003`, `sync_state` → `006`, all others → `002`).
+Tracked migrations: `supabase/migrations/001`–`007`. **Verified 2026-05-31: every table documented above is defined in a tracked migration — all tables tracked, no drift.** The apparent mismatch (files vs. ~12 tables) is only because `002_align_to_schema.sql` defines 10 tables on its own (`user_interests` → `003`, `sync_state` → `006`, all others → `002`).
+
+`007_crs_reanchor.sql` adds `bills.policy_area` and **wipes `user_interests`** (pre-launch reset to the new flat 12-category CRS-anchored taxonomy — see `docs/deferred.md#taxonomy-crs-reassess`). Like `002`, the `DELETE FROM user_interests` is a destructive step that is **not replayable against a database with real user data** — safe pre-MVP only.
 
 ⚠️ **`002_align_to_schema.sql` is a destructive full reset:** it `DROP ... CASCADE`s the `001` draft schema and recreates from scratch. Safe pre-MVP (no user data), but **`001`→`002` is NOT replayable against a database with real data** — treat `002` as the historical baseline, not a re-runnable step, before any prod migration post-launch.
 

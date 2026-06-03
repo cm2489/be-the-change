@@ -1,4 +1,4 @@
-import { tagBill } from './bill-tagger'
+import { deriveIssueTags } from './bill-tagger'
 
 // CONGRESS_API_BASE_URL is overridable for tests (Playwright points it at a
 // local mock server). Production leaves it unset and we hit Congress.gov.
@@ -74,6 +74,7 @@ export interface CanonicalBill {
   last_action_text: string
   status: BillStatus
   congress_gov_url: string
+  policy_area: string | null
   issue_tags: string[]
   urgency_score: number
 }
@@ -138,6 +139,9 @@ export interface CongressBillDetail {
   updateDate?: string
   sponsors?: Array<{ bioguideId?: string }>
   latestAction?: { actionDate?: string; text?: string }
+  // CRS Policy Area — one per bill, from a controlled ~32-term vocabulary.
+  // Present in the detail response (~99% of bills); drives issue_tags.
+  policyArea?: { name?: string }
 }
 
 interface CongressBillDetailResponse {
@@ -415,13 +419,14 @@ export function mapDetailToBill(detail: CongressBillDetail): CanonicalBill | nul
   const status = mapStatusFromAction(lastActionText)
   // summary_text is intentionally null at sync time — Congress.gov's
   // detail endpoint doesn't surface inline summary text, and the lazy
-  // ai_summary path (Phase 3b/4) is what populates the bill detail
-  // page. tagBill runs against the title alone for now; once a future
-  // phase wires the /summaries sub-fetch, pass it as the second arg.
-  const tags = tagBill(detail.title ?? '', '')
-  const issueTags = Array.from(
-    new Set([...tags.subcategory_ids, ...tags.category_ids]),
-  )
+  // ai_summary path (Phase 3b/4) is what populates the bill detail page.
+  //
+  // issue_tags now derive from the bill's CRS Policy Area (1:1 → one
+  // category) via deriveIssueTags. Bills with no Policy Area (~1%) fall
+  // back to keyword matching on the title. See lib/bill-tagger.ts and
+  // docs/deferred.md#taxonomy-crs-reassess.
+  const policyArea = detail.policyArea?.name?.trim() || null
+  const issueTags = deriveIssueTags(policyArea, detail.title ?? '', null)
 
   return {
     full_identifier: `${billType}-${billNumber}-${congressNumber}`,
@@ -437,6 +442,7 @@ export function mapDetailToBill(detail: CongressBillDetail): CanonicalBill | nul
     last_action_text: lastActionText,
     status,
     congress_gov_url: buildCongressGovUrl(congressNumber, billType, billNumber),
+    policy_area: policyArea,
     issue_tags: issueTags,
     urgency_score: computeUrgencyScore(status, lastActionDate),
   }

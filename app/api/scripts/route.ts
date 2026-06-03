@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import { generateScript, type Stance } from '@/lib/anthropic'
+import { getCategoryLabel } from '@/lib/interests'
 
 const STANCES: ReadonlySet<Stance> = new Set(['support', 'oppose', 'undecided'])
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -83,14 +84,16 @@ export async function POST(request: Request) {
 
   const { data: interests } = await adminClient
     .from('user_interests')
-    .select('category, subcategory')
+    .select('category')
     .eq('user_id', userId)
     .order('rank')
     .limit(5)
 
   const userName =
     profile?.full_name || session.user.email?.split('@')[0] || 'A constituent'
-  const userInterests = (interests ?? []).map((i) => i.subcategory || i.category)
+  // Map flat category ids to their human labels for the prompt
+  // ("Jobs & the Economy", not "jobs_economy").
+  const userInterests = (interests ?? []).map((i) => getCategoryLabel(i.category))
 
   let generated
   try {

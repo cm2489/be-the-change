@@ -1,133 +1,133 @@
-// Keyword-based bill → interest tagger.
+// Bill → interest tagger, re-anchored on CRS Policy Areas.
 //
-// Output goes into `bills.issue_tags` as a flat text[] containing both
-// subcategory ids (matched directly) and their parent category ids
-// (derived). The personalized-feed RPC intersects these against
-// `user_interests.category` — which carries top-level category ids
-// only — so the relevance match works whether the user picked a whole
-// category or specific subcategories.
+// PRIMARY path: a bill's CRS Policy Area (bill.policyArea.name, captured at
+// sync time) maps 1:1 to one of our flat categories via
+// POLICY_AREA_TO_CATEGORY. ~99% of bills carry a Policy Area, so this is
+// the dominant path and yields exactly one category id.
 //
-// Source of truth for category/subcategory ids: lib/interests.ts.
-// The module-load validation block below throws on drift between this
-// file and the canonical taxonomy so the tagger refuses to run with a
-// stale ruleset.
+// FALLBACK path: the ~1% of bills with NO Policy Area (3/482 at re-anchor
+// time) fall back to keyword matching on title + summary, emitting flat
+// category ids directly.
+//
+// Output goes into `bills.issue_tags` as a flat text[] of CATEGORY ids
+// (e.g. `health`, `crime_justice`). get_personalized_feed intersects these
+// against user_interests.category. Source of truth for category ids and
+// the Policy Area → category map: lib/interests.ts.
 
-import { INTEREST_CATEGORIES, ALL_SUBCATEGORY_IDS } from './interests'
+import {
+  ALL_CATEGORY_IDS,
+  POLICY_AREA_TO_CATEGORY,
+} from './interests'
 
-// Each rule: if any keyword appears in the bill text, assign that subcategory id.
-const KEYWORD_RULES: Array<{ keywords: string[]; interest_id: string }> = [
-  // Environment
-  { keywords: ['carbon', 'emissions', 'climate change', 'greenhouse gas', 'paris agreement', 'global warming'], interest_id: 'env_climate_policy' },
-  { keywords: ['solar', 'wind energy', 'clean energy', 'renewable energy', 'electric vehicle', 'fossil fuel', 'offshore wind'], interest_id: 'env_clean_energy' },
-  { keywords: ['clean water', 'water quality', 'ocean', 'wetland', 'pfas', 'superfund', 'epa'], interest_id: 'env_water' },
-  { keywords: ['national park', 'public land', 'endangered species', 'wildlife', 'blm', 'forest service', 'wilderness'], interest_id: 'env_public_lands' },
+// Keyword fallback rules. Each rule assigns ONE flat category id when any
+// of its keywords appears in the bill text. This is the no-Policy-Area
+// path only; the keyword corpus carries over from the pre-re-anchor tagger
+// but now targets flat category ids instead of the retired subcategories.
+const KEYWORD_RULES: Array<{ keywords: string[]; category_id: string }> = [
+  // Environment & Energy
+  { keywords: ['carbon', 'emissions', 'climate change', 'greenhouse gas', 'paris agreement', 'global warming'], category_id: 'environment_energy' },
+  { keywords: ['solar', 'wind energy', 'clean energy', 'renewable energy', 'electric vehicle', 'fossil fuel', 'offshore wind'], category_id: 'environment_energy' },
+  { keywords: ['clean water', 'water quality', 'ocean', 'wetland', 'pfas', 'superfund', 'epa'], category_id: 'environment_energy' },
+  { keywords: ['national park', 'public land', 'endangered species', 'wildlife', 'blm', 'forest service', 'wilderness'], category_id: 'environment_energy' },
 
-  // Healthcare
-  { keywords: ['medicaid', 'medicare', 'health insurance', 'affordable care act', 'aca', 'uninsured', 'chip'], interest_id: 'hc_access' },
-  { keywords: ['insulin', 'drug pricing', 'pharmaceutical', 'prescription drug', 'drug cost', 'pharmacy'], interest_id: 'hc_drugs' },
-  { keywords: ['mental health', 'behavioral health', 'suicide prevention', 'opioid', 'substance abuse', 'psychiatric'], interest_id: 'hc_mental' },
-  { keywords: ['abortion', 'reproductive health', 'contraception', 'planned parenthood', 'roe', 'dobbs', 'prenatal'], interest_id: 'hc_reproductive' },
+  // Health & Healthcare
+  { keywords: ['medicaid', 'medicare', 'health insurance', 'affordable care act', 'aca', 'uninsured', 'chip'], category_id: 'health' },
+  { keywords: ['insulin', 'drug pricing', 'pharmaceutical', 'prescription drug', 'drug cost', 'pharmacy'], category_id: 'health' },
+  { keywords: ['mental health', 'behavioral health', 'suicide prevention', 'opioid', 'substance abuse', 'psychiatric'], category_id: 'health' },
+  { keywords: ['abortion', 'reproductive health', 'contraception', 'planned parenthood', 'roe', 'dobbs', 'prenatal'], category_id: 'health' },
 
   // Education
-  { keywords: ['k-12', 'public school', 'elementary', 'secondary education', 'school funding', 'idea', 'title i', 'teacher'], interest_id: 'edu_k12' },
-  { keywords: ['student loan', 'college', 'university', 'tuition', 'pell grant', 'higher education', 'fafsa', 'student debt'], interest_id: 'edu_higher' },
-  { keywords: ['vocational', 'apprenticeship', 'trade school', 'workforce training', 'career and technical'], interest_id: 'edu_vocational' },
+  { keywords: ['k-12', 'public school', 'elementary', 'secondary education', 'school funding', 'idea', 'title i', 'teacher'], category_id: 'education' },
+  { keywords: ['student loan', 'college', 'university', 'tuition', 'pell grant', 'higher education', 'fafsa', 'student debt'], category_id: 'education' },
+  { keywords: ['vocational', 'apprenticeship', 'trade school', 'workforce training', 'career and technical'], category_id: 'education' },
 
-  // Democracy
-  { keywords: ['voting rights', 'voter id', 'voter registration', 'election security', 'ballot', 'polling place', 'voter access', 'vote by mail'], interest_id: 'dem_voting' },
-  { keywords: ['campaign finance', 'super pac', 'citizens united', 'dark money', 'lobbying', 'political donation', 'fec'], interest_id: 'dem_campaign' },
-  { keywords: ['redistricting', 'gerrymandering', 'census', 'apportionment', 'district lines', 'independent redistricting'], interest_id: 'dem_gerrymandering' },
+  // Government & Democracy
+  { keywords: ['voting rights', 'voter id', 'voter registration', 'election security', 'ballot', 'polling place', 'voter access', 'vote by mail'], category_id: 'government_democracy' },
+  { keywords: ['campaign finance', 'super pac', 'citizens united', 'dark money', 'lobbying', 'political donation', 'fec'], category_id: 'government_democracy' },
+  { keywords: ['redistricting', 'gerrymandering', 'census', 'apportionment', 'district lines', 'independent redistricting'], category_id: 'government_democracy' },
 
-  // Economy
-  { keywords: ['minimum wage', 'worker rights', 'labor union', 'collective bargaining', 'nlrb', 'overtime pay', 'workers'], interest_id: 'econ_wages' },
-  { keywords: ['income tax', 'corporate tax', 'estate tax', 'irs', 'tax cut', 'tax reform', 'tax credit', 'tax rate'], interest_id: 'econ_taxes' },
-  { keywords: ['affordable housing', 'rent control', 'zoning', 'eviction', 'mortgage', 'housing assistance', 'homeless'], interest_id: 'econ_housing' },
-  { keywords: ['tariff', 'trade agreement', 'import duty', 'export', 'manufacturing jobs', 'usmca', 'trade deficit'], interest_id: 'econ_trade' },
+  // Jobs & the Economy
+  { keywords: ['minimum wage', 'worker rights', 'labor union', 'collective bargaining', 'nlrb', 'overtime pay', 'workers'], category_id: 'jobs_economy' },
+  { keywords: ['income tax', 'corporate tax', 'estate tax', 'irs', 'tax cut', 'tax reform', 'tax credit', 'tax rate'], category_id: 'jobs_economy' },
+  { keywords: ['tariff', 'trade agreement', 'import duty', 'export', 'manufacturing jobs', 'usmca', 'trade deficit'], category_id: 'jobs_economy' },
+
+  // Housing
+  { keywords: ['affordable housing', 'rent control', 'zoning', 'eviction', 'mortgage', 'housing assistance', 'homeless'], category_id: 'housing' },
 
   // Immigration
-  { keywords: ['citizenship', 'naturalization', 'daca', 'dreamer', 'undocumented', 'visa', 'green card', 'immigration reform'], interest_id: 'imm_pathways' },
-  { keywords: ['border security', 'border patrol', 'cbp', 'ice', 'detention center', 'border wall', 'illegal immigration', 'unauthorized entry'], interest_id: 'imm_border' },
-  { keywords: ['asylum', 'refugee', 'humanitarian protection', 'tps', 'temporary protected status', 'uscis'], interest_id: 'imm_asylum' },
+  { keywords: ['citizenship', 'naturalization', 'daca', 'dreamer', 'undocumented', 'visa', 'green card', 'immigration reform'], category_id: 'immigration' },
+  { keywords: ['border security', 'border patrol', 'cbp', 'ice', 'detention center', 'border wall', 'illegal immigration', 'unauthorized entry'], category_id: 'immigration' },
+  { keywords: ['asylum', 'refugee', 'humanitarian protection', 'tps', 'temporary protected status', 'uscis'], category_id: 'immigration' },
 
-  // Criminal Justice
-  { keywords: ['mandatory minimum', 'sentencing reform', 'mass incarceration', 'prison reform', 'parole', 'probation', 'recidivism'], interest_id: 'jus_reform' },
-  { keywords: ['police', 'law enforcement', 'use of force', 'qualified immunity', 'body camera', 'police accountability', 'officer misconduct'], interest_id: 'jus_police' },
-  { keywords: ['marijuana', 'cannabis', 'drug decriminalization', 'drug enforcement', 'dea', 'drug scheduling'], interest_id: 'jus_drugpolicy' },
+  // Crime & Justice (incl. guns for MVP — see #guns-under-crime-mvp)
+  { keywords: ['mandatory minimum', 'sentencing reform', 'mass incarceration', 'prison reform', 'parole', 'probation', 'recidivism'], category_id: 'crime_justice' },
+  { keywords: ['police', 'law enforcement', 'use of force', 'qualified immunity', 'body camera', 'police accountability', 'officer misconduct'], category_id: 'crime_justice' },
+  { keywords: ['marijuana', 'cannabis', 'drug decriminalization', 'drug enforcement', 'dea', 'drug scheduling'], category_id: 'crime_justice' },
+  { keywords: ['background check', 'gun purchase', 'nics', 'firearm background', 'universal background'], category_id: 'crime_justice' },
+  { keywords: ['red flag', 'extreme risk protection', 'erpo', 'gun safety', 'gun violence', 'mass shooting'], category_id: 'crime_justice' },
+  { keywords: ['assault weapon', 'ar-15', 'semiautomatic', 'high-capacity magazine', 'assault rifle'], category_id: 'crime_justice' },
 
-  // Civil Rights
-  { keywords: ['racial equity', 'reparations', 'racial discrimination', 'affirmative action', 'civil rights', 'racial justice'], interest_id: 'cr_racial' },
-  { keywords: ['lgbtq', 'transgender', 'same-sex', 'gender identity', 'non-discrimination', 'sexual orientation', 'equality act'], interest_id: 'cr_lgbtq' },
-  { keywords: ['disability', 'ada', 'accessibility', 'reasonable accommodation', 'section 504', 'disability rights'], interest_id: 'cr_disability' },
-  { keywords: ['reproductive rights', 'abortion access', "women's health", "women's rights", 'bodily autonomy', 'contraceptive'], interest_id: 'cr_reproductive' },
+  // Rights & Liberties
+  { keywords: ['racial equity', 'reparations', 'racial discrimination', 'affirmative action', 'civil rights', 'racial justice'], category_id: 'rights_liberties' },
+  { keywords: ['lgbtq', 'transgender', 'same-sex', 'gender identity', 'non-discrimination', 'sexual orientation', 'equality act'], category_id: 'rights_liberties' },
+  { keywords: ['disability', 'ada', 'accessibility', 'reasonable accommodation', 'section 504', 'disability rights'], category_id: 'rights_liberties' },
+  { keywords: ['reproductive rights', 'abortion access', "women's health", "women's rights", 'bodily autonomy', 'contraceptive'], category_id: 'rights_liberties' },
 
-  // Gun Safety
-  { keywords: ['background check', 'gun purchase', 'nics', 'firearm background', 'universal background'], interest_id: 'gun_background' },
-  { keywords: ['red flag', 'extreme risk protection', 'erpo', 'gun safety', 'gun violence', 'mass shooting'], interest_id: 'gun_red_flag' },
-  { keywords: ['assault weapon', 'ar-15', 'semiautomatic', 'high-capacity magazine', 'assault rifle'], interest_id: 'gun_assault' },
-
-  // Technology
-  { keywords: ['data privacy', 'surveillance', 'data collection', 'privacy law', 'gdpr', 'ccpa', 'consumer privacy', 'data breach'], interest_id: 'tech_privacy' },
-  { keywords: ['artificial intelligence', 'ai regulation', 'algorithmic', 'machine learning', 'ai safety', 'automated decision'], interest_id: 'tech_ai' },
-  { keywords: ['antitrust', 'tech monopoly', 'big tech', 'platform competition', 'anti-competitive', 'market power'], interest_id: 'tech_monopoly' },
+  // AI & Technology
+  { keywords: ['data privacy', 'surveillance', 'data collection', 'privacy law', 'gdpr', 'ccpa', 'consumer privacy', 'data breach'], category_id: 'ai_technology' },
+  { keywords: ['artificial intelligence', 'ai regulation', 'algorithmic', 'machine learning', 'ai safety', 'automated decision'], category_id: 'ai_technology' },
+  { keywords: ['antitrust', 'tech monopoly', 'big tech', 'platform competition', 'anti-competitive', 'market power'], category_id: 'ai_technology' },
 ]
 
-// Subcategory id → parent category id, derived once at module load from
-// INTEREST_CATEGORIES so a single source of truth defines parentage.
-const SUBCATEGORY_TO_CATEGORY: ReadonlyMap<string, string> = (() => {
-  const map = new Map<string, string>()
-  for (const cat of INTEREST_CATEGORIES) {
-    for (const sub of cat.subcategories) {
-      map.set(sub.id, cat.id)
-    }
-  }
-  return map
-})()
-
-// Module-load taxonomy lock. Throws at import time if any rule's
-// `interest_id` is not a real subcategory id in lib/interests.ts.
-// Catches drift before tagging output corrupts bills.issue_tags.
-const VALID_SUBCATEGORY_IDS: ReadonlySet<string> = new Set(ALL_SUBCATEGORY_IDS)
+// Module-load taxonomy lock. Throws at import time if any rule targets a
+// category id that doesn't exist in lib/interests.ts — catches drift
+// before tagging output corrupts bills.issue_tags.
+const VALID_CATEGORY_IDS: ReadonlySet<string> = new Set(ALL_CATEGORY_IDS)
 const DRIFTED_RULE_IDS = KEYWORD_RULES
-  .map(r => r.interest_id)
-  .filter(id => !VALID_SUBCATEGORY_IDS.has(id))
+  .map(r => r.category_id)
+  .filter(id => !VALID_CATEGORY_IDS.has(id))
 if (DRIFTED_RULE_IDS.length > 0) {
   throw new Error(
-    `bill-tagger: KEYWORD_RULES references unknown subcategory ids — ` +
-    `${DRIFTED_RULE_IDS.join(', ')}. Update either KEYWORD_RULES or ` +
-    `lib/interests.ts INTEREST_CATEGORIES so they agree.`
+    `bill-tagger: KEYWORD_RULES reference unknown category ids — ` +
+    `${[...new Set(DRIFTED_RULE_IDS)].join(', ')}. Update either KEYWORD_RULES ` +
+    `or lib/interests.ts INTEREST_CATEGORIES so they agree.`,
   )
 }
 
-export interface TagBillResult {
-  /** Subcategory ids (e.g. `env_clean_energy`) matched by keyword rules. */
-  subcategory_ids: string[]
-  /** Parent category ids (e.g. `environment`), derived from each subcategory match. */
-  category_ids: string[]
+/**
+ * Keyword fallback: flat category ids matched by keyword presence in
+ * title + summary. Deduped, order-stable (insertion order). Used only
+ * when a bill has no CRS Policy Area.
+ */
+export function tagFromKeywords(title: string, summary?: string | null): string[] {
+  const text = `${title} ${summary ?? ''}`.toLowerCase()
+  const cats = new Set<string>()
+  for (const rule of KEYWORD_RULES) {
+    if (rule.keywords.some(kw => text.includes(kw.toLowerCase()))) {
+      cats.add(rule.category_id)
+    }
+  }
+  return Array.from(cats)
 }
 
 /**
- * Tag a bill against the interest taxonomy by keyword presence in
- * title + summary. Returns matched subcategory ids and their derived
- * parent category ids; both arrays are deduped and order-stable
- * (insertion order). Both go into `bills.issue_tags` so the relevance
- * intersection works for category-only and subcategory-specific user
- * interests alike.
+ * Derive `bills.issue_tags` for a bill. Primary path maps the bill's CRS
+ * Policy Area to its owning category (1:1, one tag). Fallback path runs
+ * keyword matching for bills with no Policy Area. Returns a deduped flat
+ * array of category ids.
  */
-export function tagBill(title: string, summary?: string | null): TagBillResult {
-  const text = `${title} ${summary ?? ''}`.toLowerCase()
-  const subs = new Set<string>()
-  const cats = new Set<string>()
-
-  for (const rule of KEYWORD_RULES) {
-    if (rule.keywords.some(kw => text.includes(kw.toLowerCase()))) {
-      subs.add(rule.interest_id)
-      const parent = SUBCATEGORY_TO_CATEGORY.get(rule.interest_id)
-      if (parent) cats.add(parent)
-    }
+export function deriveIssueTags(
+  policyArea: string | null,
+  title: string,
+  summary?: string | null,
+): string[] {
+  if (policyArea) {
+    const categoryId = POLICY_AREA_TO_CATEGORY.get(policyArea)
+    if (categoryId) return [categoryId]
+    // Present but unmapped: shouldn't happen (interests.ts locks coverage
+    // of all 32 known CRS areas), but a novel/renamed CRS term would land
+    // here. Log it and fall through to keywords rather than drop the bill.
+    console.warn(`[bill-tagger] unmapped CRS Policy Area "${policyArea}" — using keyword fallback`)
   }
-
-  return {
-    subcategory_ids: Array.from(subs),
-    category_ids: Array.from(cats),
-  }
+  return tagFromKeywords(title, summary)
 }

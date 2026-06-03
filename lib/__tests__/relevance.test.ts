@@ -1,13 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { resolveRelevance, type Relevance } from '../relevance'
 
-// Regression coverage for the bill-detail relevance match. The class of bug
-// this guards against (STRATEGY.md, 2026-04-28): the tagger once emitted
-// subcategory ids WITHOUT their parents, so the category-level intersection
-// silently matched nothing. The fix lives in the tagger (it now emits parents
-// too); the matcher stays a RAW parent-id intersection and must NOT walk
-// subcategory -> parent (the rejected alternative). These cases lock both the
-// happy path and the deliberate "bare subcategory does not match" behavior.
+// Regression coverage for the bill-detail relevance match. Post CRS re-anchor,
+// `issue_tags` carries flat CATEGORY ids (one per bill, mapped 1:1 from the
+// bill's CRS Policy Area — see lib/bill-tagger.ts). The matcher is a RAW
+// intersection of the user's selected category ids against the bill's tags,
+// iterated over the canonical taxonomy so output is order-stable and deduped.
 //
 // Each case logs `state` + the matched category LABELS so the actual output is
 // visible in the run, not just pass/fail.
@@ -20,64 +18,56 @@ function show(name: string, r: Relevance) {
 }
 
 describe('resolveRelevance', () => {
-  it('populated — multi-category match, parents present (order-stable, deduped)', () => {
+  it('populated — multi-category match (order-stable by taxonomy order, deduped)', () => {
     const r = resolveRelevance(
-      ['economy', 'democracy'],
-      ['economy', 'econ_housing', 'democracy', 'dem_voting'],
+      ['government_democracy', 'jobs_economy'],
+      ['jobs_economy', 'government_democracy'],
     )
     show('populated (multi)', r)
     expect(r.state).toBe('populated')
-    expect(labels(r)).toEqual(['Democracy & Voting', 'Economy & Labor'])
+    // Output order follows INTEREST_CATEGORIES order, not input order:
+    // jobs_economy (#1) precedes government_democracy (#6).
+    expect(labels(r)).toEqual(['Jobs & the Economy', 'Government & Democracy'])
   })
 
-  it('populated — subcategory-tagged bill matches BECAUSE the tagger emits the parent', () => {
-    // The tagger's contract: a bill tagged `econ_housing` also carries `economy`.
-    const r = resolveRelevance(['economy'], ['economy', 'econ_housing'])
-    show('populated (sub+parent)', r)
+  it('populated — single-category match', () => {
+    const r = resolveRelevance(['health'], ['health'])
+    show('populated (single)', r)
     expect(r.state).toBe('populated')
-    expect(labels(r)).toEqual(['Economy & Labor'])
+    expect(labels(r)).toEqual(['Health & Healthcare'])
   })
 
   it('empty — user has set no interests', () => {
-    const r = resolveRelevance([], ['economy', 'econ_housing'])
+    const r = resolveRelevance([], ['health'])
     show('empty', r)
     expect(r.state).toBe('empty')
     expect(labels(r)).toEqual([])
   })
 
   it('no_match — interests set, none intersect the bill', () => {
-    const r = resolveRelevance(['healthcare'], ['economy', 'econ_housing'])
+    const r = resolveRelevance(['health'], ['jobs_economy'])
     show('no_match', r)
     expect(r.state).toBe('no_match')
     expect(labels(r)).toEqual([])
   })
 
-  it('no_match — BARE subcategory without its parent does NOT match (intended; parent-only by design)', () => {
-    // Malformed per the tagger contract (parent `economy` is missing). The
-    // matcher correctly does not walk sub -> parent, so this does not match.
-    const r = resolveRelevance(['economy'], ['econ_housing'])
-    show('bare-subcategory', r)
-    expect(r.state).toBe('no_match')
-    expect(labels(r)).toEqual([])
-  })
-
-  it('no double-counting — parent + its subcategory + a duplicate parent collapse to one', () => {
-    const r = resolveRelevance(['economy'], ['economy', 'econ_housing', 'economy'])
+  it('no double-counting — a duplicate tag collapses to one match', () => {
+    const r = resolveRelevance(['health'], ['health', 'health'])
     show('double-count guard', r)
     expect(r.state).toBe('populated')
-    expect(labels(r)).toEqual(['Economy & Labor'])
+    expect(labels(r)).toEqual(['Health & Healthcare'])
     expect(r.matchedCategories).toHaveLength(1)
   })
 
   it('unknown / garbage tags are ignored', () => {
-    const r = resolveRelevance(['economy'], ['economy', '__not_a_real_id__'])
+    const r = resolveRelevance(['health'], ['health', '__not_a_real_id__'])
     show('unknown tag ignored', r)
     expect(r.state).toBe('populated')
-    expect(labels(r)).toEqual(['Economy & Labor'])
+    expect(labels(r)).toEqual(['Health & Healthcare'])
   })
 
-  it('no_match — null issue_tags (freshly-synced bill)', () => {
-    const r = resolveRelevance(['economy'], null)
+  it('no_match — null issue_tags (freshly-synced bill, not yet tagged)', () => {
+    const r = resolveRelevance(['health'], null)
     show('null issue_tags', r)
     expect(r.state).toBe('no_match')
     expect(labels(r)).toEqual([])

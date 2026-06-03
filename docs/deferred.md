@@ -764,6 +764,17 @@ Site-wide `robots: { index: false, follow: false }` added 2026-05-23 (Next rende
 
 ---
 
+### e2e-tests-seed-live-prod
+
+**Priority:** BLOCK before public launch (test-data isolation)
+**Where in code:** `playwright.config.ts` (loads `.env.local` → the linked project's `SUPABASE_URL` + `SERVICE_ROLE_KEY`); the seed+cleanup specs `tests/feature-4-script.spec.ts`, `tests/feature-5-call.spec.ts`, `tests/feature-7-impact.spec.ts`, `tests/representatives.spec.ts`
+
+**Situation:** there is **no separate test/staging Supabase project** — the committed e2e suite runs against the **live prod project** (`tnopzkpufusdqukmkplt` / "BTC", the same DB serving oravan.org). Each spec creates throwaway users via the service-role admin API and inserts namespaced throwaway `bills` / `representatives` / `script_generations` / `call_events`, then deletes them in `afterAll`. **Cleanup is the only safety net:** if a run crashes (or is killed) before `afterAll`, namespaced throwaway rows (`e2e-…` identifiers, `TEST_E2E_*` sponsors, `E2E*` bioguide ids) **persist in prod** — and a leftover seeded `bills` row would briefly surface in the **live feed** until removed. Verified 2026-06-03 that the suite currently leaves 0 leftovers, but nothing structurally prevents a leak.
+
+**Trigger to fix:** before public launch — **stand up a separate test/staging Supabase project** and point the e2e env at it, so the suite can never seed or leak into prod. Same gate as `noindex-pre-launch`, `email-verification-deferred`, and `landing-copy-out-of-scope-features` (the set that must be true before a public/donor launch). Until then, e2e runs are a controlled, cleaned-up operation against prod — acceptable pre-launch, not after.
+
+---
+
 ## Future feature ideas — bill detail (parked, post-MVP)
 
 Surfaced during the bill-detail floor session (2026-05-23). **Not in MVP scope** — each needs a new data source or model. Captured as product ideas, not committed work. Both serve the same user-need the "Decoded" block targets: *"is this even worth my time?"*

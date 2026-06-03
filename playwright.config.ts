@@ -23,7 +23,9 @@ try {
 }
 
 const MOCK_PORT = 4444
-const NEXT_PORT = 3000
+// Dedicated e2e port (NOT the default 3000) so a standalone `npm run dev` on
+// :3000 can never shadow the app-under-test. See the dev webServer note below.
+const NEXT_PORT = 3100
 
 export default defineConfig({
   testDir: './tests',
@@ -61,9 +63,16 @@ export default defineConfig({
       env: { MOCK_API_PORT: String(MOCK_PORT) },
     },
     {
-      command: 'npm run dev',
+      // Start a FRESH, mock-wired dev server on the dedicated e2e port. The
+      // explicit `--port ${NEXT_PORT}` (not the npm script's hardcoded 3000)
+      // plus `reuseExistingServer: false` guarantee Playwright runs THIS
+      // server — the one whose env points the rep-lookup fetches at the mock —
+      // and errors loudly on a port clash rather than silently reusing a
+      // standalone non-mock dev server. That silent reuse was what made
+      // representatives.spec hit the real Google Civic + Congress.gov.
+      command: `npx next dev --hostname 0.0.0.0 --port ${NEXT_PORT}`,
       url: `http://localhost:${NEXT_PORT}`,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 120_000,
       env: {
         CONGRESS_API_BASE_URL: `http://localhost:${MOCK_PORT}/v3`,

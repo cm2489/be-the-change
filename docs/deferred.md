@@ -163,6 +163,15 @@ Unknown whether this is a **broken mock/harness** (e.g. the external-API mock or
 
 ---
 
+### rep-lookup-cache-inconsistency
+
+**Priority:** DEBT (hardening — not a bug)
+**Where in code:** `lib/congress.ts` — `getHouseMemberByDistrict` vs `congressFetch` (used by `getSenatorsByState` / `getMemberDetail`)
+
+`getHouseMemberByDistrict` fetches with `{ next: { revalidate: 3600 } }` (response cached up to 1h), while the other Congress lookups go through `congressFetch`, which uses `{ cache: 'no-store' }`. Align the house lookup to `no-store` for consistency, so a long-lived server process can't serve a stale house-rep response across requests. Surfaced during the e2e-server-isolation diagnosis (2026-06-02); **not** the cause of the `representatives.spec` failure (that was harness reuse — see `representatives-e2e-failing`).
+
+---
+
 ## Feature 3 — Bill Feed
 
 ### feature-3-issue-tags-coverage-gap

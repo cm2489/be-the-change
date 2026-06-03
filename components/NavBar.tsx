@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, ClipboardList, Users, Trophy, Settings } from 'lucide-react'
+import { Home, ClipboardList, Users, Activity, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/bills', label: 'Issues', icon: ClipboardList },
   { href: '/representatives', label: 'My Reps', icon: Users },
-  { href: '/callenge', label: 'Callenge', icon: Trophy },
+  { href: '/impact', label: 'Your Impact', icon: Activity },
 ]
 
 export function NavBar({ userName }: { userName?: string }) {

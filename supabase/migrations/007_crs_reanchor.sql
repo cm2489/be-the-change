@@ -21,7 +21,7 @@
 -- the Congress.gov response; those fall back to keyword tagging in code.
 -- Stored as provenance/diagnostics — the feed reads issue_tags, not this.
 
-ALTER TABLE bills ADD COLUMN policy_area text;
+ALTER TABLE bills ADD COLUMN IF NOT EXISTS policy_area text;
 
 -- ============================================================
 -- USER_INTERESTS — destructive pre-launch reset

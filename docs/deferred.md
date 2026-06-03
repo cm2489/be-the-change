@@ -167,6 +167,59 @@ Theoretical risk that `partyHistory` is empty on a brand-new member before Congr
 
 **Trigger to investigate:** before first donor demo / public launch — a demo that leans on "see the bills that match your values" will visibly fall flat on most bills. First step is a diagnosis query (tag-frequency distribution + spot-check untagged bills against the taxonomy), not a code change.
 
+**Diagnosis run (2026-06-02, read-only — nothing persisted):** the 377 untagged bills are **empty arrays, not nulls** (`null_tags=0`), uniform across both sync runs (78.7% / 74.0%) and the full date range — so the tagger *runs on every bill* and matches only ~22%. Not a backfill/sync miss; a tagging-**quality** problem. Root cause is title-only matching: `lib/congress.ts` calls `tagBill(detail.title ?? '', '')` (summary hard-coded empty), so keyword rules only ever see the bill's official title. The feed intersection itself is structurally sound (tagger imports the canonical taxonomy and emits subcategory + parent ids; all 10 parent categories are present in stored tags). Resolution direction folded into `taxonomy-crs-reassess` below.
+
+---
+
+### taxonomy-crs-reassess
+
+**Priority:** V1.1 (taxonomy calibration) — revisit at **500 users or 2026-08-15, whichever comes first**
+**Where in code:** `lib/interests.ts` (taxonomy), `lib/bill-tagger.ts` (keyword tagger), `get_personalized_feed` (migration 006) — all key off the user-categories ∩ `bills.issue_tags` intersection.
+
+**Decision (2026-06-02):** the MVP interest taxonomy is being **re-anchored on Congress.gov / CRS Policy Areas** — the cleanest, most complete topical signal available for launch. CRS assigns exactly one Policy Area per bill from a controlled vocabulary, and a read-only pull of all 482 bills found **479/482 (99.4%) carry a Policy Area** across **30 distinct areas** — versus the ~22% coverage the title-only keyword tagger achieves (see `feature-3-issue-tags-coverage-gap`). Re-anchoring trades the bespoke 10-category / 34-subcategory taxonomy for a vocabulary Congress itself maintains and applies to ~every bill.
+
+**Distribution at decision time (n=482, read-only, in-memory tally — nothing written):**
+
+| CRS Policy Area | n | % |
+|---|---|---|
+| Health | 67 | 13.9% |
+| Armed Forces and National Security | 45 | 9.3% |
+| Government Operations and Politics | 31 | 6.4% |
+| International Affairs | 26 | 5.4% |
+| Finance and Financial Sector | 24 | 5.0% |
+| Public Lands and Natural Resources | 23 | 4.8% |
+| Taxation | 21 | 4.4% |
+| Agriculture and Food | 20 | 4.1% |
+| Environmental Protection | 20 | 4.1% |
+| Crime and Law Enforcement | 19 | 3.9% |
+| Education | 18 | 3.7% |
+| Transportation and Public Works | 17 | 3.5% |
+| Families | 16 | 3.3% |
+| Labor and Employment | 16 | 3.3% |
+| Immigration | 14 | 2.9% |
+| Commerce | 13 | 2.7% |
+| Foreign Trade and International Finance | 13 | 2.7% |
+| Science, Technology, Communications | 13 | 2.7% |
+| Housing and Community Development | 10 | 2.1% |
+| Economics and Public Finance | 7 | 1.5% |
+| Energy | 7 | 1.5% |
+| Law | 7 | 1.5% |
+| Emergency Management | 6 | 1.2% |
+| Animals | 5 | 1.0% |
+| Congress | 5 | 1.0% |
+| Native Americans | 5 | 1.0% |
+| Civil Rights and Liberties, Minority Issues | 4 | 0.8% |
+| Social Welfare | 3 | 0.6% |
+| Water Resources Development | 3 | 0.6% |
+| Sports and Recreation | 1 | 0.2% |
+| *(Policy Area absent in response)* | 3 | 0.6% |
+
+The 3 with no Policy Area: `hr-8330-119`, `hr-8573-119`, `hr-8553-119`.
+
+**Reassess after meaningful user feedback** — category granularity and labels. CRS labels are bureaucratic ("Government Operations and Politics", "Finance and Financial Sector") and the long tail is thin (8 areas ≤1%), so the user-facing grouping likely wants consolidation/relabeling rather than surfacing all 30 raw. Revisit at **500 users or 2026-08-15, whichever comes first**.
+
+**Not done this pass:** the mapping design — CRS Policy Areas → user-facing categories, how `lib/interests.ts` / the tagger / `get_personalized_feed` change, whether to also pull Legislative Subject Terms for finer granularity, and the backfill — is a **separate gated step** Colby will scope. This entry records the decision + the evidence only.
+
 ---
 
 ### feature-3-backfill-119th-congress
@@ -651,6 +704,8 @@ A droppable container surfacing **official projections/studies** on the bill's e
 ---
 
 ## Change log
+
+- 2026-06-02 — Read-only diagnosis of the `issue_tags` coverage gap (no writes, no re-tagging). Confirmed the 377/482 (78.2%) untagged bills are *empty arrays not nulls*, uniform across both sync runs — a tagging-**quality** problem (title-only keyword matching), not a backfill/sync miss; feed intersection itself is structurally sound. Confirmed we store **no** CRS Policy Area / Subject Terms anywhere (no column; `issue_analysis` 0/482). Then pulled Congress.gov Policy Area read-only for all 482 bills (in-memory tally, nothing persisted): **479/482 present, 30 distinct areas**. Logged `taxonomy-crs-reassess` (MVP taxonomy re-anchoring on CRS Policy Areas; mapping/backfill deferred to a separate gated step) and added a diagnosis note to `feature-3-issue-tags-coverage-gap`.
 
 - 2026-05-23 — Pre-launch `noindex` added (`feat/oravan-wordmark-swap`, commit #2). Site-wide `metadata.robots = { index:false, follow:false }` in `app/layout.tsx`; oravan.org is live/reachable but kept out of search indexes until public launch + formal trademark clearance. Logged `noindex-pre-launch` (BLOCK-before-launch removal task).
 

@@ -347,6 +347,38 @@ The product question for v1.1 is: **how do we keep the introduced-display window
 
 ---
 
+## Feature 5 / 7 — Call & Activity Data Durability
+
+### call-events-cascade-durability
+
+**Priority:** DEBT (latent data-loss risk — becomes BLOCK the moment any prune/cleanup of `bills` or `representatives` is introduced)
+**Where in code:**
+- `supabase/migrations/002_align_to_schema.sql:213–214` — `call_events.bill_id` and `call_events.representative_id` are both `REFERENCES … ON DELETE CASCADE`
+- `app/api/calls/route.ts` — write path; persists `bill_id` + `representative_id` at call time
+- Feature 7 "Your Impact" call history (`app/(app)/impact/page.tsx`) renders rep/bill from those stored ids
+
+**Concern:** `call_events` cascade-deletes on BOTH `bill_id → bills(id)` and `representative_id → representatives(id)`. `bills` and `representatives` are **shared, externally-sourced caches**, not user-owned data. So the moment anything deletes a bill or rep row, every user's `call_event` referencing it is silently cascade-deleted — destroying the self-reported call history Feature 7 surfaces (and the audit trail). The `user_id → auth.users ON DELETE CASCADE` is correct (account deletion should remove the user's events); the two **cache-table** cascades are the problem.
+
+**Findings (2026-06-03, read-only audit — nothing changed):** the risk is **latent, not active today.** No code path or migration currently deletes from `bills` or `representatives`:
+- **Ingestion is upsert-only.** `lib/bill-sync.ts` upserts `bills` (`onConflict: full_identifier`) and appends `bill_actions`; no `.delete()`, no prune, no feed-window cleanup.
+- **Rep sync never deletes the cache.** `lib/actions/sync-reps.ts:127` upserts `representatives` (`onConflict: bioguide_id`); its only `.delete()` (`:158`) is on the per-user `user_representatives` join, not the shared cache.
+- **No migration prunes these tables.** The only `DROP … CASCADE` of `bills`/`representatives` is in `002` (the one-time pre-MVP baseline reset). `007` deletes `user_interests` only. No recurring `DELETE`/`TRUNCATE`.
+- App-wide, the only `.delete()` calls hit `user_representatives` and `user_interests` — never `bills`/`representatives`.
+
+**So:** Feature 7's history join (`call_events → bills.title`, `call_events → representatives.full_name`) is sound and renders who/what was actually called — **as long as the no-delete invariant on those caches holds.** That invariant is enforced nowhere.
+
+**Trigger to fix:** before any of — (a) a feed-window / stale-bill cleanup that deletes from `bills`; (b) a `representatives` cache GC; (c) re-enabling the disabled sync cron (`schema-drift-sync-bills`) with any delete step; (d) public launch where real call history must be durable.
+
+**Fix options (each its own migration + decision — NOT the "Your Impact" PR):**
+1. **Loosen the two cache-table FKs** to `ON DELETE RESTRICT` (or `NO ACTION`) so a cache row can't be deleted out from under a logged call — forces any future prune to reckon with history explicitly. (`SET NULL` is weaker: keeps the event but loses which bill/rep was called, defeating the "who was actually called" requirement.)
+2. **Denormalize a snapshot** onto `call_events` at write time — `bill_title` + `rep_name` (and `rep_bioguide_id`) — so history survives even if the cache row is deleted, fully decoupling the audit log from cache churn. Heavier (write-path + migration), but most durable.
+
+Do **not** change the FKs or add a snapshot in the "Your Impact" PR — that's a migration and its own decision. This entry records the risk + audit so it isn't re-derived. (Reverse code-comment cross-link into the calls route/migration is intentionally skipped: it'd be a code change requiring its own branch, not a docs-to-main commit.)
+
+**Cross-link:** `feature-3-backfill-119th-congress` (bills-table churn), `schema-drift-sync-bills` (the disabled cron that would re-introduce bill writes).
+
+---
+
 ## Status & Urgency Calibration (v1.1)
 
 ### urgency-score-display-status-mismatch

@@ -159,10 +159,17 @@ test('populated: history renders the real bill title + rep name, row links to th
   await expect(page.getByText(BILL_TITLE)).toBeVisible()
   await expect(page.getByText(`Called ${REP_NAME}`)).toBeVisible()
 
-  // Whole row links to the bill detail page (bills.id == call_events.bill_id).
+  // The whole row links to the bill detail page. NAVIGATE it (not just check
+  // the href) and assert the detail page actually renders — proves the link's
+  // param resolves (bills.id == call_events.bill_id), so a wrong-param regression
+  // or a detail route that 404s the uuid fails red instead of passing on a
+  // matching-but-dead href string.
   const escaped = BILL_TITLE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const row = page.getByRole('link', { name: new RegExp(escaped) })
   await expect(row).toHaveAttribute('href', `/bills/${billId}`)
+  await row.click()
+  await page.waitForURL(`**/bills/${billId}`)
+  await expect(page.getByRole('heading', { name: BILL_TITLE })).toBeVisible()
 })
 
 test('empty: shows the 0-calls empty state and not another user’s calls', async ({ page }) => {

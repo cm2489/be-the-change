@@ -152,6 +152,17 @@ Theoretical risk that `partyHistory` is empty on a brand-new member before Congr
 
 ---
 
+### representatives-e2e-failing
+
+**Priority:** BLOCK before launch — Feature 2 is core MVP (untriaged)
+**Where in code:** `tests/representatives.spec.ts` (address → 3 reps; asserts the mock rep `Charlie Repman` renders); the `/representatives` → `syncRepsForUser` → `tests/mocks/external-apis.mjs` path
+
+`representatives.spec.ts` **fails on clean `main`** as of 2026-06-02 — verified pre-existing during the CRS-reanchor branch (`feat/crs-reanchor` / PR #41) by stashing that branch's changes, checking out clean `main`, and running the spec there: it fails identically with none of the branch's changes present. The other 5 e2e specs pass.
+
+Unknown whether this is a **broken mock/harness** (e.g. the external-API mock or the test fixture drifted) or a **real Feature 2 regression** (rep lookup / sync actually broken in the app). Feature 2 (federal rep lookup) is core MVP, so this must be investigated before launch. **Not yet triaged** — first step is to reproduce locally and determine mock-vs-app by checking whether `/representatives` renders reps for a real address in the running app.
+
+---
+
 ## Feature 3 — Bill Feed
 
 ### feature-3-issue-tags-coverage-gap

@@ -328,7 +328,7 @@ The product question for v1.1 is: **how do we keep the introduced-display window
 **Priority:** MVP-OK (demo accelerant built; the real ai_summary pipeline is still deferred)
 **Where in code:** `scripts/prewarm-bills.ts` (exists as of 2026-05-31)
 
-**Reality check (2026-05-31):** the original entry assumed `ai_summary`/`issue_analysis` are "generated lazily on first detail-page view (Feature 4)" and that a pre-warm script would "run the same generation pipeline as the lazy path." Verified false during the bill-summary work: **no lazy/sync ai_summary generation was ever built** — `ai_summary` is read in three places and written nowhere (`lib/congress.ts` hardcodes `summary_text: null` and defers `ai_summary` to "Phase 3b/4"). The Decoded hero therefore renders empty on all 482 real bills.
+**Reality check (2026-05-31):** the original entry assumed `ai_summary`/`issue_analysis` are "generated lazily on first detail-page view (Feature 4)" and that a pre-warm script would "run the same generation pipeline as the lazy path." Verified false during the bill-summary work: **no lazy/sync ai_summary generation was ever built** — `ai_summary` is read in three places and written nowhere (`lib/congress.ts` hardcodes `summary_text: null` and defers `ai_summary` to "Phase 3b/4"). The Decoded hero therefore renders empty on all 482 real bills. **Update (2026-06-04):** a one-off backfill (`scripts/backfill-summaries.ts`, PR #45) has since populated **480/482** (only the 2 no-text bills stay empty), so the hero is no longer empty on the corpus — but the *steady-state* generation below is still unbuilt; see `steady-state-summarize-cron`.
 
 **What `scripts/prewarm-bills.ts` is:** a DESIGN/DEMO accelerant, not the product mechanism. It generates a plain-language summary from each bill's **full text** (Congress.gov `/text`, Sonnet) for a bounded curated sample, and writes straight to `bills.ai_summary` via the service role. It does NOT route through `script_generations` (keyed `(user_id, bill_id, stance)` — a summary has neither). Idempotent (skips rows already summarized). `issue_analysis` stays deferred and untouched — no surface reads it.
 
@@ -344,6 +344,43 @@ The product question for v1.1 is: **how do we keep the introduced-display window
 - Iteration cost is your laptop time, not serverless invocation cost.
 
 **Trigger to build the real pipeline:** before relying on `ai_summary` for bills outside the pre-warmed sample (broad demo or public launch).
+
+---
+
+### steady-state-summarize-cron
+
+**Priority:** V2 (one-off backfill shipped; steady-state generation never built — pre-launch trigger below)
+**Where in code:** `scripts/backfill-summaries.ts` (the one-off bridge, PR #45); no sync-time path exists. `lib/congress.ts` hardcodes `summary_text: null` at sync and writes no `ai_summary`. `vercel.json` `crons` is currently **`[]`** (empty — no cron scheduled at all).
+
+The `ai_summary` corpus was filled by a **one-off local backfill** (PR #45 — 480/482 bills). That is a **bridge, not the pipeline**: nothing auto-summarizes bills as they arrive. When the nightly bill sync next ingests a new or changed bill, it lands with `ai_summary` null and stays null until someone re-runs the backfill script by hand.
+
+**What's deferred:** a steady-state path that generates `ai_summary` for new/changed bills — either folded into `runBillSync` (summarize just the rows it inserts/updates) or a separate `/api/cron/summarize-bills` that drains `ai_summary IS NULL` in small batches under the 60s function ceiling. Must stay **cache-first** (skip rows already set) so the backfilled rows read as hits, not re-bills.
+
+**Coupling — this entry tracks the summarize work ONLY; it asserts nothing about the items below being resolved or any sync currently running:**
+- It needs a cron entry **added to `vercel.json`**, which is empty today — so it is coupled to **re-arming bill sync at all**.
+- That re-arming is itself gated by `schema-drift-sync-bills` (still open). Re-enabling any sync that writes/deletes bills also touches `call-events-cascade-durability`.
+
+**Trigger:** before public launch, or whenever the corpus must stay summarized without manual backfill runs. Related: `feature-3-prewarm-demo-bills`, `schema-drift-sync-bills`, `call-events-cascade-durability`.
+
+---
+
+### feed-card-cra-wall
+
+**Priority:** V2 (feed-card design — content now distinct, visual hierarchy unchanged)
+**Where in code:** `components/BillCard.tsx` — title is `text-body line-clamp-3` (dominant); `ai_summary` renders as a subordinate `text-small line-clamp-2` below it.
+
+After the `ai_summary` backfill (PR #45), the near-identical CRA "disapproval" resolutions at the top of the default feed carry **distinct content** — each summary names its specific agency + rule. But the feed **still reads as a same-y wall at a glance**: the card's visual anchor is the **title** (`text-body`, 3-line clamp), and every CRA title is the same boilerplate ("A joint resolution providing for congressional disapproval under chapter 8 of title 5… of the rule submitted by the Bureau of Consumer Financial Protection…"); the distinguishing summary is smaller, secondary, and below it. Captured 2026-06-04 against the real default feed.
+
+**The fix is a feed-card design change, not more data** — e.g. lead the card with the plain-language summary, surface the specific rule/agency the resolution targets, and/or de-emphasize the boilerplate title. Colby's call; adjacent to the parked feed-composition work (card hierarchy, relevance badge). Not done.
+
+---
+
+### feed-federal-pill-removal
+
+**Priority:** DEBT (zero-information pill on every feed card)
+**Where in code:** `components/BillCard.tsx` — a hardcoded "Federal" pill renders on every card (with a one-line scope comment: federal-only per MVP; v2 reintroduces a level/state-code branch).
+
+The MVP is federal-only, so the "Federal" pill is identical on every card and carries no signal — it competes with the urgency pill and the citation for the header row. Parked during the feed-composition discussion as a candidate removal. Keep the one-line scope comment (or restore the pill) if/when state-level bills enter scope (v2). Small `BillCard` cleanup — bundle with the next change to that component. Not done.
 
 ---
 
@@ -435,7 +472,7 @@ Mapped to canonical columns (`summary_text`, `last_action_text` + `last_action_d
 
 (2) is the smaller change and probably the better UX (most users recognize "HR 1234 (119th)" over a bare `1234`).
 
-**Resolution (2026-06-04, PR #44):** took option 2 — `BillCard`'s identifier slot now renders `full_identifier` formatted as a Congress citation (e.g. "S.J.Res. 139"). The `billIdentifier` helper was lifted from `bills/[id]/page.tsx` into `lib/utils.ts` (no duplicate prefix map) and a `formatBillIdentifier(full_identifier)` parser added; the card matches the locked bill-detail citation vocabulary (`font-mono text-meta text-ink-50`). App-only, no migration. Verified the feed RPCs do return `full_identifier` (live `pg_get_function_result`), so it's not a no-op. **Loose end:** the rationale comment in `tests/bills.spec.ts:98` (asserts title-only "because the slot is empty") is now **stale** — the slot is populated; the title-only assertion is still valid, but the comment wants a one-line tidy in a future code change.
+**Resolution (2026-06-04, PR #44):** took option 2 — `BillCard`'s identifier slot now renders `full_identifier` formatted as a Congress citation (e.g. "S.J.Res. 139"). The `billIdentifier` helper was lifted from `bills/[id]/page.tsx` into `lib/utils.ts` (no duplicate prefix map) and a `formatBillIdentifier(full_identifier)` parser added; the card matches the locked bill-detail citation vocabulary (`font-mono text-meta text-ink-50`). App-only, no migration. Verified the feed RPCs do return `full_identifier` (live `pg_get_function_result`), so it's not a no-op. **Loose end:** the rationale comment in `tests/bills.spec.ts:98` (asserts title-only "because the slot is empty") is now **stale** — the slot is populated; the title-only assertion is still valid, but the comment wants a one-line tidy in a future code change. Also still absent: a **positive assertion** that the card now renders the citation (`formatBillIdentifier(full_identifier)` → e.g. "S.J.Res. 139") — `tests/bills.spec.ts` only asserts the title; add one when tidying the comment so the populated slot is regression-guarded.
 
 ---
 

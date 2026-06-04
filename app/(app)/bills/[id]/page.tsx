@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ScriptFlow } from '@/components/ScriptFlow'
 import { CallFlow } from '@/components/CallFlow'
-import { urgencyLabel, formatDate } from '@/lib/utils'
+import { urgencyLabel, formatDate, billIdentifier } from '@/lib/utils'
 import { resolveRelevance } from '@/lib/relevance'
 
 interface Bill {
@@ -22,21 +22,6 @@ interface Bill {
   urgency_score: number
   congress_gov_url: string | null
   issue_tags: string[] | null
-}
-
-// Format bill identifier as a Congress citation, e.g. "H.R. 4821" / "S. 1234".
-function billIdentifier(billType: string, billNumber: number): string {
-  const prefixes: Record<string, string> = {
-    hr: 'H.R.',
-    s: 'S.',
-    hjres: 'H.J.Res.',
-    sjres: 'S.J.Res.',
-    hres: 'H.Res.',
-    sres: 'S.Res.',
-    hconres: 'H.Con.Res.',
-    sconres: 'S.Con.Res.',
-  }
-  return `${prefixes[billType.toLowerCase()] ?? billType.toUpperCase()} ${billNumber}`
 }
 
 export default function BillDetailPage() {

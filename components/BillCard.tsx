@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { cn, urgencyLabel } from '@/lib/utils'
+import { cn, urgencyLabel, formatBillIdentifier } from '@/lib/utils'
 import { deriveDisplayStatus, type BillStatus } from '@/lib/congress'
 
 interface BillCardProps {
   bill: {
     id: string
-    bill_number?: number
+    full_identifier?: string
     title: string
     ai_summary?: string | null
     summary_text?: string | null
@@ -44,9 +44,11 @@ export function BillCard({ bill, compact = false }: BillCardProps) {
               Federal
             </span>
           </div>
-          <span className="text-xs text-ink-50 whitespace-nowrap flex-shrink-0">
-            {bill.bill_number}
-          </span>
+          {bill.full_identifier && (
+            <span className="font-mono text-meta text-ink-50 whitespace-nowrap flex-shrink-0">
+              {formatBillIdentifier(bill.full_identifier)}
+            </span>
+          )}
         </div>
 
         {/* Title */}

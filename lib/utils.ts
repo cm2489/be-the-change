@@ -42,3 +42,30 @@ export function levelLabel(level: string): string {
   if (level === 'state') return 'State'
   return 'Local'
 }
+
+// Bill-type prefixes for Congress citations (H.R. 4821 / S.J.Res. 139).
+const BILL_TYPE_PREFIXES: Record<string, string> = {
+  hr: 'H.R.',
+  s: 'S.',
+  hjres: 'H.J.Res.',
+  sjres: 'S.J.Res.',
+  hres: 'H.Res.',
+  sres: 'S.Res.',
+  hconres: 'H.Con.Res.',
+  sconres: 'S.Con.Res.',
+}
+
+// Format a bill identifier as a Congress citation, e.g. "H.R. 4821" / "S. 1234".
+export function billIdentifier(billType: string, billNumber: number): string {
+  return `${BILL_TYPE_PREFIXES[billType.toLowerCase()] ?? billType.toUpperCase()} ${billNumber}`
+}
+
+// Format a stored full_identifier ("sjres-139-119") as a Congress citation
+// ("S.J.Res. 139"). The feed RPCs return full_identifier, not bill_type/number,
+// so the feed card formats from it; reuses billIdentifier for the prefix map.
+// Falls back to the raw string if the identifier isn't the expected shape.
+export function formatBillIdentifier(fullIdentifier: string): string {
+  const [billType, billNumber] = fullIdentifier.split('-')
+  if (!billType || !billNumber || Number.isNaN(Number(billNumber))) return fullIdentifier
+  return billIdentifier(billType, Number(billNumber))
+}

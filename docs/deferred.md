@@ -422,7 +422,7 @@ Mapped to canonical columns (`summary_text`, `last_action_text` + `last_action_d
 
 ### feature-3-bill-number-missing-from-feed-rpcs
 
-**Priority:** DEBT
+**Priority:** RESOLVED (2026-06-04, PR #44)
 **Where in code:**
 - `components/BillCard.tsx` — renders `{bill.bill_number}` in the card header
 - `supabase/migrations/006_feature3_bill_feed.sql` — `get_default_feed` and `get_personalized_feed` return columns do NOT include `bill_number`
@@ -434,6 +434,8 @@ Mapped to canonical columns (`summary_text`, `last_action_text` + `last_action_d
 2. Switch `BillCard`'s identifier slot to `full_identifier`, which is also the more "official" form Congress.gov uses publicly.
 
 (2) is the smaller change and probably the better UX (most users recognize "HR 1234 (119th)" over a bare `1234`).
+
+**Resolution (2026-06-04, PR #44):** took option 2 — `BillCard`'s identifier slot now renders `full_identifier` formatted as a Congress citation (e.g. "S.J.Res. 139"). The `billIdentifier` helper was lifted from `bills/[id]/page.tsx` into `lib/utils.ts` (no duplicate prefix map) and a `formatBillIdentifier(full_identifier)` parser added; the card matches the locked bill-detail citation vocabulary (`font-mono text-meta text-ink-50`). App-only, no migration. Verified the feed RPCs do return `full_identifier` (live `pg_get_function_result`), so it's not a no-op. **Loose end:** the rationale comment in `tests/bills.spec.ts:98` (asserts title-only "because the slot is empty") is now **stale** — the slot is populated; the title-only assertion is still valid, but the comment wants a one-line tidy in a future code change.
 
 ---
 

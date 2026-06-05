@@ -1,5 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
-import { BillCard } from '@/components/BillCard'
+import { BillsFeed, type FeedBill } from '@/components/BillsFeed'
 import { ClipboardList } from 'lucide-react'
 import { redirect } from 'next/navigation'
 
@@ -21,20 +21,20 @@ export default async function BillsPage() {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
 
-  let bills: any[] = []
+  let bills: FeedBill[] = []
   if ((interestCount ?? 0) > 0) {
     const { data } = await supabase.rpc('get_personalized_feed', {
       p_user_id: userId,
       p_offset: 0,
       p_limit: 30,
     })
-    bills = data ?? []
+    bills = (data ?? []) as FeedBill[]
   } else {
     const { data } = await supabase.rpc('get_default_feed', {
       p_offset: 0,
       p_limit: 30,
     })
-    bills = data ?? []
+    bills = (data ?? []) as FeedBill[]
   }
 
   return (
@@ -62,11 +62,12 @@ export default async function BillsPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {bills.map((bill: any) => (
-            <BillCard key={bill.id} bill={bill} />
-          ))}
-        </div>
+        <BillsFeed
+          initialBills={bills}
+          mode={(interestCount ?? 0) > 0 ? 'personalized' : 'default'}
+          userId={userId}
+          pageSize={30}
+        />
       )}
     </div>
   )

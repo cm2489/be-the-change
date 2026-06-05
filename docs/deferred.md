@@ -384,6 +384,19 @@ The MVP is federal-only, so the "Federal" pill is identical on every card and ca
 
 ---
 
+### feed-load-more-trigger
+
+**Priority:** V2 (load-more shipped as a button; infinite scroll is an optional fast-follow)
+**Where in code:** `components/BillsFeed.tsx` (client wrapper + "Load more" button); feed RPCs paged by `p_offset`/`p_limit`, total-ordered as of migration 008.
+
+The `/bills` feed paginates via a **"Load more" button** (PR #46, page size 30) over both the default and personalized feeds — shipped intentionally as a button.
+
+**Possible fast-follow — infinite scroll:** swap or augment the button with an `IntersectionObserver` on a bottom sentinel that calls the existing `loadMore()` as the user nears the end. Known caveat: **back-navigation scroll restoration** — returning to the feed from a bill detail page can land at the top with only the first window loaded, losing the user's place (a button doesn't have this problem). Not built; Colby's call if/when.
+
+**Exact-multiple stop edge (tracking-only):** end-of-list is signalled by "a page returned `< 30` rows." If a feed's total is an exact multiple of 30, the last *full* page returns exactly 30 (not `< 30`), so one extra "Load more" click fetches 0 rows and *then* stops — a single empty click, not a mis-stop. This path is covered by **code logic only, not e2e**: the verified totals (default 482, personalized 42) are both partial last pages, so neither exercised the exact-multiple boundary. Deferred-if-ever (harmless; would need a filtered total that's a multiple of 30 to e2e-cover).
+
+---
+
 ## Feature 5 / 7 — Call & Activity Data Durability
 
 ### call-events-cascade-durability

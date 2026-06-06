@@ -1,5 +1,6 @@
 -- ============================================================
--- 008_feed_order_tiebreaker.sql
+-- 20260605182345_feed_order_tiebreaker.sql  (formerly 008_feed_order_tiebreaker.sql;
+-- renamed 2026-06-06 to match prod's recorded version — see docs/solutions/migration-numbering.md)
 -- ============================================================
 --
 -- Bug: get_default_feed and get_personalized_feed ORDER BY a non-unique

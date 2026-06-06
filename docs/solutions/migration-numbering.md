@@ -27,3 +27,21 @@ Forward-only migrations are non-negotiable for the same reason rebasing public b
 3. Update the plan/PR description to use the new filename — don't try to "preserve" the originally-planned number.
 
 That's it. The number is plumbing; the description is the document.
+
+## One-time exception — 2026-06-06 (007/008/009 renamed to timestamps)
+
+Three already-applied migrations were renamed **once**. This does not contradict the rule above; it *restores* the invariant the rule protects.
+
+`007_crs_reanchor.sql`, `008_feed_order_tiebreaker.sql`, and `009_add_ai_headline.sql` were applied to prod via the Supabase **MCP `apply_migration`** path, which records a generated **timestamp** as the ledger version — not the file's numeric prefix the way `supabase db push` does (which is how 001–006 were applied). So prod's `schema_migrations` held `20260603133555` / `20260605182345` / `20260606152313` while the files on disk still said `007/008/009`. The file↔version link this rule protects was already broken — by the apply path, not by a rename.
+
+The correction renamed each file so its prefix equals its recorded ledger version **character-for-character**:
+
+| old filename | new filename |
+|---|---|
+| `007_crs_reanchor.sql` | `20260603133555_crs_reanchor.sql` |
+| `008_feed_order_tiebreaker.sql` | `20260605182345_feed_order_tiebreaker.sql` |
+| `009_add_ai_headline.sql` | `20260606152313_add_ai_headline.sql` |
+
+After the rename, `supabase db push` sees all three as already-applied (prefix == recorded version) and will not re-run them. **No prod write was involved** — the ledger already held the timestamps; only the repo files moved.
+
+**The rule still stands for every future migration.** This was a one-time correction of a pre-existing mismatch, not license to renumber. The durable prevention: apply tracked migrations through a single path, and validate locally first (see `docs/deferred.md#local-supabase-stack`). Full context: `docs/deferred.md#migration-history-version-mismatch`.

@@ -1,4 +1,5 @@
--- 009_add_ai_headline.sql
+-- 20260606152313_add_ai_headline.sql  (formerly 009_add_ai_headline.sql; renamed 2026-06-06
+-- to match prod's recorded version — see docs/solutions/migration-numbering.md)
 -- Adds the generated feed-card headline column for the V4 bill-feed card
 -- (spec: docs/DESIGN_DECISIONS.md → "Bill feed card (V4)";
 --  tracking: docs/deferred.md#feed-card-v4-build).

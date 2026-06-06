@@ -419,6 +419,8 @@ The `/bills` feed card was redesigned to **V4 "title-led + Decoded container"** 
 
 **PARKED.** The vote pill ("VOTE IMMINENT") + status ("Floor Vote") **redundancy** (both signal the vote) — Colby parked it. The CRA category-wall is **rescued by the headline, not eliminated** — see `#feed-card-cra-wall`. The **favicon glyph is an open brand call (O vs Or)** — logo session's domain, recorded here only so it isn't lost.
 
+**SCOPE — build 1 (locked by Colby 2026-06-06).** V4 ships to **`/bills` only**. `/dashboard` shares the same `BillCard` (and the same feed RPCs) but **stays on its current rendering this build** — it is *not* migrated to the V4 card. The `compact` prop on `BillCard` is **retained as the seam** for a future **compact feed-card variant** (wanted, not yet built); both call sites currently omit it (so `compact` is unused today but intentionally kept). When the compact variant is built, revisit whether `/dashboard` adopts V4/compact. Recorded so the retained `compact` prop isn't mistaken for dead code and stripped.
+
 ---
 
 ## Feature 5 / 7 — Call & Activity Data Durability

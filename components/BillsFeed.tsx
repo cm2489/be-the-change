@@ -4,14 +4,17 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { BillCard } from '@/components/BillCard'
 
-// Shape returned by get_default_feed / get_personalized_feed (migration 006):
-// the subset BillCard reads, plus the row id. The personalized feed also
-// returns matched_tags; it isn't rendered today, so it's optional here.
+// Shape returned by get_default_feed / get_personalized_feed: the subset
+// BillCard reads, plus the row id. ai_headline is returned by both RPCs as of
+// migration 20260606200352_feed_add_ai_headline (the V4 card leads with it).
+// The personalized feed also returns matched_tags (the bill's issue_tags ∩ the
+// user's categories) — present only on the personalized feed, so it's optional.
 export interface FeedBill {
   id: string
   full_identifier: string // bills.full_identifier is NOT NULL (the onConflict key)
   title: string
   ai_summary: string | null
+  ai_headline: string | null
   summary_text: string | null
   status: string
   introduced_date: string

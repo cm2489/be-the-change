@@ -29,6 +29,7 @@ const config: Config = {
         paper: {
           DEFAULT: '#F7F4EE',
           dark: '#EDE7D8',
+          mid: '#FAF8F5', // V4 Decoded-container fill — faint, ~40% from paper toward card-white
         },
         card: '#FFFFFF',
         divider: {
@@ -91,6 +92,12 @@ const config: Config = {
         micro: '120ms',
         component: '200ms',
         page: '400ms',
+      },
+      maxWidth: {
+        category: '9rem', // V4 interest pill — caps long category labels (paired with truncate)
+      },
+      maxHeight: {
+        title: '2.75em', // V4 card title 2-line cap = 2 lines x leading-snug (1.375)
       },
     },
   },

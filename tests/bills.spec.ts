@@ -99,6 +99,14 @@ test('user navigates from bill feed to bill detail', async ({ page }) => {
   const seededCard = page.getByText(TEST_BILL_TITLE)
   await expect(seededCard).toBeVisible()
 
+  // V4 feed card (variant="v4"): the "Decoded" container renders. This seeded
+  // bill has summary_text but no ai_headline, so it shows the degrade state
+  // (summary promoted as the lead) under the "Decoded" label, plus the
+  // "Take action" CTA. (The filled headline state needs the feed-RPC migration.)
+  await expect(page.getByText('Decoded').first()).toBeVisible()
+  await expect(page.getByText(TEST_BILL_SUMMARY).first()).toBeVisible()
+  await expect(page.getByText('Take action').first()).toBeVisible()
+
   // Click navigates to the detail page (BillCard wraps the card in a Link).
   await seededCard.click()
   await page.waitForURL(new RegExp(`/bills/${testBillId}`))

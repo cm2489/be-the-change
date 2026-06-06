@@ -373,6 +373,8 @@ After the `ai_summary` backfill (PR #45), the near-identical CRA "disapproval" r
 
 **The fix is a feed-card design change, not more data** — e.g. lead the card with the plain-language summary, surface the specific rule/agency the resolution targets, and/or de-emphasize the boilerplate title. Colby's call; adjacent to the parked feed-composition work (card hierarchy, relevance badge). Not done.
 
+**Update (2026-06-06, V4 design pass — `#feed-card-v4-build`):** V4 leads each card with a generated plain-language **headline** (`Topic — Action`) inside the Decoded container, so the CRA cards now differ by their dominant line. This **rescues** the wall but does **not eliminate** it — the official title still sits above as a quiet `ink-50` reference, and the same-category cluster is still spatially adjacent. True elimination is a **feed-ordering / ranking decision** (e.g. "no two same-category bills within N feed positions"), which is **parked**: a data-backed check showed that shuffling *within* a vote-status tier can't space a single-category-dominated tier (9 of the top 14 default-feed bills were `jobs_economy`, all `floor_vote`) — real spacing has to pull lower-urgency, other-category bills up, overriding the urgency sort. Tracked, not decided.
+
 ---
 
 ### feed-federal-pill-removal
@@ -394,6 +396,28 @@ The `/bills` feed paginates via a **"Load more" button** (PR #46, page size 30) 
 **Possible fast-follow — infinite scroll:** swap or augment the button with an `IntersectionObserver` on a bottom sentinel that calls the existing `loadMore()` as the user nears the end. Known caveat: **back-navigation scroll restoration** — returning to the feed from a bill detail page can land at the top with only the first window loaded, losing the user's place (a button doesn't have this problem). Not built; Colby's call if/when.
 
 **Exact-multiple stop edge (tracking-only):** end-of-list is signalled by "a page returned `< 30` rows." If a feed's total is an exact multiple of 30, the last *full* page returns exactly 30 (not `< 30`), so one extra "Load more" click fetches 0 rows and *then* stops — a single empty click, not a mis-stop. This path is covered by **code logic only, not e2e**: the verified totals (default 482, personalized 42) are both partial last pages, so neither exercised the exact-multiple boundary. Deferred-if-ever (harmless; would need a filtered total that's a multiple of 30 to e2e-cover).
+
+---
+
+### feed-card-v4-build
+
+**Priority:** V2 — **BLOCKED on a hard dependency** (the headline pipeline). Design LOCKED; build deferred. Full rebuild spec: `docs/DESIGN_DECISIONS.md → Bill feed card (V4)`.
+**Where in code:** target `components/BillCard.tsx` (+ `app/(app)/bills/page.tsx`). Explored + locked in a throwaway mockup (`app/mockups/feed-card/page.tsx`, deleted at teardown).
+
+The `/bills` feed card was redesigned to **V4 "title-led + Decoded container"** (locked 2026-06-06). Building it into the shipped `BillCard` is deferred. Three classes of thing must be handled at build:
+
+**HARD DEPENDENCY (blocks the build entirely).** V4's anchor is a generated **headline** that does **not exist in the schema**. It needs a **new `bills` column** + a **generated-headline backfill across ~480 bills via Anthropic** — a real spend gate (mockup used `claude-sonnet-4-6` on 14 samples). The card is **non-functional without it**: with no headline it falls back to summary-led, which is the *degraded* state, not the design. Couples to `steady-state-summarize-cron` (new/changed bills also need headlines) and sits behind the same spend posture. **Do not start the card build before this lands.**
+
+**UN-TOKENIZED VALUES TO CONVERT (3).**
+- `#FAF8F5` (near-white Decoded container fill) → a **named token** (e.g. `paper-mid` in `tailwind.config.ts`), not an inline/bracket value.
+- `max-w-[9rem]` (interest-pill truncation) → prefer **short display aliases** for the long category labels over a hard truncate.
+- `maxHeight: '2.75em'` (the title 2-line cap) → tokenize / compute.
+
+**A11Y DEBT (deferred to v2 per `PRODUCT.md`; logged, not omitted).** The quiet `ink-50` official title is ~3.6:1 on white — **under WCAG AA 4.5:1**; the `#FAF8F5` container border is ~1.2:1; the full-card `<Link>` needs an `aria-label` (the headline) + `aria-hidden` on the arrow; add `break-words` insurance on title/headline/summary. Fold into the v2 a11y pass.
+
+**LOCKED TRADEOFF (not debt; recorded so it isn't re-litigated).** The title clamps via `max-height` + `overflow-hidden`, **never `-webkit-line-clamp`**, because the `-webkit-box` breaks the citation float in WebKit/Safari. Consequence: **no multi-line ellipsis** — the title hard-cuts at 2 lines. Verified the float works cross-browser this way.
+
+**PARKED.** The vote pill ("VOTE IMMINENT") + status ("Floor Vote") **redundancy** (both signal the vote) — Colby parked it. The CRA category-wall is **rescued by the headline, not eliminated** — see `#feed-card-cra-wall`. The **favicon glyph is an open brand call (O vs Or)** — logo session's domain, recorded here only so it isn't lost.
 
 ---
 

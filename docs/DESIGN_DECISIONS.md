@@ -167,3 +167,47 @@ Filled-summary state only, inside the card beneath the body: `text-small italic 
 ### Hero label — serif masthead (LOCKED — creative-director Break 1)
 
 The Decoded card's label is a serif display word, not a meta-kicker: `font-serif text-h2 text-ink` (centered), replacing `text-meta uppercase tracking-widest text-ink-70`. Hairline beneath unchanged (`mx-auto mt-3 h-px w-8 bg-divider-strong`). **Why:** the one motivated rule-break from the creative-director ceiling pass. Instrument Serif (the system's signature face) was benched on the quiet title caption; at display scale on the hero's own name it gives the screen an editorial *voice* instead of a whisper — the single bold move in an otherwise restrained composition (the canon meta-rule). It breaks the type-scale + de-emphasize-secondary rules on purpose, and escapes "looks accidental" because it is the only scale-break on the screen and it sits on the hero. **Break 2 (left-anchoring the label) was rejected** — the asymmetry didn't earn its place; centered symmetry holds.
+
+---
+
+## Screen: Bill feed card (`components/BillCard.tsx`, `/bills`) — V4 "title-led + Decoded container" — LOCKED (2026-06-06, pending build)
+
+**Status.** Locked design, **not yet built**. Explored in a throwaway mockup (`app/mockups/feed-card/page.tsx`, deleted at teardown), so this section is the **complete rebuild spec** — `BillCard` must be reproducible from the text below alone. Impeccable floor passed: deterministic detector 0/25, Nielsen heuristics 32/40, audit 16/20. **Hard dependency before any build:** `docs/deferred.md#feed-card-v4-build` (needs a generated-headline column + a ~480-bill Anthropic backfill).
+
+**Concept.** The official bill title *leads positionally* but stays a **quiet reference** (the legal object); the AI **plain-language translation is the visual anchor**, in a subtle "Decoded" container below it. Feed-card expression of the locked `/bills/[id]` rule "lead with the translation, the title is reference." Neutrals only, on-token. Vertical order top→bottom: **title → Decoded container → pills → actions.** Padding unified to **20px (`p-5`)** on both the card and the container.
+
+### 1 — Card shell
+`bg-card rounded-xl border border-divider p-5 transition-[border-color,box-shadow] duration-component ease-standard hover:border-divider-strong hover:shadow-md focus-visible:shadow-focus focus-visible:outline-none motion-reduce:transition-none`. The whole card is the `<Link>` to `/bills/[id]`. `rounded-xl` (token), **not** the stock `rounded-2xl` the pre-V4 card used.
+
+### 2 — Title + floated citation (title wraps around the number)
+- Title `<p>`: `font-serif italic text-small text-ink-50 leading-snug overflow-hidden` with `style={{ maxHeight: '2.75em' }}` (2-line cap).
+- Citation (first child of the title `<p>`, floated): `float-right not-italic font-mono text-meta text-ink-50 whitespace-nowrap ml-1.5`; content `formatBillIdentifier(full_identifier)` → e.g. "S.J.Res. 99".
+- Behavior: the number floats top-right; the title's line 1 sits beside it (top-aligned), line 2 wraps **underneath** it.
+- **Locked cross-browser tradeoff:** clamp via `max-height` + `overflow-hidden` (normal block), **never `-webkit-line-clamp`** — the `-webkit-box` it creates kills the float in WebKit/Safari (citation drops to the left). Consequence: **no multi-line ellipsis** (title hard-cuts at 2 lines). Intentional; do not "fix" it back to line-clamp.
+
+### 3 — Decoded container (always renders; degrades)
+`mt-3 border border-divider rounded-lg p-5` with `style={{ backgroundColor: '#FAF8F5' }}` (near-white, ~40% from page-bg `#F7F4EE` toward white — deliberately faint). Contents in order — a label, then exactly one of three states:
+- Label: `font-serif text-small text-ink-70 mb-1.5` → "Decoded".
+- **Filled** (headline present): headline `text-body font-medium text-ink leading-snug line-clamp-2`, then summary `text-small text-ink-70 leading-snug line-clamp-2 mt-1`.
+- **Degrade #1** (no headline, summary present): summary promoted to lead `text-body text-ink leading-snug line-clamp-3`.
+- **Pending** (neither): `text-small text-ink-70 italic leading-relaxed`, copy "We're still decoding this bill into plain language. A clear read is on the way."
+- **Why so light:** the headline's ink contrast carries the hierarchy, not the panel — the container is a subtle grouping, not a loud card. The near-white is Colby's deliberate end-point (paper-dark → progressively lighter → `#FAF8F5`).
+
+### 4 — Headline (generated content; format LOCKED)
+A short editorial headline generated **from the bill's `ai_summary`** (not full text): **`Topic Label — Action`**, **Title Case**, **never leads with the word "Congress"** (redundant — every bill is congressional), strictly **non-partisan**, **≤90 chars**, and must **name the specific agency/rule** so near-identical CRA "disapproval" resolutions get distinct headlines. (Mockup proof: `claude-sonnet-4-6` on 14 samples — 0 over 90 chars, 0 led with "Congress".)
+
+### 5 — Pills (below the container)
+Row `mt-3 flex items-center gap-2 flex-wrap`.
+- Vote pill (always): `inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase`; content `urgencyLabel().label`. Ring-outline, neutral — `urgencyLabel().color` is **deliberately not consumed** (off-palette).
+- Interest pill (**match-only**, label-only): `inline-block max-w-[9rem] truncate align-middle px-2.5 py-0.5 rounded-pill bg-ink-10 text-ink-70 text-meta`; content the matched category label. `ink-10` fill distinguishes it from the outline vote pill; **truncates** long labels.
+
+### 6 — Actions (below the pills)
+Row `mt-3 flex items-center justify-between`.
+- Status: `text-meta text-ink-50 capitalize`; content `deriveDisplayStatus(...).replace('_',' ')`.
+- CTA: `inline-flex items-center gap-1 text-small font-medium text-ink` + lucide `ArrowRight h-4 w-4`; copy "Take action".
+
+### Build notes — dependency, debt, parked (full tracking: `docs/deferred.md#feed-card-v4-build`)
+- **Hard dependency (blocks build):** the headline needs a new `bills` column + a ~480-bill Anthropic backfill (spend gate). The card is **inert without it** — it falls to summary-led, the degraded state, not the design.
+- **Tokenize at build (3 un-tokenized values):** `#FAF8F5` → a named token (e.g. `paper-mid`); `max-w-[9rem]` → short category aliases; `maxHeight: '2.75em'` → tokenize/compute.
+- **a11y debt (v2-deferred per `PRODUCT.md`, logged):** `ink-50` title ~3.6:1 (under AA 4.5:1); `#FAF8F5` container border ~1.2:1; the `<Link>` needs an `aria-label` (the headline) + `aria-hidden` on the arrow; `break-words` insurance on title/headline/summary.
+- **Parked:** the vote pill ("VOTE IMMINENT") + status ("Floor Vote") both signal the vote (redundancy — Colby's later call); the CRA category-wall is **rescued by the distinct headline, not eliminated** (true fix = a parked feed-ordering/ranking decision — see `#feed-card-cra-wall`); the **favicon glyph is a separate open brand call (O vs Or)** owned by the logo work, recorded here only so it isn't lost.

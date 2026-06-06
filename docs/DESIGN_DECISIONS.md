@@ -170,9 +170,9 @@ The Decoded card's label is a serif display word, not a meta-kicker: `font-serif
 
 ---
 
-## Screen: Bill feed card (`components/BillCard.tsx`, `/bills`) — V4 "title-led + Decoded container" — LOCKED (2026-06-06, pending build)
+## Screen: Bill feed card (`components/BillCard.tsx`, `/bills`) — V4 "title-led + Decoded container" — LOCKED + BUILT (2026-06-06)
 
-**Status.** Locked design, **not yet built**. Explored in a throwaway mockup (`app/mockups/feed-card/page.tsx`, deleted at teardown), so this section is the **complete rebuild spec** — `BillCard` must be reproducible from the text below alone. Impeccable floor passed: deterministic detector 0/25, Nielsen heuristics 32/40, audit 16/20. **Hard dependency before any build:** `docs/deferred.md#feed-card-v4-build` (needs a generated-headline column + a ~480-bill Anthropic backfill).
+**Status.** **Built and shipped to `/bills`** via the `variant="v4"` prop on `BillCard` (`/dashboard` stays on the classic card; `compact` retained as the seam for a future compact variant). This section is the **complete rebuild spec** — `BillCard` must be reproducible from the text below alone. Impeccable floor passed: deterministic detector 0/25, Nielsen heuristics 32/40, audit 16/20. **Hard dependency before any build:** `docs/deferred.md#feed-card-v4-build` (needs a generated-headline column + a ~480-bill Anthropic backfill).
 
 **Concept.** The official bill title *leads positionally* but stays a **quiet reference** (the legal object); the AI **plain-language translation is the visual anchor**, in a subtle "Decoded" container below it. Feed-card expression of the locked `/bills/[id]` rule "lead with the translation, the title is reference." Neutrals only, on-token. Vertical order top→bottom: **title → Decoded container → pills → actions.** Padding unified to **20px (`p-5`)** on both the card and the container.
 
@@ -180,13 +180,13 @@ The Decoded card's label is a serif display word, not a meta-kicker: `font-serif
 `bg-card rounded-xl border border-divider p-5 transition-[border-color,box-shadow] duration-component ease-standard hover:border-divider-strong hover:shadow-md focus-visible:shadow-focus focus-visible:outline-none motion-reduce:transition-none`. The whole card is the `<Link>` to `/bills/[id]`. `rounded-xl` (token), **not** the stock `rounded-2xl` the pre-V4 card used.
 
 ### 2 — Title + floated citation (title wraps around the number)
-- Title `<p>`: `font-serif italic text-small text-ink-50 leading-snug overflow-hidden` with `style={{ maxHeight: '2.75em' }}` (2-line cap).
+- Title `<p>`: `font-serif italic text-small text-ink-50 leading-snug overflow-hidden max-h-title` (2-line cap; `max-h-title` token = `2.75em`).
 - Citation (first child of the title `<p>`, floated): `float-right not-italic font-mono text-meta text-ink-50 whitespace-nowrap ml-1.5`; content `formatBillIdentifier(full_identifier)` → e.g. "S.J.Res. 99".
 - Behavior: the number floats top-right; the title's line 1 sits beside it (top-aligned), line 2 wraps **underneath** it.
 - **Locked cross-browser tradeoff:** clamp via `max-height` + `overflow-hidden` (normal block), **never `-webkit-line-clamp`** — the `-webkit-box` it creates kills the float in WebKit/Safari (citation drops to the left). Consequence: **no multi-line ellipsis** (title hard-cuts at 2 lines). Intentional; do not "fix" it back to line-clamp.
 
 ### 3 — Decoded container (always renders; degrades)
-`mt-3 border border-divider rounded-lg p-5` with `style={{ backgroundColor: '#FAF8F5' }}` (near-white, ~40% from page-bg `#F7F4EE` toward white — deliberately faint). Contents in order — a label, then exactly one of three states:
+`mt-3 border border-divider rounded-lg p-5 bg-paper-mid` (`bg-paper-mid` token = `#FAF8F5`, near-white, ~40% from page-bg `#F7F4EE` toward white — deliberately faint). Contents in order — a label, then exactly one of three states:
 - Label: `font-serif text-small text-ink-70 mb-1.5` → "Decoded".
 - **Filled** (headline present): headline `text-body font-medium text-ink leading-snug line-clamp-2`, then summary `text-small text-ink-70 leading-snug line-clamp-2 mt-1`.
 - **Degrade #1** (no headline, summary present): summary promoted to lead `text-body text-ink leading-snug line-clamp-3`.
@@ -199,7 +199,7 @@ A short editorial headline generated **from the bill's `ai_summary`** (not full 
 ### 5 — Pills (below the container)
 Row `mt-3 flex items-center gap-2 flex-wrap`.
 - Vote pill (always): `inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase`; content `urgencyLabel().label`. Ring-outline, neutral — `urgencyLabel().color` is **deliberately not consumed** (off-palette).
-- Interest pill (**match-only**, label-only): `inline-block max-w-[9rem] truncate align-middle px-2.5 py-0.5 rounded-pill bg-ink-10 text-ink-70 text-meta`; content the matched category label. `ink-10` fill distinguishes it from the outline vote pill; **truncates** long labels.
+- Interest pill (**match-only**, label-only): `inline-block max-w-category truncate align-middle px-2.5 py-0.5 rounded-pill bg-ink-10 text-ink-70 text-meta` (`max-w-category` token = `9rem`); content the matched category label. `ink-10` fill distinguishes it from the outline vote pill; **truncates** long labels.
 
 ### 6 — Actions (below the pills)
 Row `mt-3 flex items-center justify-between`.
@@ -208,6 +208,6 @@ Row `mt-3 flex items-center justify-between`.
 
 ### Build notes — dependency, debt, parked (full tracking: `docs/deferred.md#feed-card-v4-build`)
 - **Hard dependency (blocks build):** the headline needs a new `bills` column + a ~480-bill Anthropic backfill (spend gate). The card is **inert without it** — it falls to summary-led, the degraded state, not the design.
-- **Tokenize at build (3 un-tokenized values):** `#FAF8F5` → a named token (e.g. `paper-mid`); `max-w-[9rem]` → short category aliases; `maxHeight: '2.75em'` → tokenize/compute.
+- **Tokenized in build 1:** `#FAF8F5` → `paper.mid` (`bg-paper-mid`); `max-w-[9rem]` → `maxWidth.category` (`max-w-category` = 9rem, kept with `truncate` + the real label); `maxHeight: '2.75em'` → `maxHeight.title` (`max-h-title`).
 - **a11y debt (v2-deferred per `PRODUCT.md`, logged):** `ink-50` title ~3.6:1 (under AA 4.5:1); `#FAF8F5` container border ~1.2:1; the `<Link>` needs an `aria-label` (the headline) + `aria-hidden` on the arrow; `break-words` insurance on title/headline/summary.
 - **Parked:** the vote pill ("VOTE IMMINENT") + status ("Floor Vote") both signal the vote (redundancy — Colby's later call); the CRA category-wall is **rescued by the distinct headline, not eliminated** (true fix = a parked feed-ordering/ranking decision — see `#feed-card-cra-wall`); the **favicon glyph is a separate open brand call (O vs Or)** owned by the logo work, recorded here only so it isn't lost.

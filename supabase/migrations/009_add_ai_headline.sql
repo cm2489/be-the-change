@@ -16,7 +16,7 @@
 -- one-off by scripts/backfill-headlines.ts.
 
 ALTER TABLE bills
-  ADD COLUMN ai_headline text;
+  ADD COLUMN IF NOT EXISTS ai_headline text;
 
 COMMENT ON COLUMN bills.ai_headline IS
   'LLM-generated one-line feed-card headline, derived FROM ai_summary (not bill text): "Topic Label — Action", Title Case, non-partisan, <=90 chars. NULL when ai_summary is NULL or not yet generated. One-off backfill: scripts/backfill-headlines.ts; no steady-state pipeline yet (docs/deferred.md#feed-card-v4-build).';

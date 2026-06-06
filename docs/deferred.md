@@ -892,13 +892,13 @@ On a **cold dev-server start**, the first spec's first on-demand `/login` compil
 
 ### migration-history-version-mismatch
 
-**Priority:** BLOCK — but the trigger is **the next `supabase db push`**, not public launch. Latent today (no scheduled push exists); fires the instant anyone reconciles migrations the normal way. Reconciliation is **this session's job** (options drafted 2026-06-06, pending Colby's decision — see below).
+**Priority:** RESOLVED 2026-06-06 (repo-side, pending PR merge) — reconciled via **Option 1 (file rename)**: the three files were renamed so each prefix equals its recorded ledger timestamp, so `supabase db push` no longer sees them as pending. **No prod write** — prod's ledger already held the timestamps; only the repo files moved. The 007 replay guard ships alongside as defense-in-depth. _Original hazard, for the record:_ BLOCK — trigger was **the next `supabase db push`** (latent; no scheduled push), because the files' `007/008/009` prefixes didn't match the timestamp versions prod recorded, so a push would have re-run all three (007's `DELETE FROM user_interests` being the damage).
 **Where in code / prod:**
-- `supabase/migrations/007_crs_reanchor.sql` (line 41 `DELETE FROM user_interests;`), `008_feed_order_tiebreaker.sql`, `009_add_ai_headline.sql`
+- `supabase/migrations/20260603133555_crs_reanchor.sql` (the guarded `DELETE FROM user_interests`), `20260605182345_feed_order_tiebreaker.sql`, `20260606152313_add_ai_headline.sql` — all renamed from `007/008/009_*.sql` in this fix
 - prod `supabase_migrations.schema_migrations` (project `tnopzkpufusdqukmkplt` / BTC)
 - `SCHEMA.md → Migration History & Integrity` (records 007's + 002's destructive resets)
 
-**The hazard (verified read-only against prod 2026-06-06).** 007/008/009 were applied to prod via the **MCP `apply_migration` path**, which logged them under **TIMESTAMP versions**, not their repo `00X` filename prefixes. Only **001–006** carry prefix versions. Live `schema_migrations`:
+**The hazard (verified read-only against prod 2026-06-06).** 007/008/009 were applied to prod via the **MCP `apply_migration` path**, which logged them under **TIMESTAMP versions**, not their repo `00X` filename prefixes. Only **001–006** carry prefix versions. Live `schema_migrations` (repo filenames shown **as they were before the rename fix**):
 
 | repo file | prod `version` | prod `name` |
 |---|---|---|
@@ -916,9 +916,9 @@ On a **cold dev-server start**, the first spec's first on-demand `/login` compil
 
 **Not part of this hazard (distinct, do not conflate):** `002_align_to_schema.sql` is *also* destructive-and-non-idempotent (a `DROP … CASCADE` full reset), but it is **correctly prefix-versioned (`002`) in prod**, so `db push` will **not** re-run it. The mismatch is specific to the three timestamp-versioned files.
 
-**Mitigations:**
-1. **File-level guard on 007 (companion, this session):** narrow line 41's `DELETE` so a replay is a no-op without changing the original first-run behavior. Belt-and-suspenders — shrinks 007's blast radius even if a `db push` slips through. (Diff drafted 2026-06-06, pending review.)
-2. **History reconciliation (the real fix, this session — pending decision):** make prod's `schema_migrations` agree with the repo so `db push` stops seeing 007/008/009 as pending at all. Touches prod's migration-tracking table → destructive-adjacent, gated; options drafted, Colby picks.
+**Mitigations (both applied in this PR):**
+1. ✅ **File-level guard on the `DELETE`** — scoped to rows outside the current 12-id flat vocabulary, so a replay is a no-op without changing original first-run behavior. Defense-in-depth for a fresh `db reset` / accidental re-application.
+2. ✅ **History reconciliation via Option 1 (rename, zero prod write)** — the three files were renamed to their recorded timestamp versions, restoring the file↔version link so `db push` no longer sees them as pending. Options 2 (`supabase migration repair`) and 3 (raw `UPDATE` of the ledger) were the prod-write alternatives, not taken. One-time rename exception recorded in `docs/solutions/migration-numbering.md`.
 
 **Cross-link:** `local-supabase-stack` (no local validation harness — why these went straight to prod via MCP), `call-events-cascade-durability` (the other latent data-loss landmine).
 
@@ -950,6 +950,8 @@ A second callable-event type layered **ALONGSIDE** the bill feed (additive, not 
 ---
 
 ## Change log
+
+- 2026-06-06 — **Reconciled** `migration-history-version-mismatch` via **Option 1 (rename, zero prod write)**: renamed `007/008/009_*.sql` → `20260603133555_… / 20260605182345_… / 20260606152313_…` so each prefix matches the timestamp version prod's ledger already recorded; `supabase db push` will no longer re-run them. The 007 `DELETE` replay-guard ships in the same PR. Verified read-only first: `user_interests` is empty (0 rows, so the guard removes nothing) and the three timestamps matched the ledger character-for-character. One-time rename exception documented in `docs/solutions/migration-numbering.md`. No prod/ledger write. (Side flag: `user_interests` being empty may be a separate persistence issue — Colby expects interests set.)
 
 - 2026-06-06 — Logged `migration-history-version-mismatch` (BLOCK, trigger = next `supabase db push`). Verified read-only against prod: 007/008/009 are recorded in `schema_migrations` under timestamp versions (`20260603133555` / `20260605182345` / `20260606152313`), not their `00X` file prefixes — only 001–006 are prefix-versioned — so `db push` would re-run all three. 008 (CREATE OR REPLACE) and 009 (ADD COLUMN IF NOT EXISTS) replay safely; 007's bare `DELETE FROM user_interests` (line 41) would re-wipe user interests. Distinguished from `002` (also destructive but correctly prefix-versioned, so not at risk). File-guard on 007 + history reconciliation are this session's follow-ups (guard diff + reconciliation options drafted, pending decision).
 

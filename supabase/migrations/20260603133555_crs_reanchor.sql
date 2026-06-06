@@ -1,4 +1,6 @@
--- 007_crs_reanchor.sql
+-- 20260603133555_crs_reanchor.sql  (formerly 007_crs_reanchor.sql; renamed 2026-06-06 to
+-- match the timestamp version the MCP apply_migration path recorded in prod — see
+-- docs/solutions/migration-numbering.md for the one-time exception.)
 -- Re-anchor the interest taxonomy on CRS Policy Areas.
 -- Decision + evidence: docs/deferred.md#taxonomy-crs-reassess.
 --
@@ -38,4 +40,20 @@ ALTER TABLE bills ADD COLUMN IF NOT EXISTS policy_area text;
 -- what flat categories want. Dropping the column is an optional later cleanup,
 -- not worth a destructive DDL here.
 
-DELETE FROM user_interests;
+-- 🛡️ REPLAY GUARD (added 2026-06-06 — see docs/deferred.md#migration-history-version-mismatch).
+-- The original bare `DELETE FROM user_interests` here was a one-time pre-launch reset.
+-- Re-running it — a fresh `supabase db reset`, or any accidental re-application — would
+-- re-wipe real users' saved interests. The guard scopes the delete to rows whose `category`
+-- is NOT in the current flat CRS-anchored vocabulary (the 12 ids in lib/interests.ts).
+-- Original first-run behavior is unchanged: at the pre-launch reset every row referenced an
+-- OLD env_*/hc_* id (none of these), so all rows were deleted exactly as before. On any
+-- REPLAY against live data, real rows carry the new flat ids and are preserved — the
+-- statement becomes a no-op. (This file was renamed to its recorded timestamp version so a
+-- `supabase db push` no longer treats it as pending; this guard remains as defense-in-depth
+-- for fresh replays. If the taxonomy is ever re-cut, keep this list in sync.)
+DELETE FROM user_interests
+WHERE category <> ALL (ARRAY[
+  'jobs_economy', 'ai_technology', 'health', 'housing', 'immigration',
+  'government_democracy', 'crime_justice', 'education', 'environment_energy',
+  'rights_liberties', 'national_security', 'family_community'
+]);

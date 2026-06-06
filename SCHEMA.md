@@ -400,7 +400,7 @@ Writes on shared tables are done via `SUPABASE_SERVICE_ROLE_KEY` from server-onl
 
 Tracked migrations: `supabase/migrations/001`–`007`. **Verified 2026-05-31: every table documented above is defined in a tracked migration — all tables tracked, no drift.** The apparent mismatch (files vs. ~12 tables) is only because `002_align_to_schema.sql` defines 10 tables on its own (`user_interests` → `003`, `sync_state` → `006`, all others → `002`).
 
-`007_crs_reanchor.sql` adds `bills.policy_area` and **wipes `user_interests`** (pre-launch reset to the new flat 12-category CRS-anchored taxonomy — see `docs/deferred.md#taxonomy-crs-reassess`). Like `002`, the `DELETE FROM user_interests` is a destructive step that is **not replayable against a database with real user data** — safe pre-MVP only.
+`20260603133555_crs_reanchor.sql` (formerly `007_crs_reanchor.sql`) adds `bills.policy_area` and **wipes `user_interests`** (pre-launch reset to the new flat 12-category CRS-anchored taxonomy — see `docs/deferred.md#taxonomy-crs-reassess`). Like `002`, the `DELETE FROM user_interests` is a destructive step that is **not replayable against a database with real user data** — safe pre-MVP only.
 
 ⚠️ **`002_align_to_schema.sql` is a destructive full reset:** it `DROP ... CASCADE`s the `001` draft schema and recreates from scratch. Safe pre-MVP (no user data), but **`001`→`002` is NOT replayable against a database with real data** — treat `002` as the historical baseline, not a re-runnable step, before any prod migration post-launch.
 

@@ -86,7 +86,7 @@ export function BillsFeed({ initialBills, mode, userId, pageSize }: BillsFeedPro
     <div>
       <div className="space-y-3">
         {bills.map((bill) => (
-          <BillCard key={bill.id} bill={bill} />
+          <BillCard key={bill.id} bill={bill} variant="v4" />
         ))}
       </div>
 

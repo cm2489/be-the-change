@@ -18,6 +18,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -72,17 +73,26 @@ export default function SettingsPage() {
   async function handleSave() {
     setSaving(true)
     setSaved(false)
+    setError(null)
 
     const {
       data: { session },
     } = await supabase.auth.getSession()
-    if (!session) return
+    if (!session) {
+      router.push('/login')
+      return
+    }
 
-    await supabase.from('profiles').upsert({
+    const { error: profileError } = await supabase.from('profiles').upsert({
       user_id: session.user.id,
       full_name: fullName,
       zip_code: zipCode,
     }, { onConflict: 'user_id' })
+    if (profileError) {
+      setError('Failed to save profile. Please try again.')
+      setSaving(false)
+      return
+    }
 
     // Rebuild interests (flat categories; subcategory always null post-re-anchor)
     await supabase.from('user_interests').delete().eq('user_id', session.user.id)
@@ -95,7 +105,12 @@ export default function SettingsPage() {
     }))
 
     if (rows.length > 0) {
-      await supabase.from('user_interests').insert(rows)
+      const { error: interestError } = await supabase.from('user_interests').insert(rows)
+      if (interestError) {
+        setError('Failed to save interests. Please try again.')
+        setSaving(false)
+        return
+      }
     }
 
     setSaving(false)
@@ -178,6 +193,12 @@ export default function SettingsPage() {
         >
           {saving ? 'Saving…' : saved ? '✅ Saved!' : 'Save changes'}
         </Button>
+
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
+            {error}
+          </div>
+        )}
 
         {/* Admin: Seed bills */}
         <div className="border-t border-divider pt-4">

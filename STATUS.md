@@ -22,27 +22,29 @@ The Decoded hero now renders **real plain-language translations on 480/482 bills
 ## Branch state
 `main` at the **#46** merge (`a893d11`, feed load-more) plus this session's straight-to-main docs commits. **`main` == `origin/main`.** **No open (unmerged) feature branches** — `feat/feed-load-more` (#46) is merged and **pruned (local + remote)**; assorted older stale branches may still remain — prune when convenient. **Migrations applied to prod through 008** — 007 (CRS re-anchor, G3) + the **G4 backfill**, and **008 (feed `ORDER BY` tiebreaker)** applied via MCP under the gated apply-before-merge flow — all via MCP, not the cron (which stays disabled).
 
-## Feature status (consumer MVP, 7 total)
+## Feature status (7 original consumer features — Web Push deferred post-MVP 2026-06-05, so 6 ship in V1)
 1. Account + profile — built. **Email verification deferred to pre-launch** (Confirm-email OFF → no ownership check; BLOCK before public beta, `docs/deferred.md#email-verification-deferred`). Still missing account-delete (GDPR); onboarding "skip" ungated.
 2. Rep lookup — built; **e2e happy-path green** (address → 3 reps via the mocked Congress/Civic path). The prior `representatives.spec` failure was a test-harness issue (server reuse), fixed in PR #42 — not a Feature 2 bug.
 3. Bill feed — built. `/bills/[id]` is **floor + ceiling complete** (PR #34); the **feed list (`/bills`) is now floor-consolidated onto tokens** (PR #39 — neutral pills, lucide, type scale). Relevance now works across ~all content — the `issue_tags` coverage gap is **resolved** by the CRS re-anchor (PR #41: 12 flat CRS-anchored categories; 78% → 0.2% untagged). The feed now **paginates** (load-more, PR #46 + migration 008 tiebreaker), so all 482 bills are reachable, not just the first 30.
 4. AI call script — **done (PR #13).** `ai_summary`: **backfilled to 480/482 bills (PR #45)**; the steady-state sync-time generation is **still deferred** (see flag).
 5. 1-click calling — **done (PR #14).** `/api/calls` writes `call_events`; CallFlow; full-loop + no-reps specs.
-6. Web push — not started. Schema in place (`push_subscriptions`, `notifications_sent`); no client flow, cron sender, or rate-limit/quiet-hours.
+6. Web push — **DEFERRED to post-MVP (decision 2026-06-05) — not a V1/MVP feature.** Schema in place (`push_subscriptions`, `notifications_sent`) but nothing built; coupled to re-arming the sync cron. V1 ships the rest of the loop without it. See `docs/deferred.md#web-push-deferred-post-mvp`.
 7. Activity tracking — **built/shipped (PR #43).** `/impact` "Your Impact" surface: per-user calls + scripts counts and a reverse-chron call history over `call_events` (bill title + rep name from stored FKs; rows link to `/bills/[id]`) + empty state; personal-only. Dead Callenge nav tab → Your Impact. **Followed-bills section/Follow button deferred** (no `followed_bills` writer exists yet); scripts is **count-only** for v1.
 
 **Design:** `/bills/[id]` is **floor + ceiling complete** (recorded in `docs/DESIGN_DECISIONS.md`); the **feed list got its floor pass** (PR #39 — on-token neutral vocabulary). **Next on the feed:** card hierarchy (title-first vs Decoded-summary-first), the relevance badge (`matched_tags` → "Matches your priorities on X"), then ceiling — plus recording the feed's floor patterns in `docs/DESIGN_DECISIONS.md` (owed). Then propagate to the dashboard. Brand identity (wordmark, logo, landing hero) still **unlocked**.
 
 ## Next action (single)
-Feature 7 shipped (#43), so it's off the list. **Next: TBD — Colby's call.** Genuinely-unbuilt / pre-launch candidates from current docs:
-- **Feature 6 — Web push:** not started. Schema exists (`push_subscriptions`, `notifications_sent`); no client opt-in flow, cron sender, rate-limit, or quiet-hours.
+Feature 7 shipped (#43), so it's off the list. **Next: TBD — Colby's call.** Genuinely-unbuilt V1 candidate from current docs:
 - **Steady-state `ai_summary` cron** (`docs/deferred.md#steady-state-summarize-cron`): the one-off backfill shipped (PR #45 — 480/482 filled), but auto-summarizing new/changed bills as the sync ingests them was never built, and it's coupled to re-arming the (currently unscheduled) bill-sync cron.
-- **Pre-launch BLOCK gates:** `email-verification-deferred` (Confirm-email OFF → no ownership check; flip ON or a custom Resend flow) and `noindex-pre-launch` (remove the site-wide `robots: noindex` at public launch, after trademark clearance).
+
+**Sequenced out — not near-term (by decision, 2026-06-05):**
+- **Feature 6 — Web push:** **DEFERRED to post-MVP — no longer a V1/MVP item or a "next action" candidate.** Schema exists (`push_subscriptions`, `notifications_sent`) but nothing's built; coupled to re-arming the sync cron. `docs/deferred.md#web-push-deferred-post-mvp`.
+- **`email-verification-deferred` — FINAL V1 LAUNCH GATE:** action it **last**, only after all other V1 work is complete (flip Confirm-email ON — ~zero work — or a custom Resend flow); NOT a near-term/next-up item until then. `noindex-pre-launch` removal is the same launch-eve gate.
 
 ## Open decisions / debt (see docs/deferred.md)
 - **`feature-3-issue-tags-coverage-gap` — RESOLVED (CRS re-anchor, PR #41).** Was 377/482 untagged; now 0.2% (481/482 tagged, 0 on old ids) via migration 007 + the G4 backfill (2026-06-02). Remaining open: **`taxonomy-crs-reassess`** — revisit category granularity/labels at **500 users or 2026-08-15**.
 - **Summary accuracy + steady-state pipeline** — see the flag; broad backfill **shipped (PR #45 — 480/482)**; the steady-state summarize cron stays deferred (`steady-state-summarize-cron`) and an accuracy spot-check on truncated bills is owed.
-- `email-verification-deferred` — **BLOCK before public beta.** Flip Confirm-email ON (~zero work) or a custom Resend token flow.
+- `email-verification-deferred` — **FINAL V1 LAUNCH GATE** (re-tagged 2026-06-05): sequence it **last**, only after all other V1 work is complete; not a near-term item until then. Flip Confirm-email ON (~zero work) or a custom Resend token flow.
 - **`ai-disclaimer-decoded-hero` — RESOLVED (PR #34):** disclaimer shipped in the Decoded card.
 - **Design / brand:** bill-detail ceiling **done** (no-accent locked; serif hero); the title's arbitrary type values **resolved** (on-token). Remaining: propagate to feed/dashboard; `type-scale-extension` (20/30px + non-uppercase-12px caption gaps on other surfaces — tokens-only, resolve as surfaces are touched); `landing-features-grid-emoji`; brand identity (wordmark/logo/landing hero) unlocked.
 - `consolidation-followup-offscope-slate-and-semantic-colors` — **feed `bills/page.tsx` + `BillCard` done (PR #39).** Remaining: `ImpactMetrics`, `RepCard` + off-palette red/green banners; `lib/utils.ts` `urgencyLabel().color` still returns off-palette tints (now unused by the card after PR #39).

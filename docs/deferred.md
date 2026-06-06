@@ -26,7 +26,7 @@ This file tracks every "we did not handle this" item in the codebase — intenti
 
 ### email-verification-deferred
 
-**Priority:** BLOCK (pre-launch — before any uncontrolled signup / public beta)
+**Priority:** BLOCK — **FINAL V1 LAUNCH GATE** (re-tagged 2026-06-05). The last V1 item to action: tackle it **only after all other V1 work is complete**, as the gate immediately before public launch (before any uncontrolled signup / public beta). **Not a near-term / next-up item until then** — sequence it last, do not surface it as remaining build work in the interim.
 **Where in code:**
 - `FEATURES.md` §1 — "Email verification required before civic actions (calling, following bills)"
 - `app/api/calls/route.ts`, `app/api/scripts/route.ts` — civic-action mutations, currently session-gated only (no verification check)
@@ -426,6 +426,28 @@ The `/bills` feed paginates via a **"Load more" button** (PR #46, page size 30) 
 Do **not** change the FKs or add a snapshot in the "Your Impact" PR — that's a migration and its own decision. This entry records the risk + audit so it isn't re-derived. (Reverse code-comment cross-link into the calls route/migration is intentionally skipped: it'd be a code change requiring its own branch, not a docs-to-main commit.)
 
 **Cross-link:** `feature-3-backfill-119th-congress` (bills-table churn), `schema-drift-sync-bills` (the disabled cron that would re-introduce bill writes).
+
+---
+
+## Feature 6 — Web Push Notifications
+
+### web-push-deferred-post-mvp
+
+**Priority:** V2 — **DEFERRED to post-MVP by decision (2026-06-05). NOT part of the V1 MVP build.** Do not surface as remaining MVP work or a near-term next-up item.
+
+**Where in code / scope:**
+- `FEATURES.md` §6 — still lists Web Push with full acceptance criteria. **Reconciling FEATURES.md (the scope source of truth) is a separate scope-doc change, not this working-doc pass** — flagged as its own gated follow-up.
+- Schema already in place: `push_subscriptions`, `notifications_sent` (migration 002) — tables + RLS exist, but no row is ever written or read.
+- No client opt-in flow, no `/api/push/send` sender, no cron, no rate-limit (2/day), no quiet-hours (9pm–8am) enforcement — none of it built.
+- `web-push` lib + VAPID env (`NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`) wired per ARCHITECTURE.md, currently unused.
+
+**Decision (2026-06-05):** Web Push is **deferred to post-MVP.** It is the only one of the seven original consumer features still at zero build, and it is **not** required for a donor-ready V1 — the core loop (profile → reps → decoded bills → script → call → impact) ships without it. Treat it as post-MVP roadmap, **not** as remaining MVP work, and **not** as a candidate for the "next action."
+
+**Coupling (another reason it lands naturally post-MVP):** a steady-state sender has nothing to notify on until bills sync on a schedule, so it is coupled to re-arming the bill-sync cron (`schema-drift-sync-bills`, still disabled) and to `steady-state-summarize-cron`.
+
+**Trigger to build:** post-MVP, once V1 has shipped and the sync cron is re-armed. Constraints carried forward from FEATURES.md §6 so they aren't re-derived: max **2 pushes/user/day** enforced server-side; **no political content** in the body (neutral "A bill you follow has an upcoming action" only); timezone-aware, **no delivery 9pm–8am** local; user-disable in settings; every push logged to `notifications_sent`.
+
+**Cross-link:** `steady-state-summarize-cron`, `schema-drift-sync-bills` (the disabled cron a sender depends on).
 
 ---
 

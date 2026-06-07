@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Alert } from '@/components/ui/alert'
+import { OravanWordmark } from '@/components/brand/OravanWordmark'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -61,12 +63,12 @@ export default function SignupPage() {
           <div className="mb-4 flex justify-center">
             <MailCheck className="h-12 w-12 text-ink" />
           </div>
-          <h1 className="text-h2 font-bold text-ink mb-2">Check your email</h1>
+          <h1 className="font-serif text-h2 text-ink mb-2">Check your email</h1>
           <p className="text-ink-70 text-small mb-6">
             We sent a confirmation link to <span className="font-medium text-ink-85">{email}</span>.
             Click it to activate your account and get started.
           </p>
-          <p className="text-xs text-ink-50">
+          <p className="text-small text-ink-50">
             Didn&apos;t get it? Check your spam folder, or{' '}
             <button
               className="underline hover:text-ink-70"
@@ -85,20 +87,19 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <div className="text-2xl font-bold text-ink">Oravan</div>
-            <div className="text-small text-ink-70 mt-1">Your voice matters. Use it.</div>
+          <Link href="/" className="inline-block" aria-label="Oravan home">
+            <OravanWordmark className="h-8 text-ink" />
           </Link>
         </div>
 
         <Card padding="lg" className="shadow-sm">
-          <h1 className="text-h2 font-bold text-ink mb-2">Create your account</h1>
+          <h1 className="font-serif text-h2 text-ink mb-2">Create your account</h1>
           <p className="text-ink-70 text-small mb-6">Free forever. No credit card needed.</p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
+            <Alert variant="error" className="mb-4">
               {error}
-            </div>
+            </Alert>
           )}
 
           <form onSubmit={handleSignup} className="space-y-4">
@@ -154,7 +155,7 @@ export default function SignupPage() {
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-divider" />
             </div>
-            <div className="relative flex justify-center text-xs text-ink-50">
+            <div className="relative flex justify-center text-meta uppercase text-ink-50">
               <span className="bg-card px-3">or sign up with</span>
             </div>
           </div>
@@ -184,7 +185,7 @@ export default function SignupPage() {
           </p>
         </Card>
 
-        <p className="mt-6 text-center text-xs text-ink-50">
+        <p className="mt-6 text-center text-small text-ink-50">
           By signing up, you agree to our{' '}
           <Link href="/terms" className="underline hover:text-ink-70">
             Terms

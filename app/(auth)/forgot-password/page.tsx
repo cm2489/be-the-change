@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Alert } from '@/components/ui/alert'
+import { OravanWordmark } from '@/components/brand/OravanWordmark'
 
 export default function ForgotPasswordPage() {
   const supabase = createClient()
@@ -50,7 +52,7 @@ export default function ForgotPasswordPage() {
           <div className="mb-4 flex justify-center">
             <MailCheck className="h-12 w-12 text-ink" />
           </div>
-          <h1 className="text-h2 font-bold text-ink mb-2">Check your email</h1>
+          <h1 className="font-serif text-h2 text-ink mb-2">Check your email</h1>
           {/* Intentionally vague: prevents email enumeration. Supabase returns success
               whether or not the address is registered — don't change this to "we sent
               you an email" without understanding the security implication. */}
@@ -70,21 +72,21 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <div className="text-2xl font-bold text-ink">Oravan</div>
+          <Link href="/" className="inline-block" aria-label="Oravan home">
+            <OravanWordmark className="h-8 text-ink" />
           </Link>
         </div>
 
         <Card padding="lg" className="shadow-sm">
-          <h1 className="text-h2 font-bold text-ink mb-2">Reset your password</h1>
+          <h1 className="font-serif text-h2 text-ink mb-2">Reset your password</h1>
           <p className="text-ink-70 text-small mb-6">
             Enter your email and we&apos;ll send you a reset link.
           </p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
+            <Alert variant="error" className="mb-4">
               {error}
-            </div>
+            </Alert>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { OravanWordmark } from '@/components/brand/OravanWordmark'
 
 export const metadata: Metadata = {
   title: 'Privacy — Oravan',
@@ -10,8 +11,8 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-paper">
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <Link href="/" className="text-xl font-bold text-ink">
-          Oravan
+        <Link href="/" aria-label="Oravan home">
+          <OravanWordmark className="h-7 text-ink" />
         </Link>
         <Link href="/" className="text-small text-ink-70 hover:text-ink">
           &larr; Back home

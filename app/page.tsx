@@ -10,6 +10,7 @@ import {
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { OravanWordmark } from '@/components/brand/OravanWordmark'
 import { createServerClient } from '@/lib/supabase/server'
 
 const FEATURES = [
@@ -89,7 +90,7 @@ export default async function LandingPage() {
     <div className="min-h-screen bg-paper">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <div className="text-xl font-bold text-ink">Oravan</div>
+        <OravanWordmark className="h-6 text-ink" />
         <div className="flex items-center gap-3">
           <Link href="/login">
             <Button variant="ghost" size="sm">
@@ -224,7 +225,7 @@ export default async function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-divider px-6 py-8">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-small text-ink-50">
-          <div className="font-semibold text-ink">Oravan</div>
+          <OravanWordmark className="h-5 text-ink" />
           <div>Not political. Just powerful.</div>
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-ink-70">

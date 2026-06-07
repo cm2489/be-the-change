@@ -5,14 +5,22 @@ import {
   MessageSquareText,
   Activity,
   Lock,
+  MapPin,
+  type LucideIcon,
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { OravanWordmark } from '@/components/brand/OravanWordmark'
 import { createServerClient } from '@/lib/supabase/server'
 
-const FEATURES = [
+type Feature = {
+  Icon: LucideIcon
+  title: string
+  description: string
+  tag?: string
+}
+
+const FEATURES: Feature[] = [
   {
     Icon: Target,
     title: 'Issues you actually care about',
@@ -39,9 +47,16 @@ const FEATURES = [
   },
   {
     Icon: Lock,
-    title: 'Privacy first, always',
+    title: 'Independent, funded by people',
     description:
-      'No ads. No data selling. No tracking. Your political beliefs stay yours. We are funded by people, not corporations.',
+      'No advertisers and no data brokers. Oravan is funded by the people who use it, never by selling what you believe.',
+  },
+  {
+    Icon: MapPin,
+    title: 'State and local coverage',
+    description:
+      'Today Oravan covers Congress. Your state legislature and local officials are next.',
+    tag: 'On the roadmap',
   },
 ]
 
@@ -158,26 +173,23 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Features grid */}
+      {/* What Oravan does — card-less editorial list (no boxes/shadows) */}
       <section className="px-6 py-20 bg-paper-dark border-y border-divider">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-serif text-h2 text-ink">
-              Everything you need to be civically active
-            </h2>
-          </div>
+          <h2 className="font-serif text-h2 text-ink mb-12">What Oravan does</h2>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 gap-x-12 gap-y-9">
             {FEATURES.map(feature => (
-              <Card
-                key={feature.title}
-                padding="md"
-                className="shadow-sm hover:shadow-md transition-shadow"
-              >
-                <feature.Icon className="w-6 h-6 text-ink mb-4" strokeWidth={1.5} aria-hidden />
-                <h3 className="text-body font-semibold text-ink mb-2">{feature.title}</h3>
+              <div key={feature.title} className="border-t border-divider pt-5">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <feature.Icon className="w-4 h-4 text-ink-50" strokeWidth={1.5} aria-hidden />
+                  <h3 className="text-body font-semibold text-ink">{feature.title}</h3>
+                  {feature.tag && (
+                    <span className="ml-auto text-meta uppercase text-ink-50">{feature.tag}</span>
+                  )}
+                </div>
                 <p className="text-small text-ink-70 leading-relaxed">{feature.description}</p>
-              </Card>
+              </div>
             ))}
           </div>
         </div>

@@ -316,4 +316,17 @@ All raw `text-xs` (12px non-uppercase, off the project scale) on the touched sur
 - `/bills/[id]`, `BillCard` V4, `ScriptFlow`: already floor+ceiling locked; cohered-by-inheritance only (classic-card radius reconciled; no internal rework).
 - `Badge` primitive: still deferred (would touch locked card pills; needs the 12px-caption token decision).
 - Privacy/terms legal-prose em dashes; `urgencyLabel().color` dead tints; a11y contrast deferrals (per `PRODUCT.md`, v2).
-- The LLM `/critique` + `creative-director` ceiling passes were **not** run (deterministic `detect` clean; product-register screens cohered onto already-critiqued locked decisions) — available as a follow-up per screen.
+- The `creative-director` ceiling pass was not run (product-register utility screens). (The LLM `/critique` *was* run after this — see below.)
+
+### Post-critique adjustments — LOCKED (2026-06-07)
+
+Ran Impeccable `/critique` (two isolated assessments: LLM design review + deterministic `detect`) on the full pass **and** a "match the bills pages to the app" mockup. Detector: **0 findings** throughout; design health **29/40** both. The headline — reached **independently** by the cohesion review and the bills-mockup review — was: **unify the bill card on the decode-led V4, and protect the editorial hero.** "Cohere the chrome, not the hero." Resulting changes:
+
+- **Dashboard now leads with the V4 card** (`variant="v4"`), not the classic title-led card. Resolves the critique's only P0: the post-login home was an "identical card grid" of opaque official titles (failing both the *identical-card-grid* ban and *Decode-don't-display*). One decode-led card now renders on `/dashboard` **and** `/bills`. **This supersedes the earlier "/dashboard stays on the classic card" note** in the V4 feed-card section.
+- **A "match the app" mockup was tested and rejected** for the two moves that flatten these screens: switching the feed to the classic card (rejected — inverts Decode-don't-display on the highest-traffic screen) and the bill-detail Decoded hero to a white card (rejected — erases the locked "warm counterweight" and caused a load-time skeleton-mismatch pop). Both reverted; the warm `bg-paper-dark shadow-md px-12 py-14` hero stays locked.
+- **Kept from the mockup** (mechanical wins): bill-detail back control is lucide `ArrowLeft` (was a raw `←` glyph); the AI disclaimer + feed retry copy are now on the no-em-dash law.
+- **Greeting** drops the `email.split('@')[0]` fallback — plain "Welcome back" when there's no `full_name` (no raw identifier in the brand's warmest moment).
+- **Legal pages** (`/privacy`, `/terms`) route through `PageHeader` (`text-h2`), resolving the one cross-screen title-size break (they were `text-h1`); the subline em dash went with it.
+- **Onboarding** card wordmark is `lg:hidden` — the app sidebar already carries it on desktop, so the first-run screen no longer renders two wordmarks (mobile keeps the one).
+
+Still open (critique, deferred): dashboard still loads 10 V4 cards (a teaser cap to 3–4 was suggested, not done); bare-text loading states vs the bill-detail skeleton; the always-identical "Federal" feed pill; the sidebar "Signed in as" still shows the email local-part for name-less accounts; `creative-director` ceiling not run.

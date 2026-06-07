@@ -47,7 +47,7 @@ export function BillCard({ bill, variant = 'classic', compact = false }: BillCar
     <Link href={`/bills/${bill.id}`}>
       <div
         className={cn(
-          'bg-card rounded-2xl border border-divider hover:border-divider-strong hover:shadow-md transition-all cursor-pointer group',
+          'bg-card rounded-xl border border-divider hover:border-divider-strong hover:shadow-md transition-all cursor-pointer group',
           compact ? 'p-4' : 'p-5'
         )}
       >

@@ -266,3 +266,54 @@ Replaced the 5 identical icon + heading + text shadow cards (the **identical-car
 ### Accent / color — NONE (parked, not locked)
 
 The landing ships **monochrome** (ink-green on paper, neutrals only). An accent hunt was run and **all candidates rejected**: `signal` orange (off/warm-red), antique gold `#A67C2E` (afterthought — harmonious/low-contrast with the teal-green at hue ~164deg), and the true complement berry `#A33A5B` (~341deg, impactful but jarring/pink for a calm civic tool). The palette has **no obvious accent home**; monochrome is on-brand and cleared the slop bar. **Accent parked post-launch** — full record in `docs/deferred.md#brand-accent-color-pops`. Mirrors the bill-detail ceiling's "no accent" outcome: **accent is decided per-screen, never assumed.**
+
+---
+
+## Screen: App routes (dashboard · onboarding · representatives · impact · settings · auth · legal) — UI cohesion pass — LOCKED (2026-06-07)
+
+Branch `feat/app-ui-cohesion`. Completes the long-deferred consolidation sweep (`components/ui/README.md` "Chunk 3"; `docs/deferred.md#consolidation-followup-offscope-slate-and-semantic-colors`): bring every non-landing route onto the system the landing + `/bills/[id]` already lock. **Product register** — these serve the product, so they inherit the brand's serif voice for titles but stay restrained, neutral, on-token. Functional gate green (lint + build + vitest 21/21 + Playwright 10/10); Impeccable `detect` **0 findings** on code + renders; WebKit visual review at 390 + desktop. **Source of truth:** the landing (`app/page.tsx`) + this doc's bill-detail / feed-card sections. The landing itself is untouched.
+
+### Heading typography — LOCKED
+
+The app previously set page titles in sans `font-bold`, which on `<h1>`/`<h2>` elements forced a synthetic faux-bold over the serif base rule (`globals.css` makes h1/h2 Instrument Serif). Rationalized to the landing's actual pattern (h1/h2 serif, h3 sans-600):
+
+- **Page title (`<h1>`)** → `font-serif text-h2 text-ink`, via the `PageHeader` primitive (24px Instrument Serif).
+- **Section heading (`<h2>`)** → `font-serif text-h3 text-ink` (18px serif; `font-bold` dropped). E.g. dashboard "For You"/"Trending Issues", impact "Call history", settings "Profile"/"My Issues".
+- **Item title (`<h3>`)** → `text-h3 font-semibold` (sans-600, h3 base). Unchanged.
+- **Stat-widget / kicker labels** → `text-meta uppercase text-ink-50` (ImpactMetrics "YOUR IMPACT", settings "ADMIN", auth "OR CONTINUE WITH").
+
+### Shared primitives — LOCKED (`components/ui/`)
+
+- **`PageHeader`** (`page-header.tsx`) — title (+ optional description/action). Centralizes the serif page-title rule. On dashboard/bills/impact/settings/representatives.
+- **`EmptyState`** (`empty-state.tsx`) — centered lucide icon (`h-8 w-8 text-ink-50`) + title (`font-semibold text-ink`) + description (`text-small text-ink-70 max-w-xs`). Replaces 4 hand-rolled zero-data states. Wrapped in `<Card padding="lg">` for a surface; bare for the representatives prompt.
+- **`Alert`** (`alert.tsx`) — `error` (`bg-oxblood-10 border-oxblood/20 text-oxblood`) / `success` (`bg-moss-10 border-moss/20 text-moss`), base `rounded-xl border p-3 text-small`, `role` per variant. Replaces 7 copies of the off-palette `bg-red-50 border-red-200 text-red-700` banner (auth/onboarding/settings/representatives) + login's green success.
+
+### Card radius — LOCKED (reconciled to token)
+
+`Card` and the raw page cards (incl. `BillCard` classic) moved `rounded-2xl` (16px, off-scale) → `rounded-xl` (20px token), unifying every surface with the locked components (BillCard V4, ScriptFlow, CallFlow, Decoded hero). Resolves the `components/ui/README.md` radius-off-token note.
+
+### Brand wordmark in-app — LOCKED
+
+The locked `OravanWordmark` (currentColor SVG, `aria-label="Oravan"`) replaces every ad-hoc text "Oravan":
+
+- Sidebar (`NavBar`): `h-7 text-ink` + `text-meta uppercase text-ink-50` "Nonpartisan, by design" (was `text-xl font-bold` "Oravan" + off-brand "Not political. Just powerful."). Mobile bottom-nav labels `text-xs` → `text-meta`.
+- Auth (login/signup/forgot/reset): `h-8 text-ink`, centered (per-page taglines dropped). Onboarding `h-7 mx-auto`. Legal nav `h-7`.
+
+### Party badge — LOCKED (neutral, on-token)
+
+Rep party renders as the neutral outline pill used by the bill status pills: `inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase` (RepCard + CallFlow). The partisan blue/red/purple `partyColor()` helper is **deleted** (`lib/utils.ts`) — party color is not rendered on a deliberately nonpartisan tool. (`urgencyLabel().color` remains unused/off-palette, untouched — its own debt line.)
+
+### RepCard — LOCKED (full retoken)
+
+Was fully pre-system (`bg-white`, `slate-*`, raw sizes, emoji 📞🌐, and a **broken `bg-action-500`** — undefined token, so the Call button rendered with no fill). Now: `bg-card rounded-xl border border-divider`; avatar `bg-ink-10 text-ink-50`; name/title on the type scale (matching CallFlow's rep rows); Call button `bg-signal text-white` + lucide `Phone` (matches CallFlow's tap-to-call + the Button `signal` variant); website button lucide `Globe` with `aria-label`.
+
+### Type-scale sweep — LOCKED (snap-to-token)
+
+All raw `text-xs` (12px non-uppercase, off the project scale) on the touched surfaces resolved per the tokens-only rule: descriptive sublines → `text-small` (14px); short labels/kickers → `text-meta` (12px uppercase). No new caption token added — the `type-scale-extension` token *gap* stays open for future surfaces, but the app/auth/legal routes now carry no raw `text-xs`. Em dashes in touched UI copy replaced (commas/periods) per the no-em-dash copy law (privacy/terms legal-prose em dashes left as intentional).
+
+### Out of scope (not regressed, deferred)
+
+- `/bills/[id]`, `BillCard` V4, `ScriptFlow`: already floor+ceiling locked; cohered-by-inheritance only (classic-card radius reconciled; no internal rework).
+- `Badge` primitive: still deferred (would touch locked card pills; needs the 12px-caption token decision).
+- Privacy/terms legal-prose em dashes; `urgencyLabel().color` dead tints; a11y contrast deferrals (per `PRODUCT.md`, v2).
+- The LLM `/critique` + `creative-director` ceiling passes were **not** run (deterministic `detect` clean; product-register screens cohered onto already-critiqued locked decisions) — available as a follow-up per screen.

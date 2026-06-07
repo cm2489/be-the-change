@@ -227,9 +227,15 @@ export default async function LandingPage() {
           <div className="font-semibold text-ink">Oravan</div>
           <div>Not political. Just powerful.</div>
           <div className="flex gap-4">
-            <span className="cursor-pointer hover:text-ink-70">Privacy</span>
-            <span className="cursor-pointer hover:text-ink-70">Terms</span>
-            <span className="cursor-pointer hover:text-ink-70">Contact</span>
+            <Link href="/privacy" className="hover:text-ink-70">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-ink-70">
+              Terms
+            </Link>
+            <a href="mailto:hello@oravan.org" className="hover:text-ink-70">
+              Contact
+            </a>
           </div>
         </div>
       </footer>

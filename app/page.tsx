@@ -1,43 +1,62 @@
 import Link from 'next/link'
+import {
+  Target,
+  Landmark,
+  MessageSquareText,
+  Activity,
+  Lock,
+  MapPin,
+  type LucideIcon,
+} from 'lucide-react'
+import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { OravanWordmark } from '@/components/brand/OravanWordmark'
+import { createServerClient } from '@/lib/supabase/server'
 
-const FEATURES = [
+type Feature = {
+  Icon: LucideIcon
+  title: string
+  description: string
+  tag?: string
+}
+
+const FEATURES: Feature[] = [
   {
-    icon: '📋',
+    Icon: Target,
     title: 'Issues you actually care about',
     description:
-      'Tell us what matters to you — climate, healthcare, housing, democracy — and we surface the legislation that affects it.',
+      'Tell us what matters to you (climate, healthcare, housing, democracy) and we surface the federal bills that affect it.',
   },
   {
-    icon: '📞',
-    title: 'One tap to call your rep',
+    Icon: Landmark,
+    title: 'Your representatives, found for you',
     description:
-      'We find your representatives at every level: federal, state, and local. Tap to dial — no searching, no hold music maze.',
+      'Enter your address and we find your House representative and your two Senators. No lookup, no guesswork.',
   },
   {
-    icon: '✍️',
+    Icon: MessageSquareText,
     title: 'AI script, ready to go',
     description:
-      'Calling your senator feels intimidating. We generate a natural, respectful script so you know exactly what to say.',
+      'Calling your senator feels intimidating. We draft a natural, respectful script so you know what to say, always yours to review and edit first.',
   },
   {
-    icon: '🏆',
-    title: 'Callenge your community',
+    Icon: Activity,
+    title: 'Track your impact',
     description:
-      'Commit to a number of calls with friends, family, or neighbors. Collective action is more powerful than going it alone.',
+      'See every call you have made and every script you have drafted. Your civic footprint, in one place.',
   },
   {
-    icon: '📍',
-    title: 'Local matters too',
+    Icon: Lock,
+    title: 'Independent, funded by people',
     description:
-      'City councils, mayors, school boards — the decisions closest to home often have the most impact on your daily life.',
+      'No advertisers and no data brokers. Oravan is funded by the people who use it, never by selling what you believe.',
   },
   {
-    icon: '🔒',
-    title: 'Privacy first, always',
+    Icon: MapPin,
+    title: 'State and local coverage',
     description:
-      'No ads. No data selling. No tracking. Your political beliefs stay yours. We are funded by people, not corporations.',
+      'Today Oravan covers Congress. Your state legislature and local officials are next.',
+    tag: 'On the roadmap',
   },
 ]
 
@@ -52,22 +71,40 @@ const STEPS = [
     number: '2',
     title: 'See what\'s happening',
     description:
-      'Your personalized feed shows legislation coming up for a vote — filtered by your interests and your location.',
+      'Your personalized feed shows federal legislation coming up for a vote, filtered by your issue priorities and drawn directly from Congress.gov.',
   },
   {
     number: '3',
     title: 'Make the call',
     description:
-      'Get your AI-generated script, tap to call, and log your action. Five minutes of your day can change policy.',
+      'Get your AI-drafted script, tap to call, and log your action. Five minutes of your day can change policy.',
   },
 ]
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // Public marketing page. A logged-in visitor is sent to their dashboard so
+  // they never see the anonymous "Get started free" nav. Fail open: an auth
+  // hiccup must never break the public landing — fall through to the marketing
+  // render. (redirect() throws internally, so it stays OUTSIDE the try/catch.)
+  let hasSession = false
+  try {
+    const supabase = await createServerClient()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    hasSession = !!session
+  } catch {
+    hasSession = false
+  }
+  if (hasSession) {
+    redirect('/dashboard')
+  }
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-paper">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <div className="text-xl font-bold text-ink">Oravan</div>
+        <OravanWordmark className="h-9 text-ink" />
         <div className="flex items-center gap-3">
           <Link href="/login">
             <Button variant="ghost" size="sm">
@@ -75,141 +112,124 @@ export default function LandingPage() {
             </Button>
           </Link>
           <Link href="/signup">
-            <Button size="sm">Get started free</Button>
+            <Button size="sm">Get started</Button>
           </Link>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="px-6 pt-16 pb-20 text-center max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 bg-ink-10 text-ink text-sm font-medium px-4 py-1.5 rounded-full mb-6 border border-ink-20">
-          <span>🗳️</span>
-          <span>Pro-democracy. Non-partisan. Built for everyone.</span>
-        </div>
+      <section className="px-6 pt-16 pb-10 text-center max-w-4xl mx-auto">
+        <p className="text-meta uppercase text-ink-50 mb-6">Pro-democracy &middot; Non-partisan</p>
 
-        <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 leading-tight mb-6 text-balance">
+        <h1 className="font-serif text-h1 sm:text-display text-ink leading-tight mb-6 text-balance">
           Your voice matters.
           <br />
-          <span className="text-ink">Make it heard.</span>
+          Make it heard.
         </h1>
 
-        <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto text-balance">
-          Oravan makes it effortless to contact your representatives about the issues you
-          care about — with AI-generated scripts, one-tap calling, and legislation matched to
-          your values.
+        <p className="text-h3 text-ink-70 mb-10 max-w-2xl mx-auto text-balance leading-relaxed">
+          Oravan makes it effortless to contact your federal representatives about the issues
+          you care about: AI-drafted scripts you always review first, one-tap calling, and
+          legislation matched to your values.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="flex flex-col items-center gap-3">
           <Link href="/signup">
             <Button size="lg" className="w-full sm:w-auto">
-              Start making calls — it&apos;s free
+              Start making calls
             </Button>
           </Link>
-          <Link href="/login">
-            <Button variant="outline" size="lg" className="w-full sm:w-auto">
-              Sign in
-            </Button>
+          <Link
+            href="/login"
+            className="text-small text-ink-50 underline underline-offset-2 hover:text-ink"
+          >
+            Already have an account? Sign in
           </Link>
         </div>
 
-        <p className="mt-5 text-sm text-slate-400">
-          No credit card. No ads. No data selling. Free for everyone in the US.
+        <p className="mt-5 text-small text-ink-50">
+          Free. No ads, no data selling, no tracking.
         </p>
       </section>
 
-      {/* Social proof strip */}
-      <section className="bg-paper border-y border-divider py-8 px-6">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-center">
-          <div>
-            <div className="text-3xl font-bold text-ink">100%</div>
-            <div className="text-small text-ink-70 mt-1">Free to use</div>
-          </div>
-          <div className="hidden sm:block w-px h-8 bg-divider-strong" />
-          <div>
-            <div className="text-3xl font-bold text-ink">1-click</div>
-            <div className="text-small text-ink-70 mt-1">Calling your reps</div>
-          </div>
-          <div className="hidden sm:block w-px h-8 bg-divider-strong" />
-          <div>
-            <div className="text-3xl font-bold text-ink">&lt; 5 min</div>
-            <div className="text-small text-ink-70 mt-1">To make a difference</div>
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="px-6 py-20 max-w-5xl mx-auto">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-ink">How it works</h2>
-          <p className="text-ink-70 mt-3">From signup to your first call in under 5 minutes.</p>
+      {/* How it works — numbered editorial sequence (vertical ruled rows) */}
+      <section className="px-6 py-10 max-w-3xl mx-auto">
+        <div className="mb-10">
+          <h2 className="font-serif text-h2 text-ink">How it works</h2>
+          <p className="text-body text-ink-70 mt-3">
+            From signup to your first call in under 5 minutes.
+          </p>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-8">
+        <ol className="border-t border-divider">
           {STEPS.map(step => (
-            <div key={step.number} className="relative">
-              <div className="w-10 h-10 rounded-full bg-ink text-white font-bold text-h3 flex items-center justify-center mb-4">
+            <li
+              key={step.number}
+              className="flex items-start gap-6 sm:gap-8 border-b border-divider py-6"
+            >
+              <span className="font-serif text-display text-ink-20 leading-none w-12 shrink-0">
                 {step.number}
+              </span>
+              <div className="pt-1.5">
+                <h3 className="text-h3 font-semibold text-ink mb-1.5">{step.title}</h3>
+                <p className="text-ink-70 text-small leading-relaxed">{step.description}</p>
               </div>
-              <h3 className="text-h3 font-semibold text-ink mb-2">{step.title}</h3>
-              <p className="text-ink-70 text-small leading-relaxed">{step.description}</p>
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
       </section>
 
-      {/* Features grid */}
-      <section className="px-6 py-20 bg-paper border-y border-divider">
+      {/* What Oravan does — card-less editorial list (no boxes/shadows) */}
+      <section className="px-6 py-12 bg-paper-dark border-y border-divider">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold text-ink">
-              Everything you need to be civically active
-            </h2>
-          </div>
+          <h2 className="font-serif text-h2 text-ink mb-12">What Oravan does</h2>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 gap-x-12 gap-y-9">
             {FEATURES.map(feature => (
-              <Card
-                key={feature.title}
-                padding="md"
-                className="shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="text-3xl mb-4">{feature.icon}</div>
-                <h3 className="text-body font-semibold text-ink mb-2">
-                  {feature.title}
-                </h3>
+              <div key={feature.title} className="border-t border-divider pt-5">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <feature.Icon className="w-4 h-4 text-ink-50" strokeWidth={1.5} aria-hidden />
+                  <h3 className="text-body font-semibold text-ink">{feature.title}</h3>
+                  {feature.tag && (
+                    <span className="ml-auto text-meta uppercase text-ink-50">{feature.tag}</span>
+                  )}
+                </div>
                 <p className="text-small text-ink-70 leading-relaxed">{feature.description}</p>
-              </Card>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="px-6 py-24 text-center max-w-3xl mx-auto">
-        <h2 className="text-h1 font-bold text-ink mb-4 text-balance">
-          Ready to be the change?
+      <section className="px-6 py-10 text-center max-w-3xl mx-auto">
+        <h2 className="font-serif text-h1 text-ink mb-4 text-balance">
+          Anyone in the US can do this.
         </h2>
-        <p className="text-lg text-ink-70 mb-10 text-balance">
-          Join thousands of everyday Americans making their voices heard. Your call takes 2
-          minutes — and it actually works.
+        <p className="text-h3 text-ink-70 mb-10 text-balance leading-relaxed">
+          You don&apos;t have to be a citizen to contact your representatives. Five minutes, and
+          it&apos;s free for everyone.
         </p>
         <Link href="/signup">
-          <Button size="lg">
-            Create your free account
-          </Button>
+          <Button size="lg">Start making calls</Button>
         </Link>
-        <p className="mt-4 text-small text-ink-50">For all US residents. Not just citizens.</p>
       </section>
 
       {/* Footer */}
       <footer className="border-t border-divider px-6 py-8">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-small text-ink-50">
-          <div className="font-semibold text-ink">Oravan</div>
-          <div>Not political. Just powerful. 🇺🇸</div>
+          <OravanWordmark className="h-7 text-ink" />
+          <div className="text-meta uppercase text-ink-50">Nonpartisan, by design</div>
           <div className="flex gap-4">
-            <span className="cursor-pointer hover:text-ink-70">Privacy</span>
-            <span className="cursor-pointer hover:text-ink-70">Terms</span>
-            <span className="cursor-pointer hover:text-ink-70">Contact</span>
+            <Link href="/privacy" className="hover:text-ink-70">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-ink-70">
+              Terms
+            </Link>
+            <a href="mailto:hello@oravan.org" className="hover:text-ink-70">
+              Contact
+            </a>
           </div>
         </div>
       </footer>

@@ -211,3 +211,58 @@ Row `mt-3 flex items-center justify-between`.
 - **Tokenized in build 1:** `#FAF8F5` → `paper.mid` (`bg-paper-mid`); `max-w-[9rem]` → `maxWidth.category` (`max-w-category` = 9rem, kept with `truncate` + the real label); `maxHeight: '2.75em'` → `maxHeight.title` (`max-h-title`).
 - **a11y debt (v2-deferred per `PRODUCT.md`, logged):** `ink-50` title ~3.6:1 (under AA 4.5:1); `#FAF8F5` container border ~1.2:1; the `<Link>` needs an `aria-label` (the headline) + `aria-hidden` on the arrow; `break-words` insurance on title/headline/summary.
 - **Parked:** the vote pill ("VOTE IMMINENT") + status ("Floor Vote") both signal the vote (redundancy — Colby's later call); the CRA category-wall is **rescued by the distinct headline, not eliminated** (true fix = a parked feed-ordering/ranking decision — see `#feed-card-cra-wall`); the **favicon glyph is a separate open brand call (O vs Or)** owned by the logo work, recorded here only so it isn't lost.
+
+---
+
+## Screen: Landing (`app/page.tsx`, `/`) — donor-ready redesign — LOCKED (2026-06-07)
+
+Branch `feat/donor-ready-landing`. Floor (Impeccable critique: deterministic detector **0 findings**, Nielsen **30/40**) + brand + ceiling co-design at 390 + desktop (WebKit). **Brand register** — design IS the product. Public marketing page; a logged-in visitor is redirected to `/dashboard` (the server component reads the session, redirect outside the try/catch since it throws). The `noindex` launch-gate block in `app/layout.tsx` stays.
+
+### Composition / rhythm — LOCKED
+
+- **Alignment system (intentional, not incidental):** **centered = the emotional bookends** (hero, closing CTA); **left-aligned = the informational middle** (`How it works`, `What Oravan does`). The page reads center → left → left → center. This is the antidote to the centered-everything SaaS template the floor critique flagged — one deliberate left spine through the explain-the-product zone.
+- **Section rhythm tightened off the airy default** (the doubled `py-20` produced ~160px seams that read as dead space): hero `pt-16 pb-10`, content sections `py-10`, the warm features band `py-12`, footer `py-8`. Seams now ~80px — generous but intentional.
+
+### Nav + wordmark — LOCKED
+
+- Nav: `OravanWordmark` `h-9 text-ink` (left) + "Sign in" ghost button + "Get started" primary (right).
+- **Wordmark sizing hierarchy:** nav `h-9` (36px, the primary brand moment) **>** footer `h-7` (28px, the quiet sign-off). Deliberate hierarchy, not two identical logos. Source component: `components/brand/OravanWordmark.tsx` (currentColor serif SVG, themes via `text-*`).
+
+### Hero — LOCKED
+
+- Eyebrow: `text-meta uppercase text-ink-50 mb-6` — "Pro-democracy · Non-partisan". A quiet meta-caps line, **not** a bordered icon pill (the pill read as SaaS-template).
+- Headline: `font-serif text-h1 sm:text-display text-ink leading-tight mb-6 text-balance` — "Your voice matters. / Make it heard." Instrument Serif is the page's one serif-voice moment.
+- Subhead bakes the **AI-review safeguard in at first mention** (brand principle "honest about AI" — the reassurance travels *with* the claim, not three sections later): "...AI-drafted scripts **you always review first**, one-tap calling, and legislation matched to your values."
+- **Single** primary CTA `<Button size="lg" className="w-full sm:w-auto">Start making calls</Button>` + a quiet secondary text link (not a co-equal button): `Already have an account? Sign in` (`text-small text-ink-50 underline underline-offset-2 hover:text-ink`). The old two co-equal full-width buttons competed on mobile.
+- Microcopy: `mt-5 text-small text-ink-50` — "Free. No ads, no data selling, no tracking."
+
+### How it works — numbered editorial sequence — LOCKED
+
+Replaced the centered 3-up icon-circle grid (the critique's template seam) with a **vertical numbered ruled list** in a reader column (`max-w-3xl`). Vertical reads as a true 1→2→3 sequence (parallel columns read as options); the serif numerals are the device (brand voice), not generic filled circles; hairline rules tie it to the editorial system without duplicating the wide capability grid.
+
+- `<ol className="border-t border-divider">`; each `<li className="flex items-start gap-6 sm:gap-8 border-b border-divider py-6">`.
+- Numeral: `font-serif text-display text-ink-20 leading-none w-12 shrink-0` (large, faint — an elegant anchor, **not** a loud number).
+- Body: title `text-h3 font-semibold text-ink mb-1.5`; description `text-ink-70 text-small leading-relaxed`, in a `pt-1.5` block.
+- Step 2 carries the **Congress.gov provenance** ("...drawn directly from Congress.gov") — the one load-bearing fact rescued when the standalone trust strip was cut.
+
+### What Oravan does — card-less editorial list — LOCKED
+
+Replaced the 5 identical icon + heading + text shadow cards (the **identical-card-grid** ban + "cards are the lazy answer" + decorative hover-lift on non-clickable cards) with a **card-less hairline-ruled list** on the warm band.
+
+- Section: `bg-paper-dark border-y border-divider`; heading **left-aligned** `font-serif text-h2 text-ink mb-12` "What Oravan does" (was the SaaS trope "Everything you need to be civically active").
+- Grid: `grid sm:grid-cols-2 gap-x-12 gap-y-9` in `max-w-5xl`. Each item `border-t border-divider pt-5`, a row `flex items-center gap-2.5 mb-2` = quiet lucide lead icon `w-4 h-4 text-ink-50` + title `text-body font-semibold text-ink` (+ optional right tag `ml-auto text-meta uppercase text-ink-50`), then `text-small text-ink-70 leading-relaxed`.
+- **6 items** (squares the grid to a clean 3×2): Issues · Representatives · AI script · Track impact · Independent (funded by people) · **State & local coverage** tagged **"On the roadmap"**. The roadmap item is the single forward-looking entry, explicitly labeled future — never presented as a current capability (state/local is out of MVP scope; the tag is the honesty guardrail). The Privacy card was reframed off its verbatim hero-fine-print repeat to "Independent, funded by people."
+
+### Closing CTA — LOCKED
+
+- Headline `font-serif text-h1 text-ink mb-4 text-balance` — "Anyone in the US can do this." (was "Ready to make your voice heard?", a near-verbatim hero restatement — copy law: no restated headings).
+- Promotes the formerly-buried 12px inclusivity line to the **payoff**: "You don't have to be a citizen to contact your representatives. Five minutes, and it's free for everyone."
+- `<Button size="lg">Start making calls</Button>`. **CTA label unified** across the page: nav "Get started" / hero "Start making calls" / closing "Start making calls" (was three different verbs for one `/signup` destination); "free" lives in microcopy, not baked into every label.
+
+### Footer — LOCKED
+
+`OravanWordmark h-7 text-ink` + `text-meta uppercase text-ink-50` "Nonpartisan, by design" + real Privacy / Terms / Contact links (`mailto:hello@oravan.org` — **the address must exist before launch**).
+
+### Accent / color — NONE (parked, not locked)
+
+The landing ships **monochrome** (ink-green on paper, neutrals only). An accent hunt was run and **all candidates rejected**: `signal` orange (off/warm-red), antique gold `#A67C2E` (afterthought — harmonious/low-contrast with the teal-green at hue ~164deg), and the true complement berry `#A33A5B` (~341deg, impactful but jarring/pink for a calm civic tool). The palette has **no obvious accent home**; monochrome is on-brand and cleared the slop bar. **Accent parked post-launch** — full record in `docs/deferred.md#brand-accent-color-pops`. Mirrors the bill-detail ceiling's "no accent" outcome: **accent is decided per-screen, never assumed.**

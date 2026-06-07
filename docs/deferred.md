@@ -629,6 +629,8 @@ Hero accent span, wordmark logotype, and landing stat figures were `civic-600` c
 
 **Trigger to revisit:** brand lock (name + visual identity), or the first donor demo if the headers/hero feel flat without an accent.
 
+**Update (2026-06-07 — donor-ready landing accent exploration; parked again).** The donor-ready landing pass (`feat/donor-ready-landing`) explicitly hunted for an accent and **deliberately shipped none.** Three candidates were rendered and rejected: (1) `signal` orange on the hero period + step numerals — read too warm-red / off; (2) **antique gold** `#A67C2E` on the type spots — "doesn't come through," reads as an afterthought (gold is roughly triadic/harmonious with the teal-leaning green `ink`, hue ~164deg, so it's low-contrast and blends, not a tunable-shade problem); (3) the green's **true complement**, deep berry/garnet `#A33A5B` (~341deg) on the primary buttons + type — high-contrast and impactful but read as **jarring / pink** for a calm civic tool. Conclusion (Colby): this palette has **no obvious accent home**; the monochrome green-on-paper is on-brand ("restraint is the brief") and was validated above the slop bar by the Impeccable critique (detector 0 findings, 30/40). **Accent parked as a post-launch exploration** (a dedicated, no-deadline creative-director pass), not forced before launch. The `accent` token + Button `accent` variant from the experiment were reverted net-zero. Note the rest of this entry is now **partly resolved:** the four stat figures are **gone** (the hero-metric strip was dropped in this same pass), and the wordmark ships for real via `components/brand/OravanWordmark.tsx` (nav `h-9`, footer `h-7`) — so only the **accent-color** half remains parked.
+
 ---
 
 ### freemium-lib-remnant
@@ -828,10 +830,12 @@ Batch 1 converted in-scope emoji to lucide everywhere else but left the landing 
 
 ### landing-copy-out-of-scope-features
 
-**Priority:** SCOPE
+**Priority:** RESOLVED (2026-06-06, donor-ready landing work) — was SCOPE.
 **Where in code:** `app/page.tsx` — `FEATURES` array copy + section text
 
-The landing still advertises capabilities **out of MVP scope** (FEATURES.md): representatives "at every level: federal, **state, and local**" and "**City councils, mayors, school boards**" (state/local reps — v2), plus the "**Callenge your community** … commit to a number of calls with friends" card (social/gamification — v2). Same flavor as the "state & local / 50 states" stats copy already fixed (PR #17). Reword to federal-only and drop/defer the gamification card before any public or donor-facing launch. **Copy change, not styling** — separate ticket; surfaced during the Batch 1 landing sweep. **Also: the `Challenge` nav item in `NavBar.tsx`** (mobile bottom-tab + desktop sidebar, route `/callenge`) is the same out-of-MVP gamification — remove it from the nav alongside the landing card. Surfaced during the bill-detail floor session (2026-05-23); logged only, not acted on (shell paradigm itself is intentional and stays).
+The landing previously advertised capabilities **out of MVP scope** (FEATURES.md): reps "at every level: federal, state, and local" + "City councils, mayors, school boards" (state/local — v2), and the "Callenge your community" gamification card (social — v2). Same flavor as the "state & local / 50 states" stats fixed in PR #17.
+
+**Resolution (2026-06-06):** the state/local + gamification copy was removed in the landing floor pass; the donor-ready landing work then **dropped the "Alerts when it counts" web-push card** (web push is `web-push-deferred-post-mvp`, zero build) and corrected two further over-claims of *unbuilt* features — "see the bills you are following" (no Follow-bills writer exists; `/impact` surfaces calls + scripts only) and "filtered by … your district" (the feed filters by issue priorities, not district — district only drives rep lookup). The `/callenge` nav item flagged here was already swapped to **Your Impact** in PR #43. Landing copy is now scope-honest against `FEATURES.md`. Reconciling `FEATURES.md` §6 (still lists Web Push as MVP) remains its own follow-up — see `web-push-deferred-post-mvp`.
 
 ---
 

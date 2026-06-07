@@ -7,8 +7,10 @@ import {
   Activity,
   Lock,
 } from 'lucide-react'
+import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { createServerClient } from '@/lib/supabase/server'
 
 const FEATURES = [
   {
@@ -64,7 +66,25 @@ const STEPS = [
   },
 ]
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // Public marketing page. A logged-in visitor is sent to their dashboard so
+  // they never see the anonymous "Get started free" nav. Fail open: an auth
+  // hiccup must never break the public landing — fall through to the marketing
+  // render. (redirect() throws internally, so it stays OUTSIDE the try/catch.)
+  let hasSession = false
+  try {
+    const supabase = await createServerClient()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    hasSession = !!session
+  } catch {
+    hasSession = false
+  }
+  if (hasSession) {
+    redirect('/dashboard')
+  }
+
   return (
     <div className="min-h-screen bg-paper">
       {/* Nav */}

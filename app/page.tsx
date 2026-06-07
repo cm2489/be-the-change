@@ -1,40 +1,42 @@
 import Link from 'next/link'
+import {
+  Vote,
+  Target,
+  Landmark,
+  MessageSquareText,
+  Activity,
+  Lock,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
 const FEATURES = [
   {
-    icon: '📋',
+    Icon: Target,
     title: 'Issues you actually care about',
     description:
-      'Tell us what matters to you — climate, healthcare, housing, democracy — and we surface the legislation that affects it.',
+      'Tell us what matters to you (climate, healthcare, housing, democracy) and we surface the federal bills that affect it.',
   },
   {
-    icon: '📞',
-    title: 'One tap to call your rep',
+    Icon: Landmark,
+    title: 'Your representatives, found for you',
     description:
-      'We find your representatives at every level: federal, state, and local. Tap to dial — no searching, no hold music maze.',
+      'Enter your address and we find your House representative and your two Senators. No lookup, no guesswork.',
   },
   {
-    icon: '✍️',
+    Icon: MessageSquareText,
     title: 'AI script, ready to go',
     description:
-      'Calling your senator feels intimidating. We generate a natural, respectful script so you know exactly what to say.',
+      'Calling your senator feels intimidating. We draft a natural, respectful script so you know what to say, always yours to review and edit first.',
   },
   {
-    icon: '🏆',
-    title: 'Callenge your community',
+    Icon: Activity,
+    title: 'Track your impact',
     description:
-      'Commit to a number of calls with friends, family, or neighbors. Collective action is more powerful than going it alone.',
+      'See every call you have made and every script you have drafted. Your civic footprint, in one place.',
   },
   {
-    icon: '📍',
-    title: 'Local matters too',
-    description:
-      'City councils, mayors, school boards — the decisions closest to home often have the most impact on your daily life.',
-  },
-  {
-    icon: '🔒',
+    Icon: Lock,
     title: 'Privacy first, always',
     description:
       'No ads. No data selling. No tracking. Your political beliefs stay yours. We are funded by people, not corporations.',
@@ -52,19 +54,19 @@ const STEPS = [
     number: '2',
     title: 'See what\'s happening',
     description:
-      'Your personalized feed shows legislation coming up for a vote — filtered by your interests and your location.',
+      'Your personalized feed shows federal legislation coming up for a vote, filtered by your issue priorities.',
   },
   {
     number: '3',
     title: 'Make the call',
     description:
-      'Get your AI-generated script, tap to call, and log your action. Five minutes of your day can change policy.',
+      'Get your AI-drafted script, tap to call, and log your action. Five minutes of your day can change policy.',
   },
 ]
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-paper">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
         <div className="text-xl font-bold text-ink">Oravan</div>
@@ -82,27 +84,27 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="px-6 pt-16 pb-20 text-center max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 bg-ink-10 text-ink text-sm font-medium px-4 py-1.5 rounded-full mb-6 border border-ink-20">
-          <span>🗳️</span>
+        <div className="inline-flex items-center gap-2 bg-ink-10 text-ink text-small font-medium px-4 py-1.5 rounded-pill mb-6 border border-ink-20">
+          <Vote className="w-4 h-4" strokeWidth={1.5} aria-hidden />
           <span>Pro-democracy. Non-partisan. Built for everyone.</span>
         </div>
 
-        <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 leading-tight mb-6 text-balance">
+        <h1 className="font-serif text-h1 sm:text-display text-ink leading-tight mb-6 text-balance">
           Your voice matters.
           <br />
-          <span className="text-ink">Make it heard.</span>
+          Make it heard.
         </h1>
 
-        <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto text-balance">
-          Oravan makes it effortless to contact your representatives about the issues you
-          care about — with AI-generated scripts, one-tap calling, and legislation matched to
-          your values.
+        <p className="text-h3 text-ink-70 mb-10 max-w-2xl mx-auto text-balance leading-relaxed">
+          Oravan makes it effortless to contact your federal representatives about the issues
+          you care about: AI-drafted scripts, one-tap calling, and legislation matched to your
+          values.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="/signup">
             <Button size="lg" className="w-full sm:w-auto">
-              Start making calls — it&apos;s free
+              Start making calls, it&apos;s free
             </Button>
           </Link>
           <Link href="/login">
@@ -112,26 +114,26 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        <p className="mt-5 text-sm text-slate-400">
+        <p className="mt-5 text-small text-ink-50">
           No credit card. No ads. No data selling. Free for everyone in the US.
         </p>
       </section>
 
       {/* Social proof strip */}
-      <section className="bg-paper border-y border-divider py-8 px-6">
+      <section className="bg-paper-dark border-y border-divider py-8 px-6">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-center">
           <div>
-            <div className="text-3xl font-bold text-ink">100%</div>
+            <div className="text-h2 font-bold text-ink">100%</div>
             <div className="text-small text-ink-70 mt-1">Free to use</div>
           </div>
           <div className="hidden sm:block w-px h-8 bg-divider-strong" />
           <div>
-            <div className="text-3xl font-bold text-ink">1-click</div>
+            <div className="text-h2 font-bold text-ink">1-tap</div>
             <div className="text-small text-ink-70 mt-1">Calling your reps</div>
           </div>
           <div className="hidden sm:block w-px h-8 bg-divider-strong" />
           <div>
-            <div className="text-3xl font-bold text-ink">&lt; 5 min</div>
+            <div className="text-h2 font-bold text-ink">&lt; 5 min</div>
             <div className="text-small text-ink-70 mt-1">To make a difference</div>
           </div>
         </div>
@@ -140,14 +142,16 @@ export default function LandingPage() {
       {/* How it works */}
       <section className="px-6 py-20 max-w-5xl mx-auto">
         <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-ink">How it works</h2>
-          <p className="text-ink-70 mt-3">From signup to your first call in under 5 minutes.</p>
+          <h2 className="font-serif text-h2 text-ink">How it works</h2>
+          <p className="text-body text-ink-70 mt-3">
+            From signup to your first call in under 5 minutes.
+          </p>
         </div>
 
         <div className="grid sm:grid-cols-3 gap-8">
           {STEPS.map(step => (
             <div key={step.number} className="relative">
-              <div className="w-10 h-10 rounded-full bg-ink text-white font-bold text-h3 flex items-center justify-center mb-4">
+              <div className="w-10 h-10 rounded-full bg-ink text-paper font-bold text-h3 flex items-center justify-center mb-4">
                 {step.number}
               </div>
               <h3 className="text-h3 font-semibold text-ink mb-2">{step.title}</h3>
@@ -158,10 +162,10 @@ export default function LandingPage() {
       </section>
 
       {/* Features grid */}
-      <section className="px-6 py-20 bg-paper border-y border-divider">
+      <section className="px-6 py-20 bg-paper-dark border-y border-divider">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold text-ink">
+            <h2 className="font-serif text-h2 text-ink">
               Everything you need to be civically active
             </h2>
           </div>
@@ -173,10 +177,8 @@ export default function LandingPage() {
                 padding="md"
                 className="shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="text-3xl mb-4">{feature.icon}</div>
-                <h3 className="text-body font-semibold text-ink mb-2">
-                  {feature.title}
-                </h3>
+                <feature.Icon className="w-6 h-6 text-ink mb-4" strokeWidth={1.5} aria-hidden />
+                <h3 className="text-body font-semibold text-ink mb-2">{feature.title}</h3>
                 <p className="text-small text-ink-70 leading-relaxed">{feature.description}</p>
               </Card>
             ))}
@@ -186,17 +188,15 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="px-6 py-24 text-center max-w-3xl mx-auto">
-        <h2 className="text-h1 font-bold text-ink mb-4 text-balance">
-          Ready to be the change?
+        <h2 className="font-serif text-h1 text-ink mb-4 text-balance">
+          Ready to make your voice heard?
         </h2>
-        <p className="text-lg text-ink-70 mb-10 text-balance">
-          Join thousands of everyday Americans making their voices heard. Your call takes 2
-          minutes — and it actually works.
+        <p className="text-h3 text-ink-70 mb-10 text-balance leading-relaxed">
+          Five minutes is all it takes to tell your representatives where you stand. Free, for
+          everyone in the US.
         </p>
         <Link href="/signup">
-          <Button size="lg">
-            Create your free account
-          </Button>
+          <Button size="lg">Create your free account</Button>
         </Link>
         <p className="mt-4 text-small text-ink-50">For all US residents. Not just citizens.</p>
       </section>
@@ -205,7 +205,7 @@ export default function LandingPage() {
       <footer className="border-t border-divider px-6 py-8">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-small text-ink-50">
           <div className="font-semibold text-ink">Oravan</div>
-          <div>Not political. Just powerful. 🇺🇸</div>
+          <div>Not political. Just powerful.</div>
           <div className="flex gap-4">
             <span className="cursor-pointer hover:text-ink-70">Privacy</span>
             <span className="cursor-pointer hover:text-ink-70">Terms</span>

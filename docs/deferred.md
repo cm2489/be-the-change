@@ -828,10 +828,12 @@ Batch 1 converted in-scope emoji to lucide everywhere else but left the landing 
 
 ### landing-copy-out-of-scope-features
 
-**Priority:** SCOPE
+**Priority:** RESOLVED (2026-06-06, donor-ready landing work) — was SCOPE.
 **Where in code:** `app/page.tsx` — `FEATURES` array copy + section text
 
-The landing still advertises capabilities **out of MVP scope** (FEATURES.md): representatives "at every level: federal, **state, and local**" and "**City councils, mayors, school boards**" (state/local reps — v2), plus the "**Callenge your community** … commit to a number of calls with friends" card (social/gamification — v2). Same flavor as the "state & local / 50 states" stats copy already fixed (PR #17). Reword to federal-only and drop/defer the gamification card before any public or donor-facing launch. **Copy change, not styling** — separate ticket; surfaced during the Batch 1 landing sweep. **Also: the `Challenge` nav item in `NavBar.tsx`** (mobile bottom-tab + desktop sidebar, route `/callenge`) is the same out-of-MVP gamification — remove it from the nav alongside the landing card. Surfaced during the bill-detail floor session (2026-05-23); logged only, not acted on (shell paradigm itself is intentional and stays).
+The landing previously advertised capabilities **out of MVP scope** (FEATURES.md): reps "at every level: federal, state, and local" + "City councils, mayors, school boards" (state/local — v2), and the "Callenge your community" gamification card (social — v2). Same flavor as the "state & local / 50 states" stats fixed in PR #17.
+
+**Resolution (2026-06-06):** the state/local + gamification copy was removed in the landing floor pass; the donor-ready landing work then **dropped the "Alerts when it counts" web-push card** (web push is `web-push-deferred-post-mvp`, zero build) and corrected two further over-claims of *unbuilt* features — "see the bills you are following" (no Follow-bills writer exists; `/impact` surfaces calls + scripts only) and "filtered by … your district" (the feed filters by issue priorities, not district — district only drives rep lookup). The `/callenge` nav item flagged here was already swapped to **Your Impact** in PR #43. Landing copy is now scope-honest against `FEATURES.md`. Reconciling `FEATURES.md` §6 (still lists Web Push as MVP) remains its own follow-up — see `web-push-deferred-post-mvp`.
 
 ---
 

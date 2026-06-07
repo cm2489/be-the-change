@@ -102,14 +102,13 @@ export function BillsFeed({ initialBills, mode, userId, pageSize }: BillsFeedPro
         )}
         {error && (
           <p className="text-small text-ink-50">
-            Couldn’t load more —{' '}
+            Couldn’t load more.{' '}
             <button
               onClick={loadMore}
               className="underline underline-offset-2 hover:text-ink"
             >
-              try again
+              Try again
             </button>
-            .
           </p>
         )}
         {done && <p className="text-meta text-ink-50">You’ve reached the end.</p>}

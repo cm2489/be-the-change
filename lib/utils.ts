@@ -28,15 +28,6 @@ export function urgencyLabel(score: number): { label: string; color: string } {
   return { label: 'Introduced', color: 'text-slate-500 bg-slate-100' }
 }
 
-export function partyColor(party: string | null): string {
-  if (!party) return 'bg-slate-200 text-slate-700'
-  const p = party.toLowerCase()
-  if (p.includes('democrat')) return 'bg-blue-100 text-blue-700'
-  if (p.includes('republican')) return 'bg-red-100 text-red-700'
-  if (p.includes('independent')) return 'bg-purple-100 text-purple-700'
-  return 'bg-slate-100 text-slate-700'
-}
-
 export function levelLabel(level: string): string {
   if (level === 'federal') return 'Federal'
   if (level === 'state') return 'State'

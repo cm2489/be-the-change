@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { OravanWordmark } from '@/components/brand/OravanWordmark'
+import { PageHeader } from '@/components/ui/page-header'
 
 export const metadata: Metadata = {
   title: 'Privacy — Oravan',
@@ -10,8 +12,8 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-paper">
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <Link href="/" className="text-xl font-bold text-ink">
-          Oravan
+        <Link href="/" aria-label="Oravan home">
+          <OravanWordmark className="h-7 text-ink" />
         </Link>
         <Link href="/" className="text-small text-ink-70 hover:text-ink">
           &larr; Back home
@@ -19,10 +21,11 @@ export default function PrivacyPage() {
       </nav>
 
       <main className="max-w-2xl mx-auto px-6 py-12">
-        <h1 className="font-serif text-h1 text-ink mb-3">Privacy</h1>
-        <p className="text-small text-ink-50 mb-10">
-          Interim summary &mdash; the full Privacy Policy is being finalized before public launch.
-        </p>
+        <PageHeader
+          className="mb-8"
+          title="Privacy"
+          description="Interim summary. The full Privacy Policy is being finalized before public launch."
+        />
 
         <div className="space-y-6 text-body text-ink-85 leading-relaxed">
           <p>

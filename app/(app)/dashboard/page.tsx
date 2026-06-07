@@ -6,6 +6,8 @@ import { BillCard } from '@/components/BillCard'
 import { ImpactMetrics } from '@/components/ImpactMetrics'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { PageHeader } from '@/components/ui/page-header'
+import { EmptyState } from '@/components/ui/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +28,9 @@ export default async function DashboardPage() {
     .eq('user_id', userId)
     .single()
 
-  const userName = profile?.full_name || session.user.email?.split('@')[0] || 'there'
+  // Greet by name only when we actually have one — never fall back to the email
+  // local-part, which leaks a raw identifier into the brand's warmest moment.
+  const fullName = profile?.full_name?.trim()
 
   // Check if user has any interests
   const { count: interestCount } = await supabase
@@ -75,24 +79,20 @@ export default async function DashboardPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       {/* Welcome header */}
-      <div className="mb-6">
-        <h1 className="text-h2 font-bold text-ink">
-          Welcome back, {userName}!
-        </h1>
-        <p className="text-ink-70 text-small mt-1">
-          Here&apos;s what&apos;s happening with issues you care about.
-        </p>
-      </div>
+      <PageHeader
+        title={fullName ? `Welcome back, ${fullName}` : 'Welcome back'}
+        description="Here's what's happening with issues you care about."
+      />
 
       {/* Onboarding prompt for users who skipped or came via email confirmation */}
       {!profile?.onboarding_completed_at && (
-        <div className="mb-6 bg-ink-10 border border-ink-20 rounded-2xl p-4 flex items-center justify-between gap-4">
+        <div className="mb-6 bg-ink-10 border border-ink-20 rounded-xl p-4 flex items-center justify-between gap-4">
           <div>
             <div className="font-semibold text-ink text-small">
               Personalize your feed
             </div>
-            <div className="text-ink text-xs mt-0.5">
-              Tell us what issues matter to you — takes 2 minutes.
+            <div className="text-ink-70 text-small mt-0.5">
+              Tell us what issues matter to you. Takes 2 minutes.
             </div>
           </div>
           <Link href="/onboarding">
@@ -115,14 +115,14 @@ export default async function DashboardPage() {
           <Card padding="sm" className="hover:border-divider-strong hover:shadow-sm transition-all cursor-pointer">
             <ClipboardList className="h-6 w-6 mb-2 text-ink" />
             <div className="text-small font-semibold text-ink">Browse Issues</div>
-            <div className="text-xs text-ink-70 mt-0.5">See all upcoming votes</div>
+            <div className="text-small text-ink-70 mt-0.5">See all upcoming votes</div>
           </Card>
         </Link>
         <Link href="/representatives">
           <Card padding="sm" className="hover:border-divider-strong hover:shadow-sm transition-all cursor-pointer">
             <Phone className="h-6 w-6 mb-2 text-ink" />
             <div className="text-small font-semibold text-ink">My Representatives</div>
-            <div className="text-xs text-ink-70 mt-0.5">Your federal reps</div>
+            <div className="text-small text-ink-70 mt-0.5">Your federal reps</div>
           </Card>
         </Link>
       </div>
@@ -130,7 +130,7 @@ export default async function DashboardPage() {
       {/* Personalized bill feed */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-h3 font-bold text-ink">
+          <h2 className="font-serif text-h3 text-ink">
             {(interestCount ?? 0) > 0 ? 'For You' : 'Trending Issues'}
           </h2>
           <Link href="/bills" className="text-small text-ink hover:underline font-medium">
@@ -139,19 +139,17 @@ export default async function DashboardPage() {
         </div>
 
         {bills.length === 0 ? (
-          <Card padding="lg" className="text-center">
-            <div className="mb-3 flex justify-center">
-              <ClipboardList className="h-8 w-8 text-ink-50" />
-            </div>
-            <div className="font-semibold text-ink-85 mb-1">No issues synced yet</div>
-            <div className="text-small text-ink-70">
-              Check back soon — we sync new bills every night.
-            </div>
+          <Card padding="lg">
+            <EmptyState
+              icon={ClipboardList}
+              title="No issues synced yet"
+              description="Check back soon. We sync new bills every night."
+            />
           </Card>
         ) : (
           <div className="space-y-3">
             {bills.map((bill: any) => (
-              <BillCard key={bill.id} bill={bill} />
+              <BillCard key={bill.id} bill={bill} variant="v4" />
             ))}
           </div>
         )}

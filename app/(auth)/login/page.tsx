@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Alert } from '@/components/ui/alert'
+import { OravanWordmark } from '@/components/brand/OravanWordmark'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -24,7 +26,7 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('message') === 'password_updated') {
-      setSuccessMessage('Password updated — sign in with your new password.')
+      setSuccessMessage('Password updated. Sign in with your new password.')
     }
   }, [])
 
@@ -57,25 +59,24 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <div className="text-2xl font-bold text-ink">Oravan</div>
-            <div className="text-small text-ink-70 mt-1">Not political. Just powerful.</div>
+          <Link href="/" className="inline-block" aria-label="Oravan home">
+            <OravanWordmark className="h-8 text-ink" />
           </Link>
         </div>
 
         <Card padding="lg" className="shadow-sm">
-          <h1 className="text-h2 font-bold text-ink mb-6">Welcome back</h1>
+          <h1 className="font-serif text-h2 text-ink mb-6">Welcome back</h1>
 
           {successMessage && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-small text-green-700">
+            <Alert variant="success" className="mb-4">
               {successMessage}
-            </div>
+            </Alert>
           )}
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
+            <Alert variant="error" className="mb-4">
               {error}
-            </div>
+            </Alert>
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -101,7 +102,7 @@ export default function LoginPage() {
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-ink hover:underline"
+                  className="text-small text-ink hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -126,7 +127,7 @@ export default function LoginPage() {
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-divider" />
             </div>
-            <div className="relative flex justify-center text-xs text-ink-50">
+            <div className="relative flex justify-center text-meta uppercase text-ink-50">
               <span className="bg-card px-3">or continue with</span>
             </div>
           </div>
@@ -156,7 +157,7 @@ export default function LoginPage() {
           </p>
         </Card>
 
-        <p className="mt-6 text-center text-xs text-ink-50">
+        <p className="mt-6 text-center text-small text-ink-50">
           No ads. No data selling. Your privacy is protected.
         </p>
       </div>

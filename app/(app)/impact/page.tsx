@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { Phone } from 'lucide-react'
 import { createServerClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/card'
+import { PageHeader } from '@/components/ui/page-header'
+import { EmptyState } from '@/components/ui/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,12 +71,10 @@ export default async function ImpactPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h1 className="text-h2 font-bold text-ink">Your Impact</h1>
-        <p className="text-ink-70 text-small mt-1">
-          The calls you&apos;ve made and the scripts you&apos;ve generated.
-        </p>
-      </div>
+      <PageHeader
+        title="Your Impact"
+        description="The calls you've made and the scripts you've generated."
+      />
 
       {/* Totals */}
       <div className="grid grid-cols-2 gap-3">
@@ -90,17 +90,15 @@ export default async function ImpactPage() {
 
       {/* Call history */}
       <div className="mt-8">
-        <h2 className="text-h3 font-bold text-ink mb-4">Call history</h2>
+        <h2 className="font-serif text-h3 text-ink mb-4">Call history</h2>
 
         {calls.length === 0 ? (
-          <Card padding="lg" className="text-center">
-            <div className="mb-3 flex justify-center">
-              <Phone className="h-8 w-8 text-ink-50" />
-            </div>
-            <div className="font-semibold text-ink-85 mb-1">No calls logged yet</div>
-            <div className="text-small text-ink-70">
-              When you call a representative about a bill, it&apos;ll show up here.
-            </div>
+          <Card padding="lg">
+            <EmptyState
+              icon={Phone}
+              title="No calls logged yet"
+              description="When you call a representative about a bill, it'll show up here."
+            />
           </Card>
         ) : (
           <Card padding="md">

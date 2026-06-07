@@ -8,6 +8,9 @@ import { syncRepsForUser, type RepForUi, type SyncRepsResult } from '@/lib/actio
 import { RepCard } from '@/components/RepCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Alert } from '@/components/ui/alert'
+import { PageHeader } from '@/components/ui/page-header'
+import { EmptyState } from '@/components/ui/empty-state'
 
 // Federal-only by design — FEATURES.md scopes state/local reps out of MVP.
 // If state reps are added later, they should NOT be poured into these three
@@ -134,12 +137,10 @@ export default function RepresentativesPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h1 className="text-h2 font-bold text-ink">My Representatives</h1>
-        <p className="text-small text-ink-70 mt-1">
-          Your federal House Representative and two U.S. Senators.
-        </p>
-      </div>
+      <PageHeader
+        title="My Representatives"
+        description="Your federal House Representative and two U.S. Senators."
+      />
 
       <form onSubmit={handleSubmit} className="mb-6 space-y-3">
         <label className="block text-small font-medium text-ink-85">
@@ -151,8 +152,8 @@ export default function RepresentativesPage() {
           onChange={e => setAddress(e.target.value)}
           placeholder="123 Main St, Springfield, IL 62701"
         />
-        <p className="text-xs text-ink-50">
-          Full street address — required to find your House district.
+        <p className="text-small text-ink-50">
+          Full street address, required to find your House district.
         </p>
         <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
           {isPending ? 'Looking up…' : storedAddress ? 'Update address' : 'Find my reps'}
@@ -160,9 +161,9 @@ export default function RepresentativesPage() {
       </form>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
+        <Alert variant="error" className="mb-4">
           {error}
-        </div>
+        </Alert>
       )}
 
       {initialLoading && (
@@ -171,7 +172,7 @@ export default function RepresentativesPage() {
 
       {!initialLoading && storedAddress && (
         <>
-          <p className="text-xs text-ink-50 mb-4">
+          <p className="text-small text-ink-50 mb-4">
             Showing reps for <span className="text-ink-70">{storedAddress}</span>
           </p>
           <div className="space-y-3">
@@ -185,12 +186,12 @@ export default function RepresentativesPage() {
       )}
 
       {!initialLoading && !storedAddress && !error && (
-        <div className="text-center py-12 text-ink-50">
-          <div className="mb-3 flex justify-center">
-            <MapPin className="h-8 w-8 text-ink-50" />
-          </div>
-          <p>Enter your address to find your federal representatives.</p>
-        </div>
+        <EmptyState
+          className="py-12"
+          icon={MapPin}
+          title="Find your representatives"
+          description="Enter your address to find your federal House Representative and two U.S. Senators."
+        />
       )}
     </div>
   )
@@ -202,9 +203,9 @@ export default function RepresentativesPage() {
 // placeholder rather than implying we lost the rep.
 function VacantSlotCard({ label }: { label: string }) {
   return (
-    <div className="bg-paper-dark rounded-2xl border border-dashed border-divider-strong p-4 text-center">
+    <div className="bg-paper-dark rounded-xl border border-dashed border-divider-strong p-4 text-center">
       <div className="text-small font-semibold text-ink-85">{label}</div>
-      <div className="text-xs text-ink-70 mt-1">
+      <div className="text-small text-ink-70 mt-1">
         Seat currently vacant or pending update.{' '}
         <a
           href="https://www.congress.gov/members"

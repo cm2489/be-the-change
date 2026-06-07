@@ -6,14 +6,12 @@ import { cn } from '@/lib/utils'
 // across dashboard tiles, auth containers, and settings sections. Padding variants
 // match the sizes already in use (sm = dashboard tiles p-4, md = generic p-6,
 // lg = auth containers p-8). Shadow stays opt-in via className so no elevation
-// level is baked in. Appearance unchanged except the authorized color sweep
-// (border-slate-200 → border-divider, bg-white → bg-card, both #FFFFFF).
+// level is baked in. Color uses tokens (border-divider, bg-card #FFFFFF).
 //
-// NOTE (deferred, not a Batch-1 call): radius is rounded-2xl to match current page
-// cards exactly. That value is OFF the radius token scale (sm/md/lg/xl/pill) — the
-// "good" components (ScriptFlow/CallFlow) use rounded-xl. Reconciling page cards to
-// a radius token is a design decision; preserved as-is here. See components/ui/README.md.
-const cardVariants = cva('bg-card rounded-2xl border border-divider', {
+// Radius is rounded-xl (20px token) — reconciled off the old off-scale rounded-2xl
+// during the app UI-cohesion pass so every surface matches the locked components
+// (BillCard V4, ScriptFlow, CallFlow, the Decoded hero). See components/ui/README.md.
+const cardVariants = cva('bg-card rounded-xl border border-divider', {
   variants: {
     padding: {
       none: '',

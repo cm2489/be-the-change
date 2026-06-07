@@ -8,6 +8,8 @@ import { syncRepsForUser } from '@/lib/actions/sync-reps'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Alert } from '@/components/ui/alert'
+import { OravanWordmark } from '@/components/brand/OravanWordmark'
 
 type Step = 'location' | 'categories'
 
@@ -132,8 +134,8 @@ export default function OnboardingPage() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-xl font-bold text-ink mb-1">Oravan</div>
-          <h1 className="text-h2 font-bold text-ink">
+          <OravanWordmark className="h-7 text-ink mx-auto mb-3" />
+          <h1 className="font-serif text-h2 text-ink">
             {step === 'location' && 'Where are you located?'}
             {step === 'categories' && 'What issues matter to you?'}
           </h1>
@@ -156,9 +158,9 @@ export default function OnboardingPage() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
+          <Alert variant="error" className="mb-4">
             {error}
-          </div>
+          </Alert>
         )}
 
         {/* Step progress */}
@@ -195,7 +197,7 @@ export default function OnboardingPage() {
 
               <div>
                 <label className="block text-small font-medium text-ink-85 mb-1.5">
-                  ZIP code <span className="text-red-500">*</span>
+                  ZIP code <span className="text-oxblood">*</span>
                 </label>
                 <Input
                   type="text"
@@ -206,14 +208,14 @@ export default function OnboardingPage() {
                   placeholder="e.g. 10001"
                   required
                 />
-                <p className="mt-1.5 text-xs text-ink-50">
+                <p className="mt-1.5 text-small text-ink-50">
                   Used to filter bills relevant to your state. Never shared.
                 </p>
               </div>
 
               <div>
                 <label className="block text-small font-medium text-ink-85 mb-1.5">
-                  Full street address <span className="text-red-500">*</span>
+                  Full street address <span className="text-oxblood">*</span>
                 </label>
                 <Input
                   type="text"
@@ -222,7 +224,7 @@ export default function OnboardingPage() {
                   placeholder="123 Main St, Springfield, IL 62701"
                   required
                 />
-                <p className="mt-1.5 text-xs text-ink-50">
+                <p className="mt-1.5 text-small text-ink-50">
                   We need your full address to find your House district.
                   ZIP codes alone can span multiple districts.
                 </p>
@@ -249,7 +251,7 @@ export default function OnboardingPage() {
                     }`}
                   >
                     <div className="text-small font-semibold leading-tight">{cat.label}</div>
-                    <div className="text-xs text-ink-50 mt-0.5">{cat.subline}</div>
+                    <div className="text-small text-ink-50 mt-0.5">{cat.subline}</div>
                   </button>
                 ))}
               </div>

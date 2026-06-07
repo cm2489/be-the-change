@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { INTEREST_CATEGORIES } from '@/lib/interests'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Alert } from '@/components/ui/alert'
+import { PageHeader } from '@/components/ui/page-header'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -133,12 +136,12 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      <h1 className="text-h2 font-bold text-ink mb-6">Settings</h1>
+      <PageHeader title="Settings" />
 
       <div className="space-y-6">
         {/* Profile */}
         <Card padding="md">
-          <h2 className="text-body font-semibold text-ink mb-4">Profile</h2>
+          <h2 className="font-serif text-h3 text-ink mb-4">Profile</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-small font-medium text-ink-85 mb-1.5">Full name</label>
@@ -163,7 +166,7 @@ export default function SettingsPage() {
 
         {/* Interests */}
         <Card padding="md">
-          <h2 className="text-body font-semibold text-ink mb-1">My Issues</h2>
+          <h2 className="font-serif text-h3 text-ink mb-1">My Issues</h2>
           <p className="text-small text-ink-70 mb-4">
             Select the topics you want to stay informed about.
           </p>
@@ -173,9 +176,9 @@ export default function SettingsPage() {
                 key={cat.id}
                 onClick={() => toggleCat(cat.id)}
                 title={cat.subline}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                className={`px-3 py-1.5 rounded-pill text-small font-medium border transition-all ${
                   selectedCats.has(cat.id)
-                    ? 'bg-ink text-white border-ink'
+                    ? 'bg-ink text-paper border-ink'
                     : 'bg-card text-ink-70 border-divider hover:border-divider-strong'
                 }`}
               >
@@ -191,24 +194,29 @@ export default function SettingsPage() {
           onClick={handleSave}
           disabled={saving}
         >
-          {saving ? 'Saving…' : saved ? '✅ Saved!' : 'Save changes'}
+          {saving ? (
+            'Saving…'
+          ) : saved ? (
+            <>
+              <Check className="h-4 w-4" aria-hidden />
+              Saved
+            </>
+          ) : (
+            'Save changes'
+          )}
         </Button>
 
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-small text-red-700">
-            {error}
-          </div>
-        )}
+        {error && <Alert variant="error">{error}</Alert>}
 
         {/* Admin: Seed bills */}
         <div className="border-t border-divider pt-4">
-          <p className="text-xs text-ink-50 mb-2">Admin</p>
+          <p className="text-meta uppercase text-ink-50 mb-2">Admin</p>
           <SyncBillsButton />
         </div>
 
         {/* Sign out */}
         <div className="border-t border-divider pt-4">
-          <Button variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={handleSignOut}>
+          <Button variant="destructive" onClick={handleSignOut}>
             Sign out
           </Button>
         </div>
@@ -251,7 +259,7 @@ function SyncBillsButton() {
         {status === 'loading' ? 'Syncing bills…' : 'Sync bills now'}
       </Button>
       {result && (
-        <p className={`text-xs mt-1 ${status === 'done' ? 'text-green-600' : 'text-red-500'}`}>
+        <p className={`text-small mt-1 ${status === 'done' ? 'text-moss' : 'text-oxblood'}`}>
           {result}
         </p>
       )}

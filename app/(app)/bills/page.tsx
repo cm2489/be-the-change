@@ -2,6 +2,9 @@ import { createServerClient } from '@/lib/supabase/server'
 import { BillsFeed, type FeedBill } from '@/components/BillsFeed'
 import { ClipboardList } from 'lucide-react'
 import { redirect } from 'next/navigation'
+import { Card } from '@/components/ui/card'
+import { PageHeader } from '@/components/ui/page-header'
+import { EmptyState } from '@/components/ui/empty-state'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,28 +42,23 @@ export default async function BillsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-h2 font-bold text-ink">Issues</h1>
-          <p className="text-small text-ink-50 mt-1">
-            {(interestCount ?? 0) > 0
-              ? 'Matched to your interests, sorted by urgency.'
-              : 'All active federal legislation, sorted by urgency.'}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Issues"
+        description={
+          (interestCount ?? 0) > 0
+            ? 'Matched to your interests, sorted by urgency.'
+            : 'All active federal legislation, sorted by urgency.'
+        }
+      />
 
       {bills.length === 0 ? (
-        <div className="bg-card rounded-2xl border border-divider p-12 text-center">
-          <div className="mb-4 flex justify-center">
-            <ClipboardList className="h-10 w-10 text-ink-50" />
-          </div>
-          <h2 className="text-h3 font-semibold text-ink-70 mb-2">No bills synced yet</h2>
-          <p className="text-small text-ink-50 max-w-xs mx-auto">
-            We sync legislation nightly. Check back tomorrow — or run a manual sync if
-            you&apos;re an admin.
-          </p>
-        </div>
+        <Card padding="lg">
+          <EmptyState
+            icon={ClipboardList}
+            title="No bills synced yet"
+            description="We sync legislation nightly. Check back tomorrow, or run a manual sync if you're an admin."
+          />
+        </Card>
       ) : (
         <BillsFeed
           initialBills={bills}

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { OravanWordmark } from '@/components/brand/OravanWordmark'
+import { PageHeader } from '@/components/ui/page-header'
 
 export const metadata: Metadata = {
   title: 'Terms — Oravan',
@@ -20,10 +21,11 @@ export default function TermsPage() {
       </nav>
 
       <main className="max-w-2xl mx-auto px-6 py-12">
-        <h1 className="font-serif text-h1 text-ink mb-3">Terms</h1>
-        <p className="text-small text-ink-50 mb-10">
-          Interim summary &mdash; the full Terms of Service are being finalized before public launch.
-        </p>
+        <PageHeader
+          className="mb-8"
+          title="Terms"
+          description="Interim summary. The full Terms of Service are being finalized before public launch."
+        />
 
         <div className="space-y-6 text-body text-ink-85 leading-relaxed">
           <p>

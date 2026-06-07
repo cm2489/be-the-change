@@ -134,7 +134,9 @@ export default function OnboardingPage() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">
-          <OravanWordmark className="h-7 text-ink mx-auto mb-3" />
+          {/* Hidden on desktop — the app sidebar already shows the wordmark there;
+              on mobile (no sidebar) this is the only brand mark, so it stays. */}
+          <OravanWordmark className="h-7 text-ink mx-auto mb-3 lg:hidden" />
           <h1 className="font-serif text-h2 text-ink">
             {step === 'location' && 'Where are you located?'}
             {step === 'categories' && 'What issues matter to you?'}
@@ -153,7 +155,7 @@ export default function OnboardingPage() {
             className="text-small text-ink-50 hover:text-ink-70 underline underline-offset-2"
             disabled={loading}
           >
-            Just let me make a call — skip for now
+            Just let me make a call, skip for now
           </button>
         </div>
 

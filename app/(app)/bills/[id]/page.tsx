@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ScriptFlow } from '@/components/ScriptFlow'
@@ -125,9 +126,10 @@ export default function BillDetailPage() {
       {/* Back — neutral tokens. */}
       <button
         onClick={() => router.back()}
-        className="text-small text-ink-50 hover:text-ink mb-6 flex items-center gap-1 transition-colors"
+        className="text-small text-ink-50 hover:text-ink mb-6 inline-flex items-center gap-1 transition-colors"
       >
-        ← Back
+        <ArrowLeft className="h-4 w-4" aria-hidden />
+        Back
       </button>
 
       {/* SLOT 1 — status bar · ring-outline neutral pills + mono citation id */}
@@ -171,7 +173,7 @@ export default function BillDetailPage() {
           )}
           {displaySummary && (
             <p className="text-small italic text-ink-50 max-w-[65ch] mx-auto mt-5">
-              AI-generated summary — may be incomplete or inaccurate. Not an official source.
+              AI-generated summary. May be incomplete or inaccurate; not an official source.
             </p>
           )}
         </div>

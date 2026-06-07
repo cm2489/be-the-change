@@ -244,7 +244,7 @@ function SyncBillsButton() {
       }
     } catch {
       setStatus('error')
-      setResult('Network error — try again')
+      setResult('Network error. Try again.')
     }
   }
 

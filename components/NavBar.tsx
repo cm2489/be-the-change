@@ -46,7 +46,7 @@ export function NavBar({ userName }: { userName?: string }) {
         <div className="mt-auto pt-6 border-t border-divider">
           {userName && (
             <div className="text-small text-ink-70 mb-3">
-              Signed in as <span className="font-medium text-ink-85">{userName}</span>
+              Signed in as <span className="font-medium text-ink-85 break-all">{userName}</span>
             </div>
           )}
           <Link

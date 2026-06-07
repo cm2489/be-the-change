@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import {
-  Vote,
   Target,
   Landmark,
   MessageSquareText,
@@ -57,7 +56,7 @@ const STEPS = [
     number: '2',
     title: 'See what\'s happening',
     description:
-      'Your personalized feed shows federal legislation coming up for a vote, filtered by your issue priorities.',
+      'Your personalized feed shows federal legislation coming up for a vote, filtered by your issue priorities and drawn directly from Congress.gov.',
   },
   {
     number: '3',
@@ -105,10 +104,7 @@ export default async function LandingPage() {
 
       {/* Hero */}
       <section className="px-6 pt-16 pb-20 text-center max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 bg-ink-10 text-ink text-small font-medium px-4 py-1.5 rounded-pill mb-6 border border-ink-20">
-          <Vote className="w-4 h-4" strokeWidth={1.5} aria-hidden />
-          <span>Pro-democracy. Non-partisan. Built for everyone.</span>
-        </div>
+        <p className="text-meta uppercase text-ink-50 mb-6">Pro-democracy &middot; Non-partisan</p>
 
         <h1 className="font-serif text-h1 sm:text-display text-ink leading-tight mb-6 text-balance">
           Your voice matters.
@@ -136,28 +132,8 @@ export default async function LandingPage() {
         </div>
 
         <p className="mt-5 text-small text-ink-50">
-          No credit card. No ads. No data selling. Free for everyone in the US.
+          No ads. No data selling. No tracking.
         </p>
-      </section>
-
-      {/* Social proof strip */}
-      <section className="bg-paper-dark border-y border-divider py-8 px-6">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-center">
-          <div>
-            <div className="text-h2 font-bold text-ink">100%</div>
-            <div className="text-small text-ink-70 mt-1">Free to use</div>
-          </div>
-          <div className="hidden sm:block w-px h-8 bg-divider-strong" />
-          <div>
-            <div className="text-h2 font-bold text-ink">1-tap</div>
-            <div className="text-small text-ink-70 mt-1">Calling your reps</div>
-          </div>
-          <div className="hidden sm:block w-px h-8 bg-divider-strong" />
-          <div>
-            <div className="text-h2 font-bold text-ink">&lt; 5 min</div>
-            <div className="text-small text-ink-70 mt-1">To make a difference</div>
-          </div>
-        </div>
       </section>
 
       {/* How it works */}
@@ -225,8 +201,8 @@ export default async function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-divider px-6 py-8">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-small text-ink-50">
-          <OravanWordmark className="h-5 text-ink" />
-          <div>Not political. Just powerful.</div>
+          <OravanWordmark className="h-7 text-ink" />
+          <div className="text-meta uppercase text-ink-50">Nonpartisan, by design</div>
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-ink-70">
               Privacy

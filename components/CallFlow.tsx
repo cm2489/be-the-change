@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { cn, partyColor } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 interface CallFlowProps {
   billId: string
@@ -221,7 +221,7 @@ export function CallFlow({ billId, scriptGenerationId }: CallFlowProps) {
                     {repTitle(rep.chamber, rep.state, rep.district)}
                   </div>
                 </div>
-                <span className={cn('text-xs px-2 py-0.5 rounded-pill font-medium', partyColor(rep.party))}>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase">
                   {rep.party}
                 </span>
               </div>

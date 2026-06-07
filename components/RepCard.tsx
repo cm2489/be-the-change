@@ -1,4 +1,4 @@
-import { cn, partyColor } from '@/lib/utils'
+import { Phone, Globe } from 'lucide-react'
 
 interface RepCardProps {
   rep: {
@@ -25,9 +25,9 @@ function repTitle(chamber: 'house' | 'senate', state: string, district: string |
 
 export function RepCard({ rep, onCallClick }: RepCardProps) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 hover:shadow-sm transition-shadow">
+    <div className="bg-card rounded-xl border border-divider p-4 hover:shadow-sm transition-shadow">
       <div className="flex items-start gap-3">
-        <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-semibold text-lg flex-shrink-0 overflow-hidden">
+        <div className="w-12 h-12 rounded-full bg-ink-10 flex items-center justify-center text-ink-50 font-semibold text-h3 flex-shrink-0 overflow-hidden">
           {rep.photo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={rep.photo_url} alt={rep.full_name} className="w-full h-full object-cover" />
@@ -39,19 +39,16 @@ export function RepCard({ rep, onCallClick }: RepCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <div className="font-semibold text-slate-900 text-sm leading-tight">
+              <div className="font-semibold text-ink text-small leading-tight">
                 {rep.full_name}
               </div>
-              <div className="text-xs text-slate-500 mt-0.5 leading-tight">
+              <div className="text-small text-ink-70 mt-0.5 leading-tight">
                 {repTitle(rep.chamber, rep.state, rep.district)}
               </div>
             </div>
-            <span
-              className={cn(
-                'flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium',
-                partyColor(rep.party)
-              )}
-            >
+            {/* Neutral party pill — same outline language as the bill status pills.
+                Party color (blue/red) is deliberately not rendered on a nonpartisan tool. */}
+            <span className="flex-shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase">
               {rep.party}
             </span>
           </div>
@@ -60,18 +57,20 @@ export function RepCard({ rep, onCallClick }: RepCardProps) {
             <a
               href={`tel:${rep.dc_office_phone}`}
               onClick={onCallClick}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-action-500 hover:bg-action-600 text-white text-xs font-semibold rounded-lg transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-md bg-signal text-white text-small font-semibold hover:bg-signal-hover transition-colors"
             >
-              📞 Call
+              <Phone className="h-4 w-4" aria-hidden />
+              Call
             </a>
             {rep.website_url && (
               <a
                 href={rep.website_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center py-2 px-3 border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-semibold rounded-lg transition-colors"
+                aria-label={`${rep.full_name} official website`}
+                className="inline-flex items-center justify-center h-9 px-3 rounded-md border border-divider-strong text-ink-50 hover:bg-ink-10 transition-colors"
               >
-                🌐
+                <Globe className="h-4 w-4" aria-hidden />
               </a>
             )}
           </div>

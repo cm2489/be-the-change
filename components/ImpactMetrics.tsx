@@ -8,19 +8,17 @@ interface ImpactMetricsProps {
 
 export function ImpactMetrics({ totalCalls, callsToday }: ImpactMetricsProps) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5">
-      <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">
-        Your Impact
-      </h2>
+    <div className="bg-card rounded-xl border border-divider p-5">
+      <h2 className="text-meta uppercase text-ink-50 mb-4">Your Impact</h2>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="text-center">
-          <div className="text-2xl font-bold text-ink">{totalCalls}</div>
-          <div className="text-xs text-slate-500 mt-0.5">Total calls</div>
+          <div className="text-h2 font-bold text-ink">{totalCalls}</div>
+          <div className="text-small text-ink-70 mt-0.5">Total calls</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-slate-900">{callsToday}</div>
-          <div className="text-xs text-slate-500 mt-0.5">Today</div>
+          <div className="text-h2 font-bold text-ink">{callsToday}</div>
+          <div className="text-small text-ink-70 mt-0.5">Today</div>
         </div>
       </div>
     </div>

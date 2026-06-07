@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, ClipboardList, Users, Activity, Settings } from 'lucide-react'
+import { OravanWordmark } from '@/components/brand/OravanWordmark'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -20,8 +21,8 @@ export function NavBar({ userName }: { userName?: string }) {
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-card border-r border-divider p-6 fixed left-0 top-0">
         <div className="mb-8">
-          <div className="text-xl font-bold text-ink">Oravan</div>
-          <div className="text-xs text-ink-50 mt-0.5">Not political. Just powerful.</div>
+          <OravanWordmark className="h-7 text-ink" />
+          <div className="text-meta uppercase text-ink-50 mt-2">Nonpartisan, by design</div>
         </div>
 
         <nav className="flex-1 space-y-1">
@@ -66,7 +67,7 @@ export function NavBar({ userName }: { userName?: string }) {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex-1 flex flex-col items-center justify-center py-3 text-xs font-medium transition-colors',
+                'flex-1 flex flex-col items-center justify-center py-3 text-meta font-medium transition-colors',
                 pathname === item.href || pathname.startsWith(item.href + '/')
                   ? 'text-ink'
                   : 'text-ink-50'

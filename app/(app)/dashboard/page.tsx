@@ -28,7 +28,9 @@ export default async function DashboardPage() {
     .eq('user_id', userId)
     .single()
 
-  const userName = profile?.full_name || session.user.email?.split('@')[0] || 'there'
+  // Greet by name only when we actually have one — never fall back to the email
+  // local-part, which leaks a raw identifier into the brand's warmest moment.
+  const fullName = profile?.full_name?.trim()
 
   // Check if user has any interests
   const { count: interestCount } = await supabase
@@ -78,7 +80,7 @@ export default async function DashboardPage() {
     <div className="max-w-3xl mx-auto px-4 py-6">
       {/* Welcome header */}
       <PageHeader
-        title={`Welcome back, ${userName}`}
+        title={fullName ? `Welcome back, ${fullName}` : 'Welcome back'}
         description="Here's what's happening with issues you care about."
       />
 
@@ -147,7 +149,7 @@ export default async function DashboardPage() {
         ) : (
           <div className="space-y-3">
             {bills.map((bill: any) => (
-              <BillCard key={bill.id} bill={bill} />
+              <BillCard key={bill.id} bill={bill} variant="v4" />
             ))}
           </div>
         )}

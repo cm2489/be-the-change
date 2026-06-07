@@ -104,7 +104,7 @@ export default async function LandingPage() {
     <div className="min-h-screen bg-paper">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
-        <OravanWordmark className="h-6 text-ink" />
+        <OravanWordmark className="h-9 text-ink" />
         <div className="flex items-center gap-3">
           <Link href="/login">
             <Button variant="ghost" size="sm">
@@ -112,13 +112,13 @@ export default async function LandingPage() {
             </Button>
           </Link>
           <Link href="/signup">
-            <Button size="sm">Get started free</Button>
+            <Button size="sm">Get started</Button>
           </Link>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="px-6 pt-16 pb-20 text-center max-w-4xl mx-auto">
+      <section className="px-6 pt-16 pb-10 text-center max-w-4xl mx-auto">
         <p className="text-meta uppercase text-ink-50 mb-6">Pro-democracy &middot; Non-partisan</p>
 
         <h1 className="font-serif text-h1 sm:text-display text-ink leading-tight mb-6 text-balance">
@@ -129,52 +129,58 @@ export default async function LandingPage() {
 
         <p className="text-h3 text-ink-70 mb-10 max-w-2xl mx-auto text-balance leading-relaxed">
           Oravan makes it effortless to contact your federal representatives about the issues
-          you care about: AI-drafted scripts, one-tap calling, and legislation matched to your
-          values.
+          you care about: AI-drafted scripts you always review first, one-tap calling, and
+          legislation matched to your values.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="flex flex-col items-center gap-3">
           <Link href="/signup">
             <Button size="lg" className="w-full sm:w-auto">
-              Start making calls, it&apos;s free
+              Start making calls
             </Button>
           </Link>
-          <Link href="/login">
-            <Button variant="outline" size="lg" className="w-full sm:w-auto">
-              Sign in
-            </Button>
+          <Link
+            href="/login"
+            className="text-small text-ink-50 underline underline-offset-2 hover:text-ink"
+          >
+            Already have an account? Sign in
           </Link>
         </div>
 
         <p className="mt-5 text-small text-ink-50">
-          No ads. No data selling. No tracking.
+          Free. No ads, no data selling, no tracking.
         </p>
       </section>
 
-      {/* How it works */}
-      <section className="px-6 py-20 max-w-5xl mx-auto">
-        <div className="text-center mb-14">
+      {/* How it works — numbered editorial sequence (vertical ruled rows) */}
+      <section className="px-6 py-10 max-w-3xl mx-auto">
+        <div className="mb-10">
           <h2 className="font-serif text-h2 text-ink">How it works</h2>
           <p className="text-body text-ink-70 mt-3">
             From signup to your first call in under 5 minutes.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-8">
+        <ol className="border-t border-divider">
           {STEPS.map(step => (
-            <div key={step.number} className="relative">
-              <div className="w-10 h-10 rounded-full bg-ink text-paper font-bold text-h3 flex items-center justify-center mb-4">
+            <li
+              key={step.number}
+              className="flex items-start gap-6 sm:gap-8 border-b border-divider py-6"
+            >
+              <span className="font-serif text-display text-ink-20 leading-none w-12 shrink-0">
                 {step.number}
+              </span>
+              <div className="pt-1.5">
+                <h3 className="text-h3 font-semibold text-ink mb-1.5">{step.title}</h3>
+                <p className="text-ink-70 text-small leading-relaxed">{step.description}</p>
               </div>
-              <h3 className="text-h3 font-semibold text-ink mb-2">{step.title}</h3>
-              <p className="text-ink-70 text-small leading-relaxed">{step.description}</p>
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
       </section>
 
       {/* What Oravan does — card-less editorial list (no boxes/shadows) */}
-      <section className="px-6 py-20 bg-paper-dark border-y border-divider">
+      <section className="px-6 py-12 bg-paper-dark border-y border-divider">
         <div className="max-w-5xl mx-auto">
           <h2 className="font-serif text-h2 text-ink mb-12">What Oravan does</h2>
 
@@ -196,18 +202,17 @@ export default async function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="px-6 py-24 text-center max-w-3xl mx-auto">
+      <section className="px-6 py-10 text-center max-w-3xl mx-auto">
         <h2 className="font-serif text-h1 text-ink mb-4 text-balance">
-          Ready to make your voice heard?
+          Anyone in the US can do this.
         </h2>
         <p className="text-h3 text-ink-70 mb-10 text-balance leading-relaxed">
-          Five minutes is all it takes to tell your representatives where you stand. Free, for
-          everyone in the US.
+          You don&apos;t have to be a citizen to contact your representatives. Five minutes, and
+          it&apos;s free for everyone.
         </p>
         <Link href="/signup">
-          <Button size="lg">Create your free account</Button>
+          <Button size="lg">Start making calls</Button>
         </Link>
-        <p className="mt-4 text-small text-ink-50">For all US residents. Not just citizens.</p>
       </section>
 
       {/* Footer */}

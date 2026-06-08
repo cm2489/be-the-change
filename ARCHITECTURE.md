@@ -120,7 +120,7 @@ Cron or event trigger → /api/push/send (internal, CRON_SECRET protected)
 
 ## Authentication & Authorization Model
 
-- **Auth provider:** Supabase Auth (email+password for MVP; OAuth deferred)
+- **Auth provider:** Supabase Auth — email+password + **Google OAuth** (login + signup, both routed through the `/api/auth/callback` PKCE exchange). Apple OAuth still deferred.
 - **Session storage:** Supabase cookie-based session, managed by `@supabase/ssr`
 - **Route protection:** Enforced in `proxy.ts` at the network boundary
 - **Public routes:** `/`, `/login`, `/signup`, `/api/cron/*`, `/api/auth/*`

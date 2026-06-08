@@ -447,3 +447,15 @@ One controlled component for both surfaces (kills the two-looks inconsistency by
 ### `caption` font-size token — LOCKED (closes the type-scale gap)
 
 The subline needed a **12px non-uppercase caption** — the long-deferred `type-scale-extension` gap (the same token that blocked `Badge`). Added `fontSize.caption: ['12px', { lineHeight: '1.4' }]` (distinct from `meta`, which is 12px UPPERCASE + tracked) and registered it in `cn()`'s tailwind-merge font-size group. The picker was the genuine trigger; **the `type-scale-extension` thread is now closed** (`Badge` unblocked, though not yet built). Gate: lint + build + vitest 24/24 + Playwright 11/11.
+
+---
+
+## Screen: Dashboard (`/dashboard`) — collapsed to the decode-led feed — LOCKED (2026-06-08)
+
+The whole-UI `/critique` named the dashboard the platform's one **slop-island**: a zero-stat metric pair (`ImpactMetrics`) stacked over a 2-up **icon + heading + text quick-action card grid** ("Browse Issues" / "My Representatives") with `hover:shadow-sm` — the banned generic-SaaS-dashboard / identical-card-grid plus a flat-by-default violation, on the highest-traffic screen, contradicting the product's own "decode, don't display" thesis (it led with chrome, not a decoded bill). Chosen fix (the boldest of three): **collapse the dashboard into the feed.**
+
+- **Removed:** the `ImpactMetrics` widget (and its `call_events` data fetch — the counts live on `/impact`), and **both quick-action cards** (they duplicate masthead nav items — you were paying twice for the same destinations).
+- **Kept, as the home:** the `PageHeader` greeting ("Welcome back[, name]") + the **decode-led V4 feed** ("For You" personalized / "Trending Issues" default, "See all →" → `/bills`). The feed *is* the dashboard now — greeting + feed, nothing between.
+- **Warmed the onboarding nudge onto the ladder:** the "Personalize your feed" banner (un-onboarded users) moved from the off-ladder cool `bg-ink-10 border-ink-20` to **`bg-paper-dark border-divider`** (warm emphasis, on the tonal ladder) — the one non-ladder surface the critique flagged is now on it.
+
+Net: the post-login home leads with decoded bills, the slop-island is gone, `/dashboard` is ~48 lines lighter. Gate: lint + build + Playwright 11/11.

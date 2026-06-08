@@ -1,9 +1,8 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ClipboardList, Phone } from 'lucide-react'
+import { ClipboardList } from 'lucide-react'
 import { createServerClient } from '@/lib/supabase/server'
 import { BillCard } from '@/components/BillCard'
-import { ImpactMetrics } from '@/components/ImpactMetrics'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { PageHeader } from '@/components/ui/page-header'
@@ -55,27 +54,6 @@ export default async function DashboardPage() {
     bills = data ?? []
   }
 
-  // Call metrics
-  // NOTE: setHours(0,0,0,0) resolves to UTC midnight on Vercel, not the user's local
-  // timezone. A user in California making a call at 6pm PST will see it counted on the
-  // next UTC day. Fix properly in v2 when user timezone storage is added.
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
-
-  const [{ count: callsToday }, { count: totalCalls }] = await Promise.all([
-    supabase
-      .from('call_events')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .gte('created_at', todayStart.toISOString()),
-    supabase
-      .from('call_events')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId),
-  ])
-
-  const todayCount = callsToday ?? 0
-
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       {/* Welcome header */}
@@ -86,7 +64,7 @@ export default async function DashboardPage() {
 
       {/* Onboarding prompt for users who skipped or came via email confirmation */}
       {!profile?.onboarding_completed_at && (
-        <div className="mb-6 bg-ink-10 border border-ink-20 rounded-xl p-4 flex items-center justify-between gap-4">
+        <div className="mb-6 bg-paper-dark border border-divider rounded-xl p-4 flex items-center justify-between gap-4">
           <div>
             <div className="font-semibold text-ink text-small">
               Personalize your feed
@@ -100,32 +78,6 @@ export default async function DashboardPage() {
           </Link>
         </div>
       )}
-
-      {/* Impact metrics */}
-      <div className="mb-6">
-        <ImpactMetrics
-          totalCalls={totalCalls ?? 0}
-          callsToday={todayCount}
-        />
-      </div>
-
-      {/* Quick actions */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <Link href="/bills">
-          <Card padding="sm" className="hover:border-divider-strong hover:shadow-sm transition-all cursor-pointer">
-            <ClipboardList className="h-6 w-6 mb-2 text-ink" />
-            <div className="text-small font-semibold text-ink">Browse Issues</div>
-            <div className="text-small text-ink-70 mt-0.5">See all upcoming votes</div>
-          </Card>
-        </Link>
-        <Link href="/representatives">
-          <Card padding="sm" className="hover:border-divider-strong hover:shadow-sm transition-all cursor-pointer">
-            <Phone className="h-6 w-6 mb-2 text-ink" />
-            <div className="text-small font-semibold text-ink">My Representatives</div>
-            <div className="text-small text-ink-70 mt-0.5">Your federal reps</div>
-          </Card>
-        </Link>
-      </div>
 
       {/* Personalized bill feed */}
       <div>

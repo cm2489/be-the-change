@@ -70,6 +70,7 @@ const config: Config = {
         meta: ['12px', { lineHeight: '1.35', letterSpacing: '0.08em' }],
         mono: ['13px', { lineHeight: '1.35', letterSpacing: '0' }],
         control: ['13px', { lineHeight: '1' }], // controls (buttons/inputs): 13px, no tracking — pairs with the 8px control radius
+        caption: ['12px', { lineHeight: '1.4' }], // non-uppercase 12px caption (sublines, helper text) — distinct from `meta` (12px UPPERCASE + tracked)
       },
       borderRadius: {
         sm: '4px',

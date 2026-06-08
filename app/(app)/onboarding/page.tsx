@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { INTEREST_CATEGORIES } from '@/lib/interests'
+import { IssuePicker } from '@/components/IssuePicker'
 import { syncRepsForUser } from '@/lib/actions/sync-reps'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -144,8 +143,8 @@ export default function OnboardingPage() {
           </h1>
           {step === 'categories' && (
             <p className="text-ink-70 text-small mt-2 max-w-md mx-auto">
-              We&apos;ll use these to filter your feed to the bills that affect what you care
-              about. Pick as many as you like; you can change them anytime.
+              Pick a few that matter to you. We&apos;ll filter your feed to the bills that
+              affect them. You can change these anytime.
             </p>
           )}
         </div>
@@ -183,7 +182,7 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-        <Card padding="md" className="shadow-sm">
+        <Card padding="md">
           {/* STEP 1: Location */}
           {step === 'location' && (
             <form onSubmit={handleLocationNext} className="space-y-5">
@@ -243,43 +242,7 @@ export default function OnboardingPage() {
           {/* STEP 2: Flat category selection — two-column editorial contents list */}
           {step === 'categories' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2">
-                {INTEREST_CATEGORIES.map((cat, i) => {
-                  const selected = selectedCategories.has(cat.id)
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => toggleCategory(cat.id)}
-                      aria-pressed={selected}
-                      className="flex items-center gap-3 py-3 w-full text-left border-t border-divider first:border-t-0 sm:[&:nth-child(2)]:border-t-0 sm:odd:pr-5 sm:even:pl-5 sm:even:border-l"
-                    >
-                      <span className="font-mono text-meta text-ink-50 w-5 shrink-0">
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span
-                          className={`block text-small font-medium leading-tight ${
-                            selected ? 'text-ink' : 'text-ink-85'
-                          }`}
-                        >
-                          {cat.label}
-                        </span>
-                        <span className="block text-small text-ink-50 truncate mt-0.5">
-                          {cat.subline}
-                        </span>
-                      </span>
-                      <span
-                        className={`ml-auto grid h-5 w-5 shrink-0 place-items-center rounded-full border ${
-                          selected ? 'border-ink bg-ink' : 'border-divider-strong'
-                        }`}
-                      >
-                        {selected && <Check className="h-3 w-3 text-paper" strokeWidth={2.5} />}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
+              <IssuePicker selected={selectedCategories} onToggle={toggleCategory} />
 
               <div className="pt-5 border-t border-divider flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-small text-ink-50">

@@ -843,6 +843,8 @@ Resolve by extending the scale (e.g. a non-uppercase 12px `caption`, a 20px step
 
 **Update (2026-06-08 — button debt RESOLVED, `feat/button-token-hygiene`):** `button.tsx`'s arbitrary type/duration values are **gone**. Added a `control` fontSize token (`13px`, no tracking — the type parallel to the 8px control radius); base + sm → `text-control`, lg → `text-small` (14, unchanged), `duration-[120ms]` → `duration-micro`. sm text went 12→13px (negligible; chosen over a 2nd `control-sm` token — button-size differentiation is carried by height/padding, not a 1px text step). Also fixed `cn()` (`lib/utils.ts`) to register the custom fontSize names with tailwind-merge, so token-based size overrides resolve correctly (guarded: `lib/__tests__/utils.test.ts`). **The only remaining open type-token thread is the latent 12px-non-uppercase `caption` token that still blocks `Badge`.** (`button.tsx` keeps two intentional arbitrary values, out of the type-debt scope: `px-[18px]` the documented control padding, and `active:scale-[0.98]` the micro-press.) Decision record: `docs/DESIGN_DECISIONS.md → System: Button control-token`.
 
+**Update (2026-06-08 — caption gap CLOSED, `feat/issue-picker`):** the **12px-non-uppercase `caption` token is added** (`fontSize.caption: ['12px', { lineHeight: '1.4' }]`, registered in `cn()`), triggered by the issue-picker sublines. The last open thread here is resolved — **`Badge` is now unblocked** (not yet built). **`type-scale-extension` is fully resolved** as of this branch: no arbitrary type values and no missing caption token remain. Record: `docs/DESIGN_DECISIONS.md → Screen: Issue picker`.
+
 ---
 
 ### consolidation-followup-offscope-slate-and-semantic-colors

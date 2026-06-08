@@ -806,16 +806,18 @@ The type scale (`display/h1/h2/h3/body/small/meta/mono` = 56/36/24/18/16/14/12-u
 
 Resolve by extending the scale (e.g. a non-uppercase 12px `caption`, a 20px step, a 30px step) when brand + visual identity are locked, then convert the remaining raw sizes. Until then those raw `text-*` are intentional, not oversights.
 
+**Update (PR #52 — app cohesion pass):** the **12px-non-uppercase** `text-xs` usages are **gone from the app/auth/legal routes** (resolved by snap-to-token, not a new token — descriptive sublines → `text-small`, short labels → `text-meta uppercase`). The token *gap* itself stays open (no `caption` token added), so the rule still applies to any future surface and the `Badge` primitive stays blocked on it. The 20px / 30px / 18px-body gaps are untouched (not used on the swept surfaces).
+
 ---
 
 ### consolidation-followup-offscope-slate-and-semantic-colors
 
-**Priority:** DEBT (consolidation follow-up — not in Chunk 3 scope)
-**Where in code:**
-- `slate-*` still present (31 occurrences) in: `app/(app)/bills/page.tsx`, `app/(app)/bills/[id]/page.tsx`, `components/ImpactMetrics.tsx`, `components/RepCard.tsx` (`app/(app)/layout.tsx` was pulled into the Batch 1 components/landing sub-chunk and swept — no longer deferred)
-- off-palette `red-*` / `green-*` error/success banners (auth pages and elsewhere)
+**Priority:** RESOLVED (PR #52 — app-wide UI cohesion pass)
+**Where in code:** ~~`slate-*` in `ImpactMetrics`/`RepCard`; off-palette `red-*`/`green-*` banners~~ — now tokens + the `Alert` primitive.
 
-Batch 1 Chunk 3 swept only the listed surfaces (auth, onboarding, dashboard, settings, representatives, NavBar, BillCard, landing body). The files above keep raw `slate-*` and need the same `slate → ink/divider/paper` mapping in a follow-up for full coverage. Separately, error/success banners use Tailwind `red-*`/`green-*`; the system's semantic equivalents are `oxblood` (danger) and `moss` (success) with their `-10` tints — fold into the same follow-up. Neither was in the Chunk 3 instruction; logged so full coverage isn't forgotten.
+Batch 1 Chunk 3 swept only the listed surfaces and left `slate-*` plus the off-palette banners as a follow-up.
+
+**Resolution (PR #52):** the whole-app cohesion pass cleared it. Repo-wide audit now shows **0 `slate-*`, 0 `red-*`/`green-*`, 0 raw `text-xs`, 0 `bg-white`** in app/component `.tsx` (remaining mentions are inside doc comments). `RepCard` + `ImpactMetrics` fully retoken-ed; every error/success banner across auth/onboarding/settings/representatives now uses the new **`Alert`** primitive (`oxblood`/`moss` + `-10` tints). The partisan `partyColor()` blue/red/purple was deleted (party → neutral pill). `RepCard`'s broken `bg-action-500` (undefined token → no-fill Call button) fixed to `bg-signal`. Card radius reconciled `rounded-2xl` → `rounded-xl`. Full record: `docs/DESIGN_DECISIONS.md → App routes UI cohesion pass`. Remaining sibling debt is its own line: `urgencyLabel().color` still returns unused off-palette tints (the cards never consume it).
 
 ---
 

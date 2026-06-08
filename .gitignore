@@ -154,3 +154,10 @@ next-env.d.ts
 tests/.auth/
 test-results/
 playwright-report/
+
+# Impeccable design-context files (local working context, regenerated; not tracked)
+/PRODUCT.md
+/DESIGN.md
+
+# Local git worktrees (parallel-agent / preview worktrees)
+.claude/worktrees/

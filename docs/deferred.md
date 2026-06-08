@@ -444,7 +444,7 @@ The `/bills` feed card was redesigned to **V4 "title-led + Decoded container"** 
 - `max-w-[9rem]` (interest-pill truncation) → prefer **short display aliases** for the long category labels over a hard truncate.
 - `maxHeight: '2.75em'` (the title 2-line cap) → tokenize / compute.
 
-**A11Y DEBT (deferred to v2 per `PRODUCT.md`; logged, not omitted).** The quiet `ink-50` official title is ~3.6:1 on white — **under WCAG AA 4.5:1**; the `#FAF8F5` container border is ~1.2:1; the full-card `<Link>` needs an `aria-label` (the headline) + `aria-hidden` on the arrow; add `break-words` insurance on title/headline/summary. Fold into the v2 a11y pass.
+**A11Y DEBT (deferred to v2; logged, not omitted).** The quiet `ink-50` official title is ~3.6:1 on white — **under WCAG AA 4.5:1**; the `#FAF8F5` container border is ~1.2:1; the full-card `<Link>` needs an `aria-label` (the headline) + `aria-hidden` on the arrow; add `break-words` insurance on title/headline/summary. Fold into the v2 a11y pass.
 
 **LOCKED TRADEOFF (not debt; recorded so it isn't re-litigated).** The title clamps via `max-height` + `overflow-hidden`, **never `-webkit-line-clamp`**, because the `-webkit-box` breaks the citation float in WebKit/Safari. Consequence: **no multi-line ellipsis** — the title hard-cuts at 2 lines. Verified the float works cross-browser this way.
 
@@ -839,6 +839,8 @@ Resolve by extending the scale (e.g. a non-uppercase 12px `caption`, a 20px step
 
 **Update (PR #52 — app cohesion pass):** the **12px-non-uppercase** `text-xs` usages are **gone from the app/auth/legal routes** (resolved by snap-to-token, not a new token — descriptive sublines → `text-small`, short labels → `text-meta uppercase`). The token *gap* itself stays open (no `caption` token added), so the rule still applies to any future surface and the `Badge` primitive stays blocked on it. The 20px / 30px / 18px-body gaps are untouched (not used on the swept surfaces).
 
+**Update (2026-06-08 — pre-ceiling verification; this is the current state):** Verified **zero raw `text-{xs,sm,base,lg,xl,2xl,3xl,4xl}` anywhere** in `app/` + `components/`. So the 20px (`text-xl`), 30px (`text-3xl`), and 18px-body (`text-lg`) gaps are **moot, not merely "untouched"** — those sizes have no usage at all, so no new scale step is owed for them. The **only live arbitrary-type debt left is `components/ui/button.tsx`**: it sizes control labels with brackets — `text-[13px]` (base) / `text-[12px]` (sm) / `text-[14px]` (lg) — because 13px-sans has no token and `meta`/`small` carry the wrong case/tracking for a button label (same file: `duration-[120ms]` should be `duration-micro`). Folded into the **Phase 1 primitives ceiling** (tokenize a control-label step vs. snap vs. sanctioned exception à la `max-w-[65ch]`). Net: the only open type-token threads are this button decision and the latent 12px-non-uppercase `caption` token that still blocks `Badge`.
+
 ---
 
 ### consolidation-followup-offscope-slate-and-semantic-colors
@@ -854,8 +856,10 @@ Batch 1 Chunk 3 swept only the listed surfaces and left `slate-*` plus the off-p
 
 ### landing-features-grid-emoji
 
-**Priority:** V2 (brand-lock)
-**Where in code:** `app/page.tsx` — `FEATURES` array `icon` fields (📋 📞 ✍️ 🏆 📍 🔒), rendered in the landing features grid
+**Priority:** RESOLVED (2026-06-08) — overtaken by the #51 landing redesign; was V2 (brand-lock).
+**Resolution:** The #51 donor-ready landing redesign recomposed the features grid into a card-less hairline list, so the `FEATURES` array `icon` fields and the emoji set (📋 📞 ✍️ 🏆 📍 🔒) **no longer exist** in `app/page.tsx` (grep: zero emoji, no `icon:` fields). Nothing left to convert. Original deferral kept below as record.
+
+**Where in code (historical):** `app/page.tsx` — `FEATURES` array `icon` fields (📋 📞 ✍️ 🏆 📍 🔒), rendered in the landing features grid
 
 Batch 1 converted in-scope emoji to lucide everywhere else but left the landing features-grid set. Only 📋/📞 were in the Chunk 3 emoji list; converting just those would orphan them in a six-icon grid, and converting all six needs icon-selection for ✍️/🏆/📍/🔒 — a visual-identity choice. **Deferred to brand-lock** — fold into the type-scale / landing design work, not a consolidation sweep. Convert the whole set to lucide (or the chosen icon system) when the landing visual identity is decided. Related: `brand-accent-color-pops`, `type-scale-extension`.
 

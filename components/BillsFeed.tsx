@@ -101,7 +101,7 @@ export function BillsFeed({ initialBills, mode, userId, pageSize }: BillsFeedPro
           </button>
         )}
         {error && (
-          <p className="text-small text-ink-50">
+          <p className="text-small text-ink-70">
             Couldn’t load more.{' '}
             <button
               onClick={loadMore}
@@ -111,7 +111,7 @@ export function BillsFeed({ initialBills, mode, userId, pageSize }: BillsFeedPro
             </button>
           </p>
         )}
-        {done && <p className="text-meta text-ink-50">You’ve reached the end.</p>}
+        {done && <p className="text-meta text-ink-70">You’ve reached the end.</p>}
       </div>
     </div>
   )

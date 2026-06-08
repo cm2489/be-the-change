@@ -39,7 +39,7 @@ export function IssuePicker({ selected, onToggle, className }: IssuePickerProps)
             <span className={cn('block text-small font-medium', isSelected ? 'text-paper' : 'text-ink')}>
               {cat.label}
             </span>
-            <span className={cn('mt-0.5 block text-caption', isSelected ? 'text-paper/70' : 'text-ink-50')}>
+            <span className={cn('mt-0.5 block text-caption', isSelected ? 'text-paper/70' : 'text-ink-70')}>
               {cat.subline}
             </span>
           </button>

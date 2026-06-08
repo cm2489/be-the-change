@@ -128,7 +128,7 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center text-ink-50">
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center text-ink-70">
         Loading…
       </div>
     )
@@ -195,7 +195,7 @@ export default function SettingsPage() {
 
         {/* Admin: Seed bills */}
         <div className="border-t border-divider pt-4">
-          <p className="text-meta uppercase text-ink-50 mb-2">Admin</p>
+          <p className="text-meta uppercase text-ink-70 mb-2">Admin</p>
           <SyncBillsButton />
         </div>
 

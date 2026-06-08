@@ -470,3 +470,17 @@ The `/critique` flagged inconsistent loading: `/bills/[id]` had a considered `an
 - **Applied:** `app/(app)/bills/loading.tsx` + `app/(app)/dashboard/loading.tsx` (Suspense fallbacks for the server-rendered feeds — static title, skeleton cards); reps' bare loading text → three `RepCardSkeleton`s; and the bill-detail skeleton refactored onto the shared `Skeleton` (one vocabulary; the container `animate-pulse` is dropped since each block self-pulses).
 
 Every data-backed screen now holds its real shape while loading — nothing pops or shifts in. Gate: lint + build + Playwright 11/11.
+
+---
+
+## System: AA contrast sweep + line-length / auth-padding nits — LOCKED (2026-06-08)
+
+The whole-UI `/critique` measured `ink-50` quiet text at **2.9–3.6:1 (below AA 4.5:1)** on the warm surfaces. Un-parking the v2 a11y deferral for the clear cases:
+
+- **`text-ink-50` → `text-ink-70`** across ~15 files — every quiet small-text use on light surfaces (captions, sublines, microcopy, links, `meta` kickers, the mobile-nav idle labels). `ink-70` (`#556159`) clears AA while staying quiet; the change is **near-invisible to good vision in good light** — the point is the worst case (low vision, sunlight, cheap screens). The bill-detail **official title** (`text-h3`, the deliberately-demoted reference caption) goes `ink-50` → `ink-70` too: still quieter than the `ink` headline, now legible. Non-text `ink-50` and the dark-masthead paper-tone are untouched.
+- **Line-length:** the landing closing-CTA paragraph capped to `max-w-2xl`; the legal pages (`/privacy`, `/terms`) tightened from `max-w-2xl` to `max-w-[65ch]` (the locked reading measure).
+- **Auth padding:** the centered `(auth)` container gained a `py-12` vertical inset (was flush to the viewport on short screens — the detector's `cramped-padding`).
+
+**Legal type-scale:** the legal pages (`/privacy`, `/terms`) — low-traffic, public, **brand register** — get a deeper title: the shared `PageHeader` (`h2`/24) → a direct serif **`h1`** (36px) + description, a clearer 36/16 jump (the detector's flat-14/16/24 flag). A conscious departure from PR #52's "legal on `PageHeader` for title cohesion" — justified because legal is brand-register *editorial* (it should read like the landing, not the app chrome), and the pages are rarely seen.
+
+Gate: lint + build + Playwright 11/11.

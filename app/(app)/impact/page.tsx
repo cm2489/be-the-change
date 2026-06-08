@@ -117,7 +117,7 @@ export default async function ImpactPage() {
                         Called {call.representative?.full_name ?? 'your representative'}
                       </div>
                     </div>
-                    <div className="text-small text-ink-50 shrink-0">
+                    <div className="text-small text-ink-70 shrink-0">
                       {formatCallDate(call.created_at)}
                     </div>
                   </Link>

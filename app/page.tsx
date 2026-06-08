@@ -118,7 +118,7 @@ export default async function LandingPage() {
       {/* Hero — warm paper-dark band (reserved warmth for the welcome) */}
       <div className="bg-paper-dark border-b border-divider">
         <section className="px-6 pt-16 pb-10 text-center max-w-4xl mx-auto">
-        <p className="text-meta uppercase text-ink-50 mb-6">Pro-democracy &middot; Non-partisan</p>
+        <p className="text-meta uppercase text-ink-70 mb-6">Pro-democracy &middot; Non-partisan</p>
 
         <h1 className="font-serif text-h1 sm:text-display text-ink leading-tight mb-6 text-balance">
           Your voice matters.
@@ -140,13 +140,13 @@ export default async function LandingPage() {
           </Link>
           <Link
             href="/login"
-            className="text-small text-ink-50 underline underline-offset-2 hover:text-ink"
+            className="text-small text-ink-70 underline underline-offset-2 hover:text-ink"
           >
             Already have an account? Sign in
           </Link>
         </div>
 
-        <p className="mt-5 text-small text-ink-50">
+        <p className="mt-5 text-small text-ink-70">
           Free. No ads, no data selling, no tracking.
         </p>
         </section>
@@ -188,10 +188,10 @@ export default async function LandingPage() {
             {FEATURES.map(feature => (
               <div key={feature.title} className="border-t border-divider pt-5">
                 <div className="flex items-center gap-2.5 mb-2">
-                  <feature.Icon className="w-4 h-4 text-ink-50" strokeWidth={1.5} aria-hidden />
+                  <feature.Icon className="w-4 h-4 text-ink-70" strokeWidth={1.5} aria-hidden />
                   <h3 className="text-body font-semibold text-ink">{feature.title}</h3>
                   {feature.tag && (
-                    <span className="ml-auto text-meta uppercase text-ink-50">{feature.tag}</span>
+                    <span className="ml-auto text-meta uppercase text-ink-70">{feature.tag}</span>
                   )}
                 </div>
                 <p className="text-small text-ink-70 leading-relaxed">{feature.description}</p>
@@ -206,7 +206,7 @@ export default async function LandingPage() {
         <h2 className="font-serif text-h1 text-ink mb-4 text-balance">
           Anyone in the US can do this.
         </h2>
-        <p className="text-h3 text-ink-70 mb-10 text-balance leading-relaxed">
+        <p className="text-h3 text-ink-70 mb-10 text-balance leading-relaxed max-w-2xl mx-auto">
           You don&apos;t have to be a citizen to contact your representatives. Five minutes, and
           it&apos;s free for everyone.
         </p>
@@ -217,9 +217,9 @@ export default async function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-divider px-6 py-8">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-small text-ink-50">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-small text-ink-70">
           <OravanWordmark className="h-7 text-ink" />
-          <div className="text-meta uppercase text-ink-50">Nonpartisan, by design</div>
+          <div className="text-meta uppercase text-ink-70">Nonpartisan, by design</div>
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-ink-70">
               Privacy

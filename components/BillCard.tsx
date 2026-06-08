@@ -63,7 +63,7 @@ export function BillCard({ bill, variant = 'classic', compact = false }: BillCar
             </span>
           </div>
           {bill.full_identifier && (
-            <span className="font-mono text-meta text-ink-50 whitespace-nowrap flex-shrink-0">
+            <span className="font-mono text-meta text-ink-70 whitespace-nowrap flex-shrink-0">
               {formatBillIdentifier(bill.full_identifier)}
             </span>
           )}
@@ -88,7 +88,7 @@ export function BillCard({ bill, variant = 'classic', compact = false }: BillCar
 
         {/* Footer */}
         <div className="mt-3 flex items-center justify-between">
-          <span className="text-meta text-ink-50 capitalize">{displayStatus.replace('_', ' ')}</span>
+          <span className="text-meta text-ink-70 capitalize">{displayStatus.replace('_', ' ')}</span>
 
           <span className="inline-flex items-center gap-1 text-small font-medium text-ink">
             Take action

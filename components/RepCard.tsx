@@ -27,7 +27,7 @@ export function RepCard({ rep, onCallClick }: RepCardProps) {
   return (
     <div className="bg-paper-mid rounded-xl border border-divider p-4">
       <div className="flex items-start gap-3">
-        <div className="w-12 h-12 rounded-full bg-ink-10 flex items-center justify-center text-ink-50 font-semibold text-h3 flex-shrink-0 overflow-hidden">
+        <div className="w-12 h-12 rounded-full bg-ink-10 flex items-center justify-center text-ink-70 font-semibold text-h3 flex-shrink-0 overflow-hidden">
           {rep.photo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={rep.photo_url} alt={rep.full_name} className="w-full h-full object-cover" />
@@ -68,7 +68,7 @@ export function RepCard({ rep, onCallClick }: RepCardProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${rep.full_name} official website`}
-                className="inline-flex items-center justify-center h-9 px-3 rounded-md border border-divider-strong text-ink-50 hover:bg-ink-10 transition-colors"
+                className="inline-flex items-center justify-center h-9 px-3 rounded-md border border-divider-strong text-ink-70 hover:bg-ink-10 transition-colors"
               >
                 <Globe className="h-4 w-4" aria-hidden />
               </a>

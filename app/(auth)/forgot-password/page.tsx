@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-paper px-4">
+      <div className="min-h-screen flex items-center justify-center bg-paper px-4 py-12">
         <div className="w-full max-w-md text-center">
           <div className="mb-4 flex justify-center">
             <MailCheck className="h-12 w-12 text-ink" />
@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-paper px-4">
+    <div className="min-h-screen flex items-center justify-center bg-paper px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block" aria-label="Oravan home">

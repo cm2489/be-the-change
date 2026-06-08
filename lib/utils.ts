@@ -1,5 +1,21 @@
 import { type ClassValue, clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { extendTailwindMerge } from 'tailwind-merge'
+
+// The project overrides Tailwind's fontSize scale with custom names
+// (display/h1/h2/h3/body/small/meta/mono/control). tailwind-merge ships knowing only
+// the DEFAULT scale, so it doesn't recognize `text-small` etc. as font sizes — left
+// alone it won't dedupe two of them, so a size override (e.g. a button's `lg` over its
+// base) silently emits BOTH classes and lets the cascade decide. Register the custom
+// names in the font-size group so a conflict resolves to the last token, as intended.
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      'font-size': [
+        { text: ['display', 'h1', 'h2', 'h3', 'body', 'small', 'meta', 'mono', 'control'] },
+      ],
+    },
+  },
+})
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

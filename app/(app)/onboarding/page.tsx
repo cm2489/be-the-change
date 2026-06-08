@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { INTEREST_CATEGORIES } from '@/lib/interests'
 import { syncRepsForUser } from '@/lib/actions/sync-reps'
@@ -131,7 +132,7 @@ export default function OnboardingPage() {
   // --- RENDER ---
   return (
     <div className="min-h-screen bg-paper flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg">
+      <div className={`w-full ${step === 'categories' ? 'max-w-2xl' : 'max-w-lg'}`}>
         {/* Header */}
         <div className="text-center mb-8">
           {/* Hidden on desktop — the app sidebar already shows the wordmark there;
@@ -142,8 +143,9 @@ export default function OnboardingPage() {
             {step === 'categories' && 'What issues matter to you?'}
           </h1>
           {step === 'categories' && (
-            <p className="text-ink-70 text-small mt-2">
-              Pick as many as you like. You can always update these later.
+            <p className="text-ink-70 text-small mt-2 max-w-md mx-auto">
+              We&apos;ll use these to filter your feed to the bills that affect what you care
+              about. Pick as many as you like; you can change them anytime.
             </p>
           )}
         </div>
@@ -238,43 +240,63 @@ export default function OnboardingPage() {
             </form>
           )}
 
-          {/* STEP 2: Flat category selection */}
+          {/* STEP 2: Flat category selection — two-column editorial contents list */}
           {step === 'categories' && (
-            <div className="space-y-5">
-              <div className="space-y-2">
-                {INTEREST_CATEGORIES.map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => toggleCategory(cat.id)}
-                    className={`w-full p-3.5 rounded-xl border-2 text-left transition-all ${
-                      selectedCategories.has(cat.id)
-                        ? 'border-ink bg-ink-10 text-ink'
-                        : 'border-divider hover:border-divider-strong text-ink-85'
-                    }`}
-                  >
-                    <div className="text-small font-semibold leading-tight">{cat.label}</div>
-                    <div className="text-small text-ink-50 mt-0.5">{cat.subline}</div>
-                  </button>
-                ))}
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2">
+                {INTEREST_CATEGORIES.map((cat, i) => {
+                  const selected = selectedCategories.has(cat.id)
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => toggleCategory(cat.id)}
+                      aria-pressed={selected}
+                      className="flex items-center gap-3 py-3 w-full text-left border-t border-divider first:border-t-0 sm:[&:nth-child(2)]:border-t-0 sm:odd:pr-5 sm:even:pl-5 sm:even:border-l"
+                    >
+                      <span className="font-mono text-meta text-ink-50 w-5 shrink-0">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span
+                          className={`block text-small font-medium leading-tight ${
+                            selected ? 'text-ink' : 'text-ink-85'
+                          }`}
+                        >
+                          {cat.label}
+                        </span>
+                        <span className="block text-small text-ink-50 truncate mt-0.5">
+                          {cat.subline}
+                        </span>
+                      </span>
+                      <span
+                        className={`ml-auto grid h-5 w-5 shrink-0 place-items-center rounded-full border ${
+                          selected ? 'border-ink bg-ink' : 'border-divider-strong'
+                        }`}
+                      >
+                        {selected && <Check className="h-3 w-3 text-paper" strokeWidth={2.5} />}
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
 
-              <div className="flex gap-3">
-                <Button
-                  variant="ghost"
-                  size="default"
-                  onClick={() => setStep('location')}
-                  className="flex-none"
-                >
-                  Back
-                </Button>
-                <Button
-                  size="lg"
-                  className="flex-1"
-                  onClick={handleSave}
-                  disabled={selectedCategories.size === 0 || loading}
-                >
-                  {loading ? 'Saving…' : `Finish setup (${selectedCategories.size} selected)`}
-                </Button>
+              <div className="pt-5 border-t border-divider flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-small text-ink-50">
+                  <span className="font-medium text-ink">{selectedCategories.size}</span> selected
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="lg" onClick={() => setStep('location')}>
+                    Back
+                  </Button>
+                  <Button
+                    size="lg"
+                    onClick={handleSave}
+                    disabled={selectedCategories.size === 0 || loading}
+                  >
+                    {loading ? 'Saving…' : 'Finish setup'}
+                  </Button>
+                </div>
               </div>
             </div>
           )}

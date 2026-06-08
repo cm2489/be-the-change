@@ -64,10 +64,10 @@ Until then it is a dead field that looks load-bearing. **Do not gate on it.**
 
 ### signup-check-email-dead-branch
 
-**Priority:** DEBT
-**Where in code:** `app/(auth)/signup/page.tsx` — the `if (data.session) … else { setCheckEmail(true) }` branch + the `checkEmail` "Check your email" screen
+**Priority:** RESOLVED (2026-06-08, signup UX pass)
+**Where in code:** `app/(auth)/signup/page.tsx` — the `if (data.session) … else { … }` branch
 
-Under the current auto-confirm config, `auth.signUp` always returns a session, so `data.session` is always truthy and the `else` branch (the "📬 Check your email" confirmation screen) is **unreachable dead code**. It only comes alive if "Confirm email" is turned ON (path 1 of `email-verification-deferred`). Harmless today; flagged so it isn't mistaken for working verification UX, and so it's revisited when the verification gap is closed.
+The misleading full-screen "Check your email" confirmation (the `checkEmail` screen that claimed a confirmation link was sent when auto-confirm sends none) was **removed**. The `else` branch is kept but now sets an honest inline message ("Account created. Check your email to confirm, then sign in.") that is only reachable if "Confirm email" is later turned ON (path 1 of `email-verification-deferred`) — at which point it is correct, not dead/misleading. No fake verification UX remains. Kept as a record so it isn't re-debated.
 
 ---
 
@@ -169,6 +169,37 @@ Theoretical risk that `partyHistory` is empty on a brand-new member before Congr
 **Where in code:** `lib/congress.ts` — `getHouseMemberByDistrict` vs `congressFetch` (used by `getSenatorsByState` / `getMemberDetail`)
 
 `getHouseMemberByDistrict` fetches with `{ next: { revalidate: 3600 } }` (response cached up to 1h), while the other Congress lookups go through `congressFetch`, which uses `{ cache: 'no-store' }`. Align the house lookup to `no-store` for consistency, so a long-lived server process can't serve a stale house-rep response across requests. Surfaced during the e2e-server-isolation diagnosis (2026-06-02); **not** the cause of the `representatives.spec` failure (that was harness reuse — see `representatives-e2e-failing`).
+
+---
+
+### feature-2-zip-first-rep-resolution
+
+**Priority:** V1.1 (privacy / friction improvement — a **backend feature**; deferred from the frontend onboarding pass on 2026-06-07)
+**Where in code (touches, on the backend run):**
+- `app/(app)/onboarding/page.tsx` — step 1 currently collects ZIP **+ full street address** and calls `syncRepsForUser(fullAddress)`
+- `lib/actions/sync-reps.ts` — `syncRepsForUser(address)` requires a full address (`trimmed.length < 10` guard) and derives `stateCode` + `district` + `ocdId` from one `geocodeAddress` call
+- `lib/geocode.ts` — address-based geocode
+- `components/CallFlow.tsx` — the deferred House-precision prompt would live here (the point of calling the House rep); already has a `hasAddress` empty-state branch
+- `profiles.full_address` / `district_ocd_id` / `zip_code`
+
+**The decision (Colby, 2026-06-07):** asking for a full street address at signup is too invasive. Move to a **ZIP-first** model:
+- Onboarding asks for **ZIP only**.
+- ZIP → state → **both Senators, always** (statewide, zero ambiguity).
+- ZIP → **House rep only when the ZIP maps to a single district.** When the ZIP is split, do **not** guess — leave the House seat unresolved.
+- **Defer the precision ask (street + number) to the moment the user goes to call their House rep**, shown only to the unresolved cohort, with an explicit "here's why we need this." Tie the invasive ask to the moment of need, not the front door.
+- **Storage minimization:** geocode once, persist only **district + ZIP (+ state)**, stop storing `full_address`, so trust copy like "we never store your street address" is literally true. Note `CallFlow` keys its empty-state on `profiles.full_address` today — that signal moves to `district_ocd_id`.
+
+**Why this is a backend feature, not a frontend field swap:** today's step-1 field is wired to `syncRepsForUser`, which needs a full address (even the Senators come from the address geocode's `stateCode`). ZIP-only collection cannot ship without changing the lookup. A half-version (store ZIP, skip the lookup) would **regress** the product — the user finishes onboarding with no reps and no Senators until they hit a call surface.
+
+**The one new dependency — detecting ZIP ambiguity.** A naive ZIP-centroid geocode confidently returns ONE district (sometimes wrong) and won't reveal that the ZIP is split. For "assign only when clean," you need either a **ZIP→congressional-district crosswalk** (Census ZCTA↔CD relationship file — free, static; a community-maintained mirror exists) or a **ZIP-aware geocoder that returns all overlapping districts** (e.g. Geocodio), replacing the address-only Google Civic call for the ZIP step.
+
+**Evidence (web research, 2026-06-07):** an industry analysis (Cicero) measured ZIP→district matching at **~92%** accuracy via ZIP centroid, **~94%** via population best-guess; **~22.5M people** would be mis-matched by a ZIP-only guess, errors **concentrated in urban areas**. Under resolve-or-defer the deferred cohort is everyone in a *split* ZIP (somewhat more than the ~8% wrong-if-guessed, metro-heavy), but **no user is ever shown a wrong representative** — the right trade for a nonpartisan trust product.
+
+**Coupling:** onboarding step 1 (field + copy), `syncRepsForUser` (ZIP path + Senators-from-state), geocode/crosswalk (new data source), `CallFlow` (deferred precision prompt + `hasAddress` signal swap), storage (drop `full_address`). Build as one unit.
+
+**Frontend-pass decision (2026-06-07):** during the frontend onboarding pass, step 1 is left **as-is on the current address flow** and **not** polished (option C) — its visual/copy redesign rides with this ZIP-first rework rather than being prettied up now, to avoid reworking a screen that's about to be replaced. The frontend pass moved on to onboarding step 2 (interests).
+
+**Trigger:** the next backend pass, before public launch (privacy/trust improvement; the current full-address flow works in the interim).
 
 ---
 

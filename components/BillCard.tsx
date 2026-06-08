@@ -100,9 +100,9 @@ export function BillCard({ bill, variant = 'classic', compact = false }: BillCar
   )
 }
 
-// V4 "title-led + Decoded container" — spec: docs/DESIGN_DECISIONS.md.
-// Title leads positionally but stays a quiet reference; the AI plain-language
-// translation is the visual anchor in the Decoded container below it.
+// V4 "decode-is-the-card" — spec: docs/DESIGN_DECISIONS.md. The official title is
+// a quiet source line floating on the page; the single card below IS the AI
+// plain-language answer plus its meta and action. One surface, no nested cards.
 function BillCardV4({ bill }: { bill: BillCardProps['bill'] }) {
   const urgency = urgencyLabel(bill.urgency_score)
   const displayStatus = deriveDisplayStatus(bill.status as BillStatus, bill.introduced_date)
@@ -119,30 +119,28 @@ function BillCardV4({ bill }: { bill: BillCardProps['bill'] }) {
     <Link
       href={`/bills/${bill.id}`}
       aria-label={headline ?? bill.title}
-      className="block bg-card rounded-xl border border-divider p-5 transition-[border-color,box-shadow] duration-component ease-standard hover:border-divider-strong hover:shadow-md focus-visible:shadow-focus focus-visible:outline-none motion-reduce:transition-none"
+      className="block group rounded-xl focus-visible:shadow-focus focus-visible:outline-none"
     >
-      {/* Title + floated citation: line 1 sits beside the number, line 2 wraps
-          under it. Clamp via max-height + overflow-hidden, NEVER line-clamp —
-          the -webkit-box line-clamp creates kills the float in WebKit/Safari. */}
-      <p className="font-serif italic text-small text-ink-50 leading-snug overflow-hidden max-h-title break-words">
+      {/* Official title — a quiet source line on the paper, above the card. Clamp
+          via max-height + overflow-hidden, NEVER line-clamp — the -webkit-box
+          line-clamp kills the citation float in WebKit/Safari. */}
+      <p className="px-1 mb-2.5 font-serif italic text-small text-ink-70 leading-snug overflow-hidden max-h-title break-words">
         {citation && (
-          <span className="float-right not-italic font-mono text-meta text-ink-50 whitespace-nowrap ml-1.5">
+          <span className="float-right not-italic font-mono text-meta text-ink-70 whitespace-nowrap ml-1.5">
             {citation}
           </span>
         )}
         {bill.title}
       </p>
 
-      {/* Decoded container — always renders; degrades headline -> summary -> pending */}
-      <div className="mt-3 border border-divider rounded-lg p-5 bg-paper-mid">
-        <p className="font-serif text-small text-ink-70 mb-1.5">Decoded</p>
+      {/* The card IS the decoded answer + its meta + action (no inner panel) */}
+      <div className="bg-card rounded-xl border border-divider p-5 transition-[border-color] duration-component ease-standard group-hover:border-divider-strong motion-reduce:transition-none">
+        <p className="font-serif text-small text-ink-70 mb-1">Decoded</p>
         {headline ? (
           <>
-            <p className="text-body font-medium text-ink leading-snug line-clamp-2 break-words">
-              {headline}
-            </p>
+            <p className="text-h3 font-medium text-ink leading-snug break-words">{headline}</p>
             {summary && (
-              <p className="text-small text-ink-70 leading-snug line-clamp-2 mt-1 break-words">
+              <p className="text-small text-ink-70 leading-snug line-clamp-2 mt-1.5 break-words">
                 {summary}
               </p>
             )}
@@ -154,27 +152,27 @@ function BillCardV4({ bill }: { bill: BillCardProps['bill'] }) {
             We&apos;re still decoding this bill into plain language. A clear read is on the way.
           </p>
         )}
-      </div>
 
-      {/* Pills */}
-      <div className="mt-3 flex items-center gap-2 flex-wrap">
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase">
-          {urgency.label}
-        </span>
-        {matchedLabel && (
-          <span className="inline-block max-w-category truncate align-middle px-2.5 py-0.5 rounded-pill bg-ink-10 text-ink-70 text-meta">
-            {matchedLabel}
+        {/* Pills */}
+        <div className="mt-4 flex items-center gap-2 flex-wrap">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase">
+            {urgency.label}
           </span>
-        )}
-      </div>
+          {matchedLabel && (
+            <span className="inline-block max-w-category truncate align-middle px-2.5 py-0.5 rounded-pill bg-ink-10 text-ink-70 text-meta">
+              {matchedLabel}
+            </span>
+          )}
+        </div>
 
-      {/* Actions */}
-      <div className="mt-3 flex items-center justify-between">
-        <span className="text-meta text-ink-50 capitalize">{displayStatus.replace('_', ' ')}</span>
-        <span className="inline-flex items-center gap-1 text-small font-medium text-ink">
-          Take action
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </span>
+        {/* Action row */}
+        <div className="mt-4 pt-4 border-t border-divider flex items-center justify-between">
+          <span className="text-meta text-ink-70 capitalize">{displayStatus.replace('_', ' ')}</span>
+          <span className="inline-flex items-center gap-1 text-small font-medium text-ink">
+            Take action
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </span>
+        </div>
       </div>
     </Link>
   )

@@ -153,7 +153,7 @@ export default function OnboardingPage() {
         <div className="flex justify-end mb-4">
           <button
             onClick={handleSkip}
-            className="text-small text-ink-50 hover:text-ink-70 underline underline-offset-2"
+            className="text-small text-ink-70 hover:text-ink-70 underline underline-offset-2"
             disabled={loading}
           >
             Just let me make a call, skip for now
@@ -211,7 +211,7 @@ export default function OnboardingPage() {
                   placeholder="e.g. 10001"
                   required
                 />
-                <p className="mt-1.5 text-small text-ink-50">
+                <p className="mt-1.5 text-small text-ink-70">
                   Used to filter bills relevant to your state. Never shared.
                 </p>
               </div>
@@ -227,7 +227,7 @@ export default function OnboardingPage() {
                   placeholder="123 Main St, Springfield, IL 62701"
                   required
                 />
-                <p className="mt-1.5 text-small text-ink-50">
+                <p className="mt-1.5 text-small text-ink-70">
                   We need your full address to find your House district.
                   ZIP codes alone can span multiple districts.
                 </p>
@@ -245,7 +245,7 @@ export default function OnboardingPage() {
               <IssuePicker selected={selectedCategories} onToggle={toggleCategory} />
 
               <div className="pt-5 border-t border-divider flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-small text-ink-50">
+                <p className="text-small text-ink-70">
                   <span className="font-medium text-ink">{selectedCategories.size}</span> selected
                 </p>
                 <div className="flex items-center gap-2">

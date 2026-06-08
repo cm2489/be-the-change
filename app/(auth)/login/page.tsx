@@ -56,7 +56,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-paper px-4">
+    <div className="min-h-screen flex items-center justify-center bg-paper px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block" aria-label="Oravan home">
@@ -127,7 +127,7 @@ export default function LoginPage() {
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-divider" />
             </div>
-            <div className="relative flex justify-center text-meta uppercase text-ink-50">
+            <div className="relative flex justify-center text-meta uppercase text-ink-70">
               <span className="bg-paper-mid px-3">or continue with</span>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function LoginPage() {
           </p>
         </Card>
 
-        <p className="mt-6 text-center text-small text-ink-50">
+        <p className="mt-6 text-center text-small text-ink-70">
           No ads. No data selling. Your privacy is protected.
         </p>
       </div>

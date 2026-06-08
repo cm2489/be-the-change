@@ -153,7 +153,7 @@ export default function RepresentativesPage() {
           onChange={e => setAddress(e.target.value)}
           placeholder="123 Main St, Springfield, IL 62701"
         />
-        <p className="text-small text-ink-50">
+        <p className="text-small text-ink-70">
           Full street address, required to find your House district.
         </p>
         <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
@@ -177,7 +177,7 @@ export default function RepresentativesPage() {
 
       {!initialLoading && storedAddress && (
         <>
-          <p className="text-small text-ink-50 mb-4">
+          <p className="text-small text-ink-70 mb-4">
             Showing reps for <span className="text-ink-70">{storedAddress}</span>
           </p>
           <div className="space-y-3">

@@ -103,7 +103,7 @@ export default function BillDetailPage() {
   if (!bill) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <p className="text-meta uppercase tracking-widest text-ink-50 mb-3">Not found</p>
+        <p className="text-meta uppercase tracking-widest text-ink-70 mb-3">Not found</p>
         <p className="text-h3 text-ink mb-6">We couldn’t find that bill.</p>
         <Link href="/bills" className="text-small text-ink-70 underline underline-offset-2 hover:text-ink">
           Back to issues
@@ -127,7 +127,7 @@ export default function BillDetailPage() {
       {/* Back — neutral tokens. */}
       <button
         onClick={() => router.back()}
-        className="text-small text-ink-50 hover:text-ink mb-6 inline-flex items-center gap-1 transition-colors"
+        className="text-small text-ink-70 hover:text-ink mb-6 inline-flex items-center gap-1 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
         Back
@@ -137,7 +137,7 @@ export default function BillDetailPage() {
       <div className="flex items-center gap-2 flex-wrap mb-4">
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase">{urgency.label}</span>
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-pill border border-divider text-ink-70 text-meta uppercase">Federal</span>
-        <span className="font-mono text-meta text-ink-50 ml-1">{identifier}</span>
+        <span className="font-mono text-meta text-ink-70 ml-1">{identifier}</span>
       </div>
 
       {/* SLOT 2 — official title · "Official title" kicker + serif-italic body at
@@ -146,8 +146,8 @@ export default function BillDetailPage() {
           legal object, never hidden behind a link). All on-token (no arbitrary
           values). <h1> is the page heading: hierarchy + the Feature 4/5 specs. */}
       <div className="mb-8">
-        <p className="text-meta uppercase tracking-widest text-ink-50 mb-1.5">Official title</p>
-        <h1 className="font-serif italic text-h3 text-ink-50 leading-relaxed">{bill.title}</h1>
+        <p className="text-meta uppercase tracking-widest text-ink-70 mb-1.5">Official title</p>
+        <h1 className="font-serif italic text-h3 text-ink-70 leading-relaxed">{bill.title}</h1>
       </div>
 
       {/* SLOT 3 — Decoded hero card. The page's centerpiece. "Floating warmth"
@@ -173,7 +173,7 @@ export default function BillDetailPage() {
             </p>
           )}
           {displaySummary && (
-            <p className="text-small italic text-ink-50 max-w-[65ch] mx-auto mt-5">
+            <p className="text-small italic text-ink-70 max-w-[65ch] mx-auto mt-5">
               AI-generated summary. May be incomplete or inaccurate; not an official source.
             </p>
           )}
@@ -183,7 +183,7 @@ export default function BillDetailPage() {
       {/* SLOT 4 — RELEVANCE LINE. Quiet supporting line beneath the card. Neutrals
           only; matched area lifted with ink alone (ink-85). Three states from
           resolveRelevance(user categories ∩ bill.issue_tags) — see lib/relevance.ts. */}
-      <div className="mb-8 text-small text-ink-50">
+      <div className="mb-8 text-small text-ink-70">
         {relevance.state === 'populated' && (
           <p>
             Touches your priorities:{' '}
@@ -213,7 +213,7 @@ export default function BillDetailPage() {
           last_action_text on its own full-width line below, clamped to one line. */}
       <div className="mb-10 border-t border-divider pt-4">
         <div className="flex items-baseline justify-between gap-6">
-          <p className="text-meta uppercase tracking-widest text-ink-50">Last action</p>
+          <p className="text-meta uppercase tracking-widest text-ink-70">Last action</p>
           {bill.congress_gov_url && (
             <a
               href={bill.congress_gov_url}
@@ -236,7 +236,7 @@ export default function BillDetailPage() {
           only) and post-save (CallFlow on the scriptSaved gate). Internals off-limits;
           wiring is behavior-identical to the shipped Features 4 & 5. */}
       <div className="border-t border-divider pt-6">
-        <p className="text-meta uppercase tracking-widest text-ink-50 mb-4">Take action</p>
+        <p className="text-meta uppercase tracking-widest text-ink-70 mb-4">Take action</p>
         <div className="space-y-4">
           <ScriptFlow
             billId={bill.id}

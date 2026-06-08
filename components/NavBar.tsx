@@ -77,7 +77,7 @@ export function NavBar({ userName }: { userName?: string }) {
               aria-current={isActive(item.href) ? 'page' : undefined}
               className={cn(
                 'flex-1 flex flex-col items-center justify-center py-3 text-meta font-medium transition-colors',
-                isActive(item.href) ? 'text-ink' : 'text-ink-50',
+                isActive(item.href) ? 'text-ink' : 'text-ink-70',
               )}
             >
               <item.icon className="h-5 w-5 mb-0.5" />

@@ -50,9 +50,13 @@ export default function SignupPage() {
 
   async function handleGoogleSignup() {
     setLoading(true)
+    // Route through the server callback (same as login) so the PKCE code is
+    // exchanged for a session via exchangeCodeForSession. The callback then
+    // sends a brand-new user on to /onboarding itself. Redirecting straight to
+    // /onboarding here skips the exchange, so no session is ever established.
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/onboarding` },
+      options: { redirectTo: `${window.location.origin}/api/auth/callback` },
     })
   }
 

@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
           </Link>
         </div>
 
-        <Card padding="lg" className="shadow-sm">
+        <Card padding="lg">
           <h1 className="font-serif text-h2 text-ink mb-2">Set a new password</h1>
           <p className="text-ink-70 text-small mb-6">
             Must be at least 8 characters.

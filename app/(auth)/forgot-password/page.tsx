@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
           </Link>
         </div>
 
-        <Card padding="lg" className="shadow-sm">
+        <Card padding="lg">
           <h1 className="font-serif text-h2 text-ink mb-2">Reset your password</h1>
           <p className="text-ink-70 text-small mb-6">
             Enter your email and we&apos;ll send you a reset link.

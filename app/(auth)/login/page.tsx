@@ -64,7 +64,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <Card padding="lg" className="shadow-sm">
+        <Card padding="lg">
           <h1 className="font-serif text-h2 text-ink mb-6">Welcome back</h1>
 
           {successMessage && (
@@ -128,7 +128,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-divider" />
             </div>
             <div className="relative flex justify-center text-meta uppercase text-ink-50">
-              <span className="bg-card px-3">or continue with</span>
+              <span className="bg-paper-mid px-3">or continue with</span>
             </div>
           </div>
 

@@ -372,3 +372,40 @@ White is **demoted to a single accent** (the decoded "answer" panel); every defa
 - The **left-sidebar app shell** → replaced by the top masthead; the "sidebar Signed-in-as local-part" open item is now moot (no sidebar).
 - The **nested V4 Decoded container** (warm card holding a white box) → replaced by decode-is-the-card.
 - Impeccable `PRODUCT.md` restored (brand stable) + `DESIGN.md` regenerated from this state, both gitignored working context. `creative-director` ceiling still not run.
+
+---
+
+## System: Landing + auth cohesion — bridge header, warm hero band, flat auth cards — LOCKED (2026-06-08, PR #57)
+
+The donor-ready landing (above) shipped **before** the spine ceiling, so its header + surfaces had drifted off the app's newer warm system. An isolated Impeccable `/critique` (design health 29/40, **Consistency** the weak axis) named two **P1** seams: the landing's light/seamless header vs the app's ink masthead (a visible jump at login), and the `(auth)` cards still on a pre-cohesion surface. Direction chosen from a live 3-way render (full ink band / authored bridge / plain) + a top-warmth A/B. **Supersedes** the donor-ready "Nav + wordmark", "Hero" (surface), and "Accent — NONE (parked)" entries above.
+
+### Landing nav — "bridge" — LOCKED (supersedes donor-ready "Nav + wordmark")
+
+Keep the light brand header — do **not** flatten it into the app's full ink band (rendered, the band read too heavy as a first impression and spent the landing's warmth on chrome). Bridge it instead: a defined edge + the app's accent introduced once.
+
+- `<nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto border-b border-divider">` — adds `border-b border-divider` (a hairline edge foreshadowing the masthead's separation) to the donor-ready nav.
+- `OravanWordmark h-9 text-ink` (unchanged); "Sign in" `<Button variant="ghost" size="sm">`.
+- **"Get started" → `<Button variant="signal" size="sm">`** (was the default ink button) — the one accent.
+
+### Landing hero — warm `paper-dark` band — LOCKED (updates donor-ready "Hero")
+
+The hero **content** is unchanged (eyebrow / serif headline / safeguard subhead / single CTA — see the donor-ready Hero entry). Only the surface changes: the hero `<section>` is wrapped in a full-width warm band.
+
+- `<div className="bg-paper-dark border-b border-divider">` wrapping `<section className="px-6 pt-16 pb-10 text-center max-w-4xl mx-auto">…</section>`.
+- **Why the warm hero band (option 1) over a whole-top warm zone (option 2):** reserved warmth reads as a deliberate "welcome" and keeps the light header as crisp chrome; warming the header too made the warmth a default wash and erased the bridge's hairline edge (tan-on-tan). `paper-dark` is the system's **warm-emphasis** tone, used here as emphasis (not a new default surface) — on the tonal ladder. Sets a warm → paper → warm page rhythm (hero band → "How it works" paper → "What Oravan does" band).
+
+### Landing accent — signal introduced once — LOCKED (supersedes "Accent — NONE (parked)")
+
+The donor-ready landing parked accent and shipped monochrome ("no obvious accent home") — decided **before** the app locked `signal` as its wayfinding accent (the masthead active-underline). Re-decided per-screen in that light: **signal-orange now appears exactly once on the landing — the "Get started" nav CTA.** Its job is cohesion, not decoration — the accent the visitor meets at the top is the same one the app uses for wayfinding, so the masthead reads as *inherited* at login. Still one-accent-per-screen; no other color. (`docs/deferred.md#brand-accent-color-pops` accent-hunt record is now moot for the landing.)
+
+### Auth cards — warm flat surface — LOCKED (extends the spine-ceiling surface law into `(auth)`)
+
+`app/(auth)/{signup,login,forgot-password,reset-password}/page.tsx`. The auth card was still `<Card … className="shadow-sm">` with a white `bg-card` divider mask — a resting shadow + a white surface, both against the spine-ceiling tonal-ladder law, on the *seam* screen a visitor hits right after the landing.
+
+- **Card:** `<Card padding="lg">` — `shadow-sm` dropped; the card is now the warm flat `paper-mid` primitive (no resting shadow; warmth + hairline separate).
+- **Divider mask:** `<span className="bg-paper-mid px-3">or sign up with / or continue with</span>` (was `bg-card` white) — the "or …" label masks the rule in the card's actual surface colour, not a brighter white patch.
+
+### Supersessions + context
+- Donor-ready **"Nav + wordmark"** → bridge nav (hairline edge + signal CTA); **"Hero"** surface → warm band; **"Accent — NONE (parked)"** → signal introduced once.
+- Extends the spine-ceiling **warm surface ladder** into the `(auth)` group — the one place the cohesion sweep hadn't reached.
+- Gate: lint + build + Playwright **11/11**; landing + signup verified in WebKit (390 + desktop). `creative-director` ceiling still owed; **button token hygiene** (`cn`/twMerge blank-label fix + the `12/13/14` → control-token scale) is the next focused step.

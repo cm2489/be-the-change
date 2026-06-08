@@ -409,3 +409,18 @@ The donor-ready landing parked accent and shipped monochrome ("no obvious accent
 - Donor-ready **"Nav + wordmark"** → bridge nav (hairline edge + signal CTA); **"Hero"** surface → warm band; **"Accent — NONE (parked)"** → signal introduced once.
 - Extends the spine-ceiling **warm surface ladder** into the `(auth)` group — the one place the cohesion sweep hadn't reached.
 - Gate: lint + build + Playwright **11/11**; landing + signup verified in WebKit (390 + desktop). `creative-director` ceiling still owed; **button token hygiene** (`cn`/twMerge blank-label fix + the `12/13/14` → control-token scale) is the next focused step.
+
+---
+
+## System: Button control-token + cn font-size resolution — LOCKED (2026-06-08)
+
+Closes the last live arbitrary-type debt (`docs/deferred.md#type-scale-extension`): `components/ui/button.tsx` sized control labels with brackets (`text-[13px]` base / `text-[12px]` sm / `text-[14px]` lg + `duration-[120ms]`), because 13px-sans had no token and `meta`/`small` carry the wrong case/tracking for a button label.
+
+### `control` font-size token — LOCKED
+
+- `tailwind.config.ts` → `fontSize.control: ['13px', { lineHeight: '1' }]` — the control-label size (no tracking), the type parallel to the **8px control radius**. (Distinct from `mono` 13px, which is the monospace face.)
+- `button.tsx`: base + sm → **`text-control`** (13px); **lg → `text-small`** (14px — the hero/form CTA size, unchanged); `duration-[120ms]` → **`duration-micro`**. **sm text went 12 → 13px** — negligible, and chosen over adding a second `control-sm` token (button-size differentiation is carried by height/padding, not a 1px text step). Two values stay arbitrary by intent (out of this type-debt scope): **`px-[18px]`** (the control's horizontal padding — documented in `DESIGN.md`; no standard 18px spacing token, so a sanctioned one-off like `max-w-[65ch]`) and **`active:scale-[0.98]`** (a deliberate micro-press).
+
+### `cn()` resolves custom font-size tokens — LOCKED (`lib/utils.ts`)
+
+`cn` now uses `extendTailwindMerge` to register the project's custom fontSize names (`display/h1/h2/h3/body/small/meta/mono/control`) as the **font-size** class group. tailwind-merge ships only the default scale, so left alone it does **not** dedupe two custom `text-*` tokens — a size override (the button's `lg` over its base) would silently emit **both** classes and let the cascade decide. This registration was the prerequisite for the token-based button sizes to override correctly, and it defuses the latent "custom size token mis-read as a color → dropped label colour" edge. Guarded by `lib/__tests__/utils.test.ts` (override resolves to last; a text color survives alongside a size token; standard merges intact). Gate: lint + build + **vitest 24/24** + Playwright 11/11.

@@ -69,6 +69,7 @@ const config: Config = {
         small: ['14px', { lineHeight: '1.55', letterSpacing: '-0.005em' }],
         meta: ['12px', { lineHeight: '1.35', letterSpacing: '0.08em' }],
         mono: ['13px', { lineHeight: '1.35', letterSpacing: '0' }],
+        control: ['13px', { lineHeight: '1' }], // controls (buttons/inputs): 13px, no tracking — pairs with the 8px control radius
       },
       borderRadius: {
         sm: '4px',

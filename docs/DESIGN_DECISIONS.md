@@ -330,3 +330,45 @@ Ran Impeccable `/critique` (two isolated assessments: LLM design review + determ
 - **Onboarding** card wordmark is `lg:hidden` — the app sidebar already carries it on desktop, so the first-run screen no longer renders two wordmarks (mobile keeps the one).
 
 Still open (critique, deferred): dashboard still loads 10 V4 cards (a teaser cap to 3–4 was suggested, not done); bare-text loading states vs the bill-detail skeleton; the always-identical "Federal" feed pill; the sidebar "Signed in as" still shows the email local-part for name-less accounts; `creative-director` ceiling not run.
+
+---
+
+## System: Spine ceiling — top masthead + warm surface ladder + decode-is-the-card — LOCKED (2026-06-08)
+
+Reconciled from a 4-direction parallel exploration (restraint / warmth / open×2), then refined per-decision in a live page-switcher. Shipped as **PR #55** (shell + primitives) and **PR #56** (bill card + warm rep/impact). **Supersedes** the left-sidebar app shell and the nested-container V4 card recorded above.
+
+### App shell — top masthead — LOCKED (replaces the left sidebar)
+
+`components/NavBar.tsx`. The desktop left rail is **removed** (`(app)/layout.tsx` drops `lg:ml-64`); the shell is a distinct **ink-green band over the warm body** — the GOV.UK civic-header move, not a seamless strip.
+
+- **Bar:** `hidden lg:flex items-stretch h-16 px-8 bg-ink sticky top-0 z-40` — its own `bg-ink` surface, **no shadow**; the colour is the chrome/content separation.
+- **Wordmark + nameplate rule:** `<OravanWordmark className="h-7 text-paper" />` then `<span className="mx-6 h-6 w-px bg-paper/20" aria-hidden />` (newspaper-nameplate divider).
+- **Nav — text-only, no icons:** `nav` is `flex items-stretch gap-7`; each link `relative flex items-center text-small font-medium transition-colors duration-micro`, active `text-paper`, idle `text-paper/60 hover:text-paper`.
+- **Active = signal underline on the masthead baseline** (the one accent, used as wayfinding): active link renders `<span className="absolute inset-x-0 -bottom-px h-0.5 rounded-pill bg-signal" aria-hidden />` + `aria-current="page"`.
+- **Account meta in mono:** `<span className="text-mono text-ink-50">{userName}</span>`, then a `bg-paper/20` divider + Settings (`text-small text-ink-70 hover:text-ink`, lucide gear).
+- **Mobile** keeps the original bottom-tab nav (its own decision; unchanged). Verified WebKit + Chromium; happy-path is `tests/masthead.spec.ts`.
+
+### Warm surface tonal ladder — LOCKED
+
+White is **demoted to a single accent** (the decoded "answer" panel); every default surface is warm. The ladder by role:
+
+**`ink` masthead → `paper` page (`#F7F4EE`) → `paper-mid` card (`#FAF8F5`) → white `card` (`#FFFFFF`) only as the inner "answer".**
+
+- **`Card` primitive** (`components/ui/card.tsx`): `bg-card` → **`bg-paper-mid`**, hairline `border border-divider`, **no shadow** (shadow is the slop tell; warmth + hairline separate). `rounded-xl` (20px surface radius).
+- **`Input`** (`components/ui/input.tsx`): `bg-card` → **`bg-paper-mid`**; `rounded-xl` → **`rounded-md` (8px control radius)** — the corner now encodes affordance (controls crisp at 8, surfaces soft at 20; buttons already 8). `duration-[120ms]` → `duration-micro`.
+- **`EmptyState`** (`components/ui/empty-state.tsx`): title → `font-serif text-h3 text-ink` (brand voice at the rare empty moment); icon **seated in a warm medallion** `flex h-14 w-14 items-center justify-center rounded-pill bg-paper-dark` with `Icon h-6 w-6 text-ink-70 strokeWidth={1.75}` (retires the floating-icon slop).
+- **`RepCard` / `ImpactMetrics`:** `bg-card` → **`bg-paper-mid`** (hover-shadow dropped) so the last white components match the primitive — the app is one temperature.
+
+### Bill feed card — "decode is the card" — LOCKED (supersedes the nested V4 container)
+
+`components/BillCard.tsx` `BillCardV4`. An Impeccable `/critique` named the real defect in the warm-outer + white-inner version: **a nested card** (Impeccable: "nested cards are always wrong"). Chosen from a live A/B/C compare. The fix dissolves the outer container:
+
+- **Outer is the bare `<Link>`** (no surface): `block group rounded-xl focus-visible:shadow-focus focus-visible:outline-none`.
+- **Official title floats on the paper as a quiet source line:** `px-1 mb-2.5 font-serif italic text-small text-ink-70 leading-snug overflow-hidden max-h-title break-words` (citation floated, `not-italic font-mono text-meta text-ink-70`). Still the `max-h-title` clamp, **never `-webkit-line-clamp`** (breaks the float in WebKit).
+- **The single card IS the decoded answer + meta + action** (one surface, no nesting): `bg-card rounded-xl border border-divider p-5 transition-[border-color] duration-component ease-standard group-hover:border-divider-strong motion-reduce:transition-none`. Inside: `Decoded` kicker (`font-serif text-small text-ink-70 mb-1`); **headline promoted to the hero** `text-h3 font-medium text-ink leading-snug break-words` (was `text-body`); summary `text-small text-ink-70 line-clamp-2`; pills (`mt-4`); then a hairline-divided **action row** `mt-4 pt-4 border-t border-divider flex items-center justify-between` (status `text-meta text-ink-70` + "Take action" `ArrowRight`).
+- **Contrast fix:** quiet text `ink-50` → **`ink-70`** (title, citation, status) clears the detector's AA 3.4:1 flag on the warm surface. The classic `BillCard` path is unused (dashboard + bills both render v4) and left untouched.
+
+### Supersessions + context
+- The **left-sidebar app shell** → replaced by the top masthead; the "sidebar Signed-in-as local-part" open item is now moot (no sidebar).
+- The **nested V4 Decoded container** (warm card holding a white box) → replaced by decode-is-the-card.
+- Impeccable `PRODUCT.md` restored (brand stable) + `DESIGN.md` regenerated from this state, both gitignored working context. `creative-director` ceiling still not run.

@@ -65,7 +65,7 @@ export default function SignupPage() {
           </Link>
         </div>
 
-        <Card padding="lg" className="shadow-sm">
+        <Card padding="lg">
           <h1 className="font-serif text-h2 text-ink mb-2">Understand the bill. Then make the call.</h1>
           <p className="text-ink-70 text-small mb-6">
             Create your account for plain-language briefings on the laws that affect you, and a one-tap
@@ -118,7 +118,7 @@ export default function SignupPage() {
               <div className="w-full border-t border-divider" />
             </div>
             <div className="relative flex justify-center text-meta uppercase text-ink-50">
-              <span className="bg-card px-3">or sign up with</span>
+              <span className="bg-paper-mid px-3">or sign up with</span>
             </div>
           </div>
 

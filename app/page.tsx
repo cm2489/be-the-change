@@ -102,23 +102,22 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen bg-paper">
-      {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
+      {/* Nav — bridge: light header, hairline edge, signal CTA (foreshadows the app masthead) */}
+      <nav className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto border-b border-divider">
         <OravanWordmark className="h-9 text-ink" />
         <div className="flex items-center gap-3">
           <Link href="/login">
-            <Button variant="ghost" size="sm">
-              Sign in
-            </Button>
+            <Button variant="ghost" size="sm">Sign in</Button>
           </Link>
           <Link href="/signup">
-            <Button size="sm">Get started</Button>
+            <Button variant="signal" size="sm">Get started</Button>
           </Link>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="px-6 pt-16 pb-10 text-center max-w-4xl mx-auto">
+      {/* Hero — warm paper-dark band (reserved warmth for the welcome) */}
+      <div className="bg-paper-dark border-b border-divider">
+        <section className="px-6 pt-16 pb-10 text-center max-w-4xl mx-auto">
         <p className="text-meta uppercase text-ink-50 mb-6">Pro-democracy &middot; Non-partisan</p>
 
         <h1 className="font-serif text-h1 sm:text-display text-ink leading-tight mb-6 text-balance">
@@ -150,7 +149,8 @@ export default async function LandingPage() {
         <p className="mt-5 text-small text-ink-50">
           Free. No ads, no data selling, no tracking.
         </p>
-      </section>
+        </section>
+      </div>
 
       {/* How it works — numbered editorial sequence (vertical ruled rows) */}
       <section className="px-6 py-10 max-w-3xl mx-auto">

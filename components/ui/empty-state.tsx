@@ -20,11 +20,13 @@ export function EmptyState({ icon: Icon, title, description, className, children
   return (
     <div className={cn('text-center', className)}>
       {Icon && (
-        <div className="mb-3 flex justify-center">
-          <Icon className="h-8 w-8 text-ink-50" strokeWidth={1.5} aria-hidden />
+        <div className="mb-4 flex justify-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-pill bg-paper-dark">
+            <Icon className="h-6 w-6 text-ink-70" strokeWidth={1.75} aria-hidden />
+          </div>
         </div>
       )}
-      <h3 className="font-semibold text-ink mb-1">{title}</h3>
+      <h3 className="font-serif text-h3 text-ink mb-1.5">{title}</h3>
       {description && (
         <p className="text-small text-ink-70 max-w-xs mx-auto leading-relaxed">{description}</p>
       )}

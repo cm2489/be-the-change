@@ -15,49 +15,57 @@ const NAV_ITEMS = [
 
 export function NavBar({ userName }: { userName?: string }) {
   const pathname = usePathname()
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-card border-r border-divider p-6 fixed left-0 top-0">
-        <div className="mb-8">
-          <OravanWordmark className="h-7 text-ink" />
-          <div className="text-meta uppercase text-ink-50 mt-2">Nonpartisan, by design</div>
+      {/* Desktop masthead — distinct ink-green band over the warm body */}
+      <header className="hidden lg:flex items-stretch h-16 px-8 bg-ink sticky top-0 z-40">
+        <div className="flex items-center shrink-0">
+          <Link href="/dashboard">
+            <OravanWordmark className="h-7 text-paper" />
+          </Link>
+          <span className="mx-6 h-6 w-px bg-paper/20" aria-hidden />
         </div>
 
-        <nav className="flex-1 space-y-1">
-          {NAV_ITEMS.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-xl text-small font-medium transition-colors',
-                pathname === item.href || pathname.startsWith(item.href + '/')
-                  ? 'bg-ink-10 text-ink'
-                  : 'text-ink-70 hover:bg-ink-10 hover:text-ink'
-              )}
-            >
-              <item.icon className="h-5 w-5 shrink-0" />
-              {item.label}
-            </Link>
-          ))}
+        <nav className="flex items-stretch gap-7">
+          {NAV_ITEMS.map(item => {
+            const active = isActive(item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'relative flex items-center text-small font-medium transition-colors duration-micro',
+                  active ? 'text-paper' : 'text-paper/60 hover:text-paper',
+                )}
+              >
+                {item.label}
+                {active && (
+                  <span
+                    className="absolute inset-x-0 -bottom-px h-0.5 rounded-pill bg-signal"
+                    aria-hidden
+                  />
+                )}
+              </Link>
+            )
+          })}
         </nav>
 
-        <div className="mt-auto pt-6 border-t border-divider">
-          {userName && (
-            <div className="text-small text-ink-70 mb-3">
-              Signed in as <span className="font-medium text-ink-85 break-all">{userName}</span>
-            </div>
-          )}
+        <div className="ml-auto flex items-center gap-5">
+          {userName && <span className="text-mono text-paper/50">{userName}</span>}
+          <span className="h-6 w-px bg-paper/20" aria-hidden />
           <Link
             href="/settings"
-            className="flex items-center gap-2 text-small text-ink-70 hover:text-ink-85"
+            aria-label="Settings"
+            className="flex items-center gap-2 text-small text-paper/60 hover:text-paper transition-colors duration-micro"
           >
             <Settings className="h-4 w-4" />
             Settings
           </Link>
         </div>
-      </aside>
+      </header>
 
       {/* Mobile bottom nav */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-divider z-50 safe-area-pb">
@@ -66,11 +74,10 @@ export function NavBar({ userName }: { userName?: string }) {
             <Link
               key={item.href}
               href={item.href}
+              aria-current={isActive(item.href) ? 'page' : undefined}
               className={cn(
                 'flex-1 flex flex-col items-center justify-center py-3 text-meta font-medium transition-colors',
-                pathname === item.href || pathname.startsWith(item.href + '/')
-                  ? 'text-ink'
-                  : 'text-ink-50'
+                isActive(item.href) ? 'text-ink' : 'text-ink-50',
               )}
             >
               <item.icon className="h-5 w-5 mb-0.5" />

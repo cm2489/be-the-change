@@ -459,3 +459,14 @@ The whole-UI `/critique` named the dashboard the platform's one **slop-island**:
 - **Warmed the onboarding nudge onto the ladder:** the "Personalize your feed" banner (un-onboarded users) moved from the off-ladder cool `bg-ink-10 border-ink-20` to **`bg-paper-dark border-divider`** (warm emphasis, on the tonal ladder) — the one non-ladder surface the critique flagged is now on it.
 
 Net: the post-login home leads with decoded bills, the slop-island is gone, `/dashboard` is ~48 lines lighter. Gate: lint + build + Playwright 11/11.
+
+---
+
+## System: Loading skeletons — shared `Skeleton` primitive — LOCKED (2026-06-08)
+
+The `/critique` flagged inconsistent loading: `/bills/[id]` had a considered `animate-pulse` skeleton, but the feed used no fallback and reps used bare text ("Loading your reps…"), so the *quality of the wait* varied across the product (heuristics #1/#4).
+
+- **`components/ui/skeleton.tsx`** — the `Skeleton` primitive (`animate-pulse rounded bg-ink-10`, `aria-hidden`), promoted from the bill-detail skeleton, plus two layout-shaped compositions: **`BillCardSkeleton`** (mirrors the decode-is-the-card V4 — source line on the paper → white card with the "Decoded" kicker + headline + summary + pill + hairline action row) and **`RepCardSkeleton`** (mirrors RepCard — avatar + name/title + buttons).
+- **Applied:** `app/(app)/bills/loading.tsx` + `app/(app)/dashboard/loading.tsx` (Suspense fallbacks for the server-rendered feeds — static title, skeleton cards); reps' bare loading text → three `RepCardSkeleton`s; and the bill-detail skeleton refactored onto the shared `Skeleton` (one vocabulary; the container `animate-pulse` is dropped since each block self-pulses).
+
+Every data-backed screen now holds its real shape while loading — nothing pops or shifts in. Gate: lint + build + Playwright 11/11.

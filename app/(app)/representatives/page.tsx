@@ -6,6 +6,7 @@ import { MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { syncRepsForUser, type RepForUi, type SyncRepsResult } from '@/lib/actions/sync-reps'
 import { RepCard } from '@/components/RepCard'
+import { RepCardSkeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert } from '@/components/ui/alert'
@@ -167,7 +168,11 @@ export default function RepresentativesPage() {
       )}
 
       {initialLoading && (
-        <div className="text-center text-ink-50 py-8 text-small">Loading your reps…</div>
+        <div className="space-y-3" aria-busy="true">
+          <RepCardSkeleton />
+          <RepCardSkeleton />
+          <RepCardSkeleton />
+        </div>
       )}
 
       {!initialLoading && storedAddress && (

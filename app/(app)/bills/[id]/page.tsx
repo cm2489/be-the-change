@@ -7,6 +7,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ScriptFlow } from '@/components/ScriptFlow'
 import { CallFlow } from '@/components/CallFlow'
+import { Skeleton } from '@/components/ui/skeleton'
 import { urgencyLabel, formatDate, billIdentifier } from '@/lib/utils'
 import { resolveRelevance } from '@/lib/relevance'
 
@@ -77,20 +78,20 @@ export default function BillDetailPage() {
   // placeholders; holds the shape so real content doesn't pop in / shift.
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-6 animate-pulse" aria-hidden>
-        <div className="h-3 w-16 rounded bg-ink-10 mb-6" />
-        <div className="flex gap-2 mb-4">
-          <div className="h-5 w-20 rounded-pill bg-ink-10" />
-          <div className="h-5 w-16 rounded-pill bg-ink-10" />
+      <div className="max-w-2xl mx-auto px-4 py-6" aria-hidden>
+        <Skeleton className="mb-6 h-3 w-16" />
+        <div className="mb-4 flex gap-2">
+          <Skeleton className="h-5 w-20 rounded-pill" />
+          <Skeleton className="h-5 w-16 rounded-pill" />
         </div>
-        <div className="h-3 w-24 rounded bg-ink-10 mb-2" />
-        <div className="h-5 w-3/4 rounded bg-ink-10 mb-8" />
-        <div className="bg-paper-dark rounded-xl px-12 py-14 mb-4">
-          <div className="h-3 w-20 rounded bg-ink-10 mx-auto mb-5" />
-          <div className="space-y-2.5 max-w-[65ch] mx-auto">
-            <div className="h-3 w-full rounded bg-ink-10" />
-            <div className="h-3 w-full rounded bg-ink-10" />
-            <div className="h-3 w-2/3 rounded bg-ink-10" />
+        <Skeleton className="mb-2 h-3 w-24" />
+        <Skeleton className="mb-8 h-5 w-3/4" />
+        <div className="mb-4 rounded-xl bg-paper-dark px-12 py-14">
+          <Skeleton className="mx-auto mb-5 h-3 w-20" />
+          <div className="mx-auto max-w-[65ch] space-y-2.5">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-2/3" />
           </div>
         </div>
       </div>

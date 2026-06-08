@@ -25,7 +25,7 @@ function repTitle(chamber: 'house' | 'senate', state: string, district: string |
 
 export function RepCard({ rep, onCallClick }: RepCardProps) {
   return (
-    <div className="bg-card rounded-xl border border-divider p-4 hover:shadow-sm transition-shadow">
+    <div className="bg-paper-mid rounded-xl border border-divider p-4">
       <div className="flex items-start gap-3">
         <div className="w-12 h-12 rounded-full bg-ink-10 flex items-center justify-center text-ink-50 font-semibold text-h3 flex-shrink-0 overflow-hidden">
           {rep.photo_url ? (

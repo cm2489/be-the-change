@@ -8,7 +8,7 @@ interface ImpactMetricsProps {
 
 export function ImpactMetrics({ totalCalls, callsToday }: ImpactMetricsProps) {
   return (
-    <div className="bg-card rounded-xl border border-divider p-5">
+    <div className="bg-paper-mid rounded-xl border border-divider p-5">
       <h2 className="text-meta uppercase text-ink-50 mb-4">Your Impact</h2>
 
       <div className="grid grid-cols-2 gap-4">

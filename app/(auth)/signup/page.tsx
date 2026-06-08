@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { MailCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -15,23 +14,17 @@ export default function SignupPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [checkEmail, setCheckEmail] = useState(false)
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: name } },
-    })
+    const { data, error } = await supabase.auth.signUp({ email, password })
 
     if (error) {
       setError(error.message)
@@ -40,11 +33,14 @@ export default function SignupPage() {
     }
 
     if (data.session) {
+      // Auto-confirm is on, so signup returns a session immediately.
       router.push('/onboarding')
       router.refresh()
     } else {
+      // Only reachable if email confirmation is re-enabled later; surface it
+      // honestly instead of claiming we already sent a link.
+      setError('Account created. Check your email to confirm, then sign in.')
       setLoading(false)
-      setCheckEmail(true)
     }
   }
 
@@ -60,33 +56,6 @@ export default function SignupPage() {
     })
   }
 
-  if (checkEmail) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-paper px-4">
-        <div className="w-full max-w-md text-center">
-          <div className="mb-4 flex justify-center">
-            <MailCheck className="h-12 w-12 text-ink" />
-          </div>
-          <h1 className="font-serif text-h2 text-ink mb-2">Check your email</h1>
-          <p className="text-ink-70 text-small mb-6">
-            We sent a confirmation link to <span className="font-medium text-ink-85">{email}</span>.
-            Click it to activate your account and get started.
-          </p>
-          <p className="text-small text-ink-50">
-            Didn&apos;t get it? Check your spam folder, or{' '}
-            <button
-              className="underline hover:text-ink-70"
-              onClick={() => setCheckEmail(false)}
-            >
-              try again
-            </button>
-            .
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="w-full max-w-md">
@@ -97,8 +66,11 @@ export default function SignupPage() {
         </div>
 
         <Card padding="lg" className="shadow-sm">
-          <h1 className="font-serif text-h2 text-ink mb-2">Create your account</h1>
-          <p className="text-ink-70 text-small mb-6">Free forever. No credit card needed.</p>
+          <h1 className="font-serif text-h2 text-ink mb-2">Understand the bill. Then make the call.</h1>
+          <p className="text-ink-70 text-small mb-6">
+            Create your account for plain-language briefings on the laws that affect you, and a one-tap
+            way to tell your reps where you stand.
+          </p>
 
           {error && (
             <Alert variant="error" className="mb-4">
@@ -107,20 +79,6 @@ export default function SignupPage() {
           )}
 
           <form onSubmit={handleSignup} className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-small font-medium text-ink-85 mb-1.5">
-                Full name
-              </label>
-              <Input
-                id="name"
-                type="text"
-                required
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Jane Smith"
-              />
-            </div>
-
             <div>
               <label htmlFor="email" className="block text-small font-medium text-ink-85 mb-1.5">
                 Email

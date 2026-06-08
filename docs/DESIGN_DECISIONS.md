@@ -424,3 +424,26 @@ Closes the last live arbitrary-type debt (`docs/deferred.md#type-scale-extension
 ### `cn()` resolves custom font-size tokens — LOCKED (`lib/utils.ts`)
 
 `cn` now uses `extendTailwindMerge` to register the project's custom fontSize names (`display/h1/h2/h3/body/small/meta/mono/control`) as the **font-size** class group. tailwind-merge ships only the default scale, so left alone it does **not** dedupe two custom `text-*` tokens — a size override (the button's `lg` over its base) would silently emit **both** classes and let the cascade decide. This registration was the prerequisite for the token-based button sizes to override correctly, and it defuses the latent "custom size token mis-read as a color → dropped label colour" edge. Guarded by `lib/__tests__/utils.test.ts` (override resolves to last; a text color survives alongside a size token; standard merges intact). Gate: lint + build + **vitest 24/24** + Playwright 11/11.
+
+---
+
+## Screen: Issue picker (onboarding + settings) — "pick a few to start" + shared component — LOCKED (2026-06-08)
+
+The 12-issue picker was the cognitive-load flag in the whole-UI `/critique` (a wall of 12 flat options) **and** a cohesion break — it rendered as **numbered checkbox rows** in onboarding but **filled pills** in settings (same control, two looks). Resolved by splitting the *job* and unifying the *component*.
+
+**The job (decided B over A):** onboarding is a **low-pressure starting pick** ("Pick a few that matter to you. You can change these anytime."); settings is the **manage** view. The wall stops being a wall because you grab what jumps out, not weigh all 12 — honoring the brand's "calm, five-minutes" posture. (A — keep select-all but group into themed bands — was rendered and **rejected**: the CRS categories don't cluster cleanly, so the bands felt arbitrary.)
+
+**The treatment (V3, chosen from a 3-way render — flat / grouped / flat-with-examples):** a flat 2-column **card grid** where each card shows the category label **plus its plain-language `subline`** ("Government & Democracy → voting rights, campaign finance reform"). The examples *decode the category* — the brand thesis applied to the picker, and the real fix for a low-literacy first-timer (comprehension, not grouping). The `subline` data already existed in `lib/interests.ts` (written "for pull during onboarding"), unused until now.
+
+### Shared `IssuePicker` component — LOCKED (`components/IssuePicker.tsx`)
+
+One controlled component for both surfaces (kills the two-looks inconsistency by construction; parent owns the `selected` Set + persistence).
+- Grid: `grid gap-2.5 sm:grid-cols-2`.
+- Card: `rounded-lg border px-4 py-3 text-left transition-colors duration-micro focus-visible:shadow-focus focus-visible:outline-none`; selected `border-ink bg-ink`, idle `border-divider bg-paper-mid hover:border-divider-strong` (warm surface + hairline, **no shadow**).
+- Label: `block text-small font-medium` (`text-paper` selected / `text-ink` idle).
+- Subline: `mt-0.5 block text-caption` (`text-paper/70` selected / `text-ink-50` idle).
+- Onboarding's categories `<Card padding="md">` also dropped its `shadow-sm` (the same surface-law fix as the `(auth)` cards — onboarding is `(app)`, so #57 hadn't reached it).
+
+### `caption` font-size token — LOCKED (closes the type-scale gap)
+
+The subline needed a **12px non-uppercase caption** — the long-deferred `type-scale-extension` gap (the same token that blocked `Badge`). Added `fontSize.caption: ['12px', { lineHeight: '1.4' }]` (distinct from `meta`, which is 12px UPPERCASE + tracked) and registered it in `cn()`'s tailwind-merge font-size group. The picker was the genuine trigger; **the `type-scale-extension` thread is now closed** (`Badge` unblocked, though not yet built). Gate: lint + build + vitest 24/24 + Playwright 11/11.

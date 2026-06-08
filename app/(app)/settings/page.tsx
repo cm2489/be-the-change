@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { INTEREST_CATEGORIES } from '@/lib/interests'
+import { IssuePicker } from '@/components/IssuePicker'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -170,22 +170,7 @@ export default function SettingsPage() {
           <p className="text-small text-ink-70 mb-4">
             Select the topics you want to stay informed about.
           </p>
-          <div className="flex flex-wrap gap-2">
-            {INTEREST_CATEGORIES.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => toggleCat(cat.id)}
-                title={cat.subline}
-                className={`px-3 py-1.5 rounded-pill text-small font-medium border transition-all ${
-                  selectedCats.has(cat.id)
-                    ? 'bg-ink text-paper border-ink'
-                    : 'bg-card text-ink-70 border-divider hover:border-divider-strong'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
+          <IssuePicker selected={selectedCats} onToggle={toggleCat} />
         </Card>
 
         <Button

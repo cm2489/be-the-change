@@ -6,12 +6,13 @@ import { cn } from '@/lib/utils'
 // across dashboard tiles, auth containers, and settings sections. Padding variants
 // match the sizes already in use (sm = dashboard tiles p-4, md = generic p-6,
 // lg = auth containers p-8). Shadow stays opt-in via className so no elevation
-// level is baked in. Color uses tokens (border-divider, bg-card #FFFFFF).
+// level is baked in. Surface = bg-paper-mid (#FAF8F5): warm, hairline-only, no shadow
+// (the masthead surface law — paper-toned, delineated by a rule, never a drop shadow).
 //
 // Radius is rounded-xl (20px token) — reconciled off the old off-scale rounded-2xl
 // during the app UI-cohesion pass so every surface matches the locked components
 // (BillCard V4, ScriptFlow, CallFlow, the Decoded hero). See components/ui/README.md.
-const cardVariants = cva('bg-card rounded-xl border border-divider', {
+const cardVariants = cva('bg-paper-mid rounded-xl border border-divider', {
   variants: {
     padding: {
       none: '',

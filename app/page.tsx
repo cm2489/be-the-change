@@ -11,6 +11,7 @@ import {
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { OravanWordmark } from '@/components/brand/OravanWordmark'
+import { CallWalkthrough } from '@/components/call-walkthrough/CallWalkthrough'
 import { createServerClient } from '@/lib/supabase/server'
 
 type Feature = {
@@ -152,31 +153,42 @@ export default async function LandingPage() {
         </section>
       </div>
 
-      {/* How it works — numbered editorial sequence (vertical ruled rows) */}
-      <section className="px-6 py-10 max-w-3xl mx-auto">
-        <div className="mb-10">
-          <h2 className="font-serif text-h2 text-ink">How it works</h2>
-          <p className="text-body text-ink-70 mt-3">
-            From signup to your first call in under 5 minutes.
-          </p>
-        </div>
+      {/* How it works — two columns: the editorial steps (left) + a looping call
+          walkthrough (right). Collapses to one column under 880px (walkthrough
+          drops below the steps). Columns are vertically centered so the shorter
+          step list reads as deliberately balanced against the taller phone. */}
+      <section className="px-6 py-14 max-w-[1100px] mx-auto">
+        <div className="grid grid-cols-1 min-[880px]:grid-cols-2 gap-12 min-[880px]:gap-16 items-center">
+          <div>
+            <div className="mb-10">
+              <h2 className="font-serif text-h2 text-ink">How it works</h2>
+              <p className="text-body text-ink-70 mt-3">
+                From signup to your first call in under 5 minutes.
+              </p>
+            </div>
 
-        <ol className="border-t border-divider">
-          {STEPS.map(step => (
-            <li
-              key={step.number}
-              className="flex items-start gap-6 sm:gap-8 border-b border-divider py-6"
-            >
-              <span className="font-serif text-display text-ink-20 leading-none w-12 shrink-0">
-                {step.number}
-              </span>
-              <div className="pt-1.5">
-                <h3 className="text-h3 font-semibold text-ink mb-1.5">{step.title}</h3>
-                <p className="text-ink-70 text-small leading-relaxed">{step.description}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+            <ol className="border-t border-divider">
+              {STEPS.map(step => (
+                <li
+                  key={step.number}
+                  className="flex items-start gap-6 sm:gap-8 border-b border-divider py-6"
+                >
+                  <span className="font-serif text-display text-ink-20 leading-none w-12 shrink-0">
+                    {step.number}
+                  </span>
+                  <div className="pt-1.5">
+                    <h3 className="text-h3 font-semibold text-ink mb-1.5">{step.title}</h3>
+                    <p className="text-ink-70 text-small leading-relaxed">{step.description}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="flex justify-center">
+            <CallWalkthrough />
+          </div>
+        </div>
       </section>
 
       {/* What Oravan does — card-less editorial list (no boxes/shadows) */}

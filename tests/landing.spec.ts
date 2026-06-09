@@ -65,6 +65,22 @@ test('logged-out visitor sees the marketing landing', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Privacy' })).toBeVisible()
 })
 
+test('the call walkthrough renders on the landing and steps on dot click', async ({ page }) => {
+  await page.goto('/')
+
+  const walkthrough = page.getByRole('group', { name: /Walkthrough/ })
+  await expect(walkthrough).toBeVisible()
+
+  // Five labelled step dots (Decode → Logged).
+  await expect(walkthrough.getByRole('tab')).toHaveCount(5)
+
+  // Pause autoplay so the active step is deterministic, then jump to step 4.
+  await page.getByRole('button', { name: 'Pause walkthrough' }).click()
+  const callTab = walkthrough.getByRole('tab', { name: 'Go to step 4: Call' })
+  await callTab.click()
+  await expect(callTab).toHaveAttribute('aria-selected', 'true')
+})
+
 test('logged-in visitor is redirected off the landing into the app', async ({ page }) => {
   // Sign in (lands on dashboard or onboarding).
   await page.goto('/login')

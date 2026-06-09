@@ -513,3 +513,23 @@ The mobile nav was a white **bottom** tab bar (`bg-card`, icon+label, `Home · I
 - **Layout:** `app/(app)/layout.tsx` dropped the `pb-20` bottom-bar clearance — the nav is a sticky top element in normal flow, so the main column needs no padding hack.
 
 Test: added `mobile: Settings is reachable from the mobile masthead` (390px viewport → taps the gear → asserts `/settings`). Gate: lint + build + Playwright 12/12.
+
+---
+
+## Screen: Landing (`/`) — "Making a call" walkthrough in "How it works" — LOCKED (2026-06-08)
+
+A new landing component (`components/call-walkthrough/`) drops an auto-advancing, phone-framed mock of the call flow (**Decode → Stance → Script → Call → Logged**) into the "How it works" section, so a first-time visitor *sees* how easy a call is before signing up. Built from a design handoff (`Oravan Design System Handoff.zip`), re-authored natively (no in-browser Babel).
+
+**Placement (chose #1 of 5 rendered options):** the section becomes a **two-column split** — the existing numbered steps (unchanged copy) on the left, the walkthrough on the right — `max-w-[1100px]`, collapsing to one column under `880px` (phone drops below the steps). Columns are **vertically centered** (`items-center`) so the shorter step list brackets the taller phone instead of leaving a ragged gap. Chosen over a dedicated centered section (#2) because a centered hero followed by another centered block reads as two competing "hero" moments; the asymmetric 2-col gives the page better layout rhythm (centered hero → asymmetric → grid → centered CTA). Trade accepted: slightly less raw prominence than a standalone section, for a more composed page.
+
+**Choreographed like a screen recording, not a slideshow:** each action screen taps its own CTA (a touch ripple + brief button press) before advancing; the Call screen shows a "Calling…" beat; the Logged medallion pops in; the Script box blinks an edit caret. Per-step timeline lives in `SCHEDULE`. It's an in-component live mock (Approach A — no video asset), so it stays crisp, **has zero runtime network dependency** (bad Wi-Fi can't stutter it, unlike a `.webm`), and is swappable for a real recording later.
+
+**Device-mock token exception:** the phone bezel/viewport dimensions, the in-screen demo text sizes, and the tap/press motion are **literal values** (`h-[472px]`, `text-[12.5px]`, `scale-[0.97]`, the one floating `shadow-[…]`) — device/motion specifics that don't map to the global token scale. Treated as a **contained sanctioned exception**, same spirit as the locked `max-w-[65ch]`; everything outside the frame uses tokens. (Not a precedent for product/app surfaces.)
+
+**Robustness / a11y (built in, not bolted on):**
+- **Small screens:** a sizing wrapper shrinks the 288px phone's footprint and scales it to fit ≤360px — verified **no horizontal overflow at 320px**.
+- **Keyboard:** all in-phone demo buttons are `tabIndex=-1` and the viewport is `aria-hidden` (decorative), so focus never lands on dead controls; the narrative is carried by the captions + the labelled step dots (`role="tab"`).
+- **Reduced motion:** starts paused, no autoplay, transitions/caret/medallion all disabled. **Pause on hover/focus**; manual prev/next/dots/play-pause.
+- No `aria-live` (autoplay would spam screen readers).
+
+**Structure:** split under the 200-line cap into `CallWalkthrough.tsx` (shell + state machine), `screens.tsx` (the 5 screens + schedule), `parts.tsx` (Pill / TapCTA / StanceToggle / AppBar). Reuses the real `Button`; inlines static Pill/Stance (no such primitives exist yet). Happy-path Playwright test added to `landing.spec.ts`. Gate: lint + build + Playwright.

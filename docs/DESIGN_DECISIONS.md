@@ -484,3 +484,16 @@ The whole-UI `/critique` measured `ink-50` quiet text at **2.9–3.6:1 (below AA
 **Legal type-scale:** the legal pages (`/privacy`, `/terms`) — low-traffic, public, **brand register** — get a deeper title: the shared `PageHeader` (`h2`/24) → a direct serif **`h1`** (36px) + description, a clearer 36/16 jump (the detector's flat-14/16/24 flag). A conscious departure from PR #52's "legal on `PageHeader` for title cohesion" — justified because legal is brand-register *editorial* (it should read like the landing, not the app chrome), and the pages are rarely seen.
 
 Gate: lint + build + Playwright 11/11.
+
+---
+
+## System: App nav — mobile top masthead (mirrors desktop), "Issues" dropped — LOCKED (2026-06-08)
+
+The mobile nav was a white **bottom** tab bar (`bg-card`, icon+label, `Home · Issues · My Reps · Your Impact`) that matched nothing else in the app — and **Settings was unreachable on a phone** (it lived only in the desktop masthead's top-right, which is `hidden lg:flex`). Replaced with a **top masthead that mirrors the desktop ink band.**
+
+- **Mirror, not a separate pattern.** The mobile nav is now a sticky **top** `<header className="bg-ink">` using the same vocabulary as the desktop masthead: `text-paper` active / `text-paper/60` idle, the `bg-signal` `-bottom-px` underline on the active section, the wordmark left, and a **Settings gear in the top-right utility slot** — the same slot as desktop. On mobile it stacks into two rows (brand row: wordmark + gear; section row: `Home · My Reps · Your Impact`) to fit the width; desktop stays one row. The contrast: one ink band across both breakpoints, not two unrelated navs.
+- **"Issues" dropped on both surfaces.** Now that the dashboard *is* the feed (see the dashboard-collapse decision), Home opens the feed and "See all →" still bridges to `/bills`, so a dedicated Issues tab was redundant. `/bills` is untouched and still routable.
+- **Settings = gear, not a tab.** Making Settings the top-right gear (rather than a 4th bottom tab) is what makes the two navs true mirrors — and it still fixes the "unreachable on mobile" bug. `NAV_ITEMS` is now icon-less (text labels on both surfaces); the per-item lucide icons were dropped.
+- **Layout:** `app/(app)/layout.tsx` dropped the `pb-20` bottom-bar clearance — the nav is a sticky top element in normal flow, so the main column needs no padding hack.
+
+Test: added `mobile: Settings is reachable from the mobile masthead` (390px viewport → taps the gear → asserts `/settings`). Gate: lint + build + Playwright 12/12.

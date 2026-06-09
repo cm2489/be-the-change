@@ -59,9 +59,8 @@ test('shell: top masthead replaces the sidebar; nav active-state tracks the rout
   await expect(masthead).toBeVisible()
   await expect(masthead.getByRole('link', { name: 'Oravan' })).toBeVisible()
 
-  // The section links live in the masthead. ("Issues" was dropped once the
-  // dashboard became the feed.)
-  for (const label of ['Home', 'My Reps', 'Your Impact']) {
+  // The four primary destinations live in the desktop masthead.
+  for (const label of ['Home', 'Feed', 'Reps', 'Impact']) {
     await expect(masthead.getByRole('link', { name: label, exact: true })).toBeVisible()
   }
 
@@ -70,19 +69,18 @@ test('shell: top masthead replaces the sidebar; nav active-state tracks the rout
     masthead.getByRole('link', { name: 'Home', exact: true }),
   ).toHaveAttribute('aria-current', 'page')
 
-  // Navigating updates the active marker.
-  await masthead.getByRole('link', { name: 'My Reps', exact: true }).click()
-  await page.waitForURL('**/representatives')
+  // Navigating updates the active marker (Feed → /bills).
+  await masthead.getByRole('link', { name: 'Feed', exact: true }).click()
+  await page.waitForURL('**/bills')
   await expect(
-    masthead.getByRole('link', { name: 'My Reps', exact: true }),
+    masthead.getByRole('link', { name: 'Feed', exact: true }),
   ).toHaveAttribute('aria-current', 'page')
 })
 
-test('mobile: Settings is reachable from the mobile masthead', async ({ page }) => {
-  // The mobile masthead mirrors the desktop band, with Settings in the same
-  // top-right gear slot — the only Settings access point on a phone. Guard that
-  // it exists and routes. At this width the desktop <header> is display:none
-  // (out of the a11y tree), so the only "Settings" link is the mobile gear.
+test('mobile: Settings is reachable from the mobile masthead gear', async ({ page }) => {
+  // On mobile the masthead is a slim nameplate (wordmark + gear); Settings lives
+  // in the gear, not the bottom bar. At this width the desktop <header> is
+  // display:none (out of the a11y tree), so the only "Settings" link is the gear.
   await page.setViewportSize({ width: 390, height: 844 })
   await login(page)
   await page.goto('/dashboard')
@@ -91,4 +89,22 @@ test('mobile: Settings is reachable from the mobile masthead', async ({ page }) 
   await expect(settingsTab).toBeVisible()
   await settingsTab.click()
   await page.waitForURL('**/settings')
+})
+
+test('mobile: the bottom tab bar carries the destinations and tracks the route', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await login(page)
+  await page.goto('/bills')
+
+  const tabbar = page.getByRole('navigation', { name: 'Primary' })
+  await expect(tabbar).toBeVisible()
+  for (const label of ['Home', 'Feed', 'Reps', 'Impact']) {
+    await expect(tabbar.getByRole('link', { name: label, exact: true })).toBeVisible()
+  }
+  // On /bills, the Feed tab is the active destination (a bill sub-route would too).
+  await expect(
+    tabbar.getByRole('link', { name: 'Feed', exact: true }),
+  ).toHaveAttribute('aria-current', 'page')
 })

@@ -533,3 +533,21 @@ A new landing component (`components/call-walkthrough/`) drops an auto-advancing
 - No `aria-live` (autoplay would spam screen readers).
 
 **Structure:** split under the 200-line cap into `CallWalkthrough.tsx` (shell + state machine), `screens.tsx` (the 5 screens + schedule), `parts.tsx` (Pill / TapCTA / StanceToggle / AppBar). Reuses the real `Button`; inlines static Pill/Stance (no such primitives exist yet). Happy-path Playwright test added to `landing.spec.ts`. Gate: lint + build + Playwright.
+
+---
+
+## System: Mobile nav — bottom tab bar restored (corrects #64) — LOCKED (2026-06-09)
+
+#64 had moved mobile nav into a top masthead (mirroring desktop). That **contradicted DESIGN.md**, whose Navigation rule ends: *"Mobile is a bottom-tab bar."* This restores the documented system. Per a dedicated handoff (`Oravan-Masthead-Handoff.html`); a surgical nav change, not a rebuild.
+
+- **Mobile masthead → slim nameplate.** The mobile `<header>` keeps only the wordmark + the Settings **gear** (and `pt-safe` so the ink band sits under the notch). No tabs — primary nav is the bottom bar.
+- **New `BottomTabBar`** (`lg:hidden fixed bottom-0`, paper fill, top hairline, `pb-safe` for the home indicator): four destinations as `lucide` icon + label, ≥44px targets. The screen's **one signal-orange moment** moves from the masthead underline to the **active tab's 3px marker**.
+- **Desktop masthead unchanged in shape**, but its tab set now matches the bar: `Home · Feed · Reps · Impact` (re-added **Feed → /bills**, which #64 had dropped; relabeled "My Reps"→"Reps", "Your Impact"→"Impact"). Routes are **unchanged** — only labels (`/representatives` stays; no `/reps` rename).
+- **Active state** by first path segment, so `/bills/[id]` still highlights Feed. Pure `activeTabHref()` in `lib/nav/primaryTabs.ts` (unit-tested); `Masthead` + `BottomTabBar` in `components/layout/` (replaces `components/NavBar.tsx`).
+
+**Deliberate deviations from the handoff:**
+- Idle tab labels use **`ink-70`, not the handoff's `ink-50`** — DESIGN.md scopes `ink-50` to "large/disabled only", and a 12px label needs the AA floor (the #62 contrast sweep). The active marker + bold weight still distinguish the active tab.
+- **Dropped the "clipped avatar" fix-in-passing** — there is **no `Avatar` component anywhere** in the codebase, so the bug it described isn't in this build (the dark "N" in dev screenshots is the Next.js dev-mode indicator).
+- ZIP chip in the masthead left as an optional future add (needs the user's ZIP wired).
+
+Note: this reverses the *feed* half of the earlier "Stack 1" too — `/bills` returns as the distinct "Feed" tab; Home and Feed are separate destinations (the category-feed redesign will land on the Feed tab). Gate: lint + build + vitest 28 + Playwright 14.

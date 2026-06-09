@@ -117,10 +117,10 @@ export default async function LandingPage() {
 
       {/* Hero — warm paper-dark band (reserved warmth for the welcome) */}
       <div className="bg-paper-dark border-b border-divider">
-        <section className="px-6 pt-16 pb-10 text-center max-w-4xl mx-auto">
+        <section className="px-6 pt-24 pb-16 text-center max-w-4xl mx-auto">
         <p className="text-meta uppercase text-ink-70 mb-6">Pro-democracy &middot; Non-partisan</p>
 
-        <h1 className="font-serif text-h1 sm:text-display text-ink leading-tight mb-6 text-balance">
+        <h1 className="font-serif text-broadsheet text-ink mb-6 text-balance">
           Your voice matters.
           <br />
           Make it heard.

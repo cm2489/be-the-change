@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { PageHeader } from '@/components/ui/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
+import { getCategoryLabel } from '@/lib/interests'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,14 +19,19 @@ export default async function BillsPage() {
 
   const userId = session.user.id
 
-  // Check for interests
-  const { count: interestCount } = await supabase
+  // The user's selected interest categories (id + label), in rank order. Drives
+  // the chip rail + which personalization prompt shows (0 / 1 / 2+).
+  const { data: interestRows } = await supabase
     .from('user_interests')
-    .select('*', { count: 'exact', head: true })
+    .select('category')
     .eq('user_id', userId)
+    .order('rank', { ascending: true })
+  const selectedCategories = [...new Set((interestRows ?? []).map((row) => row.category as string))]
+    .map((id) => ({ id, label: getCategoryLabel(id) }))
+  const interestCount = selectedCategories.length
 
   let bills: FeedBill[] = []
-  if ((interestCount ?? 0) > 0) {
+  if (interestCount > 0) {
     const { data } = await supabase.rpc('get_personalized_feed', {
       p_user_id: userId,
       p_offset: 0,
@@ -45,7 +51,7 @@ export default async function BillsPage() {
       <PageHeader
         title="Issues"
         description={
-          (interestCount ?? 0) > 0
+          interestCount > 0
             ? 'Matched to your interests, sorted by urgency.'
             : 'All active federal legislation, sorted by urgency.'
         }
@@ -62,9 +68,11 @@ export default async function BillsPage() {
       ) : (
         <BillsFeed
           initialBills={bills}
-          mode={(interestCount ?? 0) > 0 ? 'personalized' : 'default'}
+          mode={interestCount > 0 ? 'personalized' : 'default'}
           userId={userId}
           pageSize={30}
+          interestCount={interestCount}
+          selectedCategories={selectedCategories}
         />
       )}
     </div>

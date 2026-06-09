@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
-import { NavBar } from '@/components/NavBar'
+import { Masthead } from '@/components/layout/Masthead'
+import { BottomTabBar } from '@/components/layout/BottomTabBar'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerClient()
@@ -24,10 +25,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-paper">
-      <NavBar userName={userName} />
-      {/* Both breakpoints: a sticky top masthead (in normal flow), so the main
-          column needs no nav clearance. */}
-      <main className="min-h-screen">{children}</main>
+      <Masthead userName={userName} />
+      {/* Mobile: clear the fixed bottom tab bar; desktop has no bottom bar. */}
+      <main className="min-h-screen pb-20 lg:pb-0">{children}</main>
+      <BottomTabBar />
     </div>
   )
 }

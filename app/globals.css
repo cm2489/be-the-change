@@ -59,6 +59,15 @@
 }
 
 @layer utilities {
+  /* Safe-area insets — the sticky masthead extends under the notch/status bar,
+     the fixed bottom tab bar clears the home indicator. */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   .text-balance {
     text-wrap: balance;
   }

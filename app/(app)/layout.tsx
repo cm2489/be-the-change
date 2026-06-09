@@ -25,8 +25,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-paper">
       <NavBar userName={userName} />
-      {/* Desktop: top masthead, no left offset; Mobile: bottom-nav clearance */}
-      <main className="pb-20 lg:pb-0 min-h-screen">{children}</main>
+      {/* Both breakpoints: a sticky top masthead (in normal flow), so the main
+          column needs no nav clearance. */}
+      <main className="min-h-screen">{children}</main>
     </div>
   )
 }

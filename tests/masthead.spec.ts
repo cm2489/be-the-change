@@ -59,8 +59,9 @@ test('shell: top masthead replaces the sidebar; nav active-state tracks the rout
   await expect(masthead).toBeVisible()
   await expect(masthead.getByRole('link', { name: 'Oravan' })).toBeVisible()
 
-  // All four section links live in the masthead.
-  for (const label of ['Home', 'Issues', 'My Reps', 'Your Impact']) {
+  // The section links live in the masthead. ("Issues" was dropped once the
+  // dashboard became the feed.)
+  for (const label of ['Home', 'My Reps', 'Your Impact']) {
     await expect(masthead.getByRole('link', { name: label, exact: true })).toBeVisible()
   }
 
@@ -70,9 +71,24 @@ test('shell: top masthead replaces the sidebar; nav active-state tracks the rout
   ).toHaveAttribute('aria-current', 'page')
 
   // Navigating updates the active marker.
-  await masthead.getByRole('link', { name: 'Issues', exact: true }).click()
-  await page.waitForURL('**/bills')
+  await masthead.getByRole('link', { name: 'My Reps', exact: true }).click()
+  await page.waitForURL('**/representatives')
   await expect(
-    masthead.getByRole('link', { name: 'Issues', exact: true }),
+    masthead.getByRole('link', { name: 'My Reps', exact: true }),
   ).toHaveAttribute('aria-current', 'page')
+})
+
+test('mobile: Settings is reachable from the mobile masthead', async ({ page }) => {
+  // The mobile masthead mirrors the desktop band, with Settings in the same
+  // top-right gear slot — the only Settings access point on a phone. Guard that
+  // it exists and routes. At this width the desktop <header> is display:none
+  // (out of the a11y tree), so the only "Settings" link is the mobile gear.
+  await page.setViewportSize({ width: 390, height: 844 })
+  await login(page)
+  await page.goto('/dashboard')
+
+  const settingsTab = page.getByRole('link', { name: 'Settings', exact: true })
+  await expect(settingsTab).toBeVisible()
+  await settingsTab.click()
+  await page.waitForURL('**/settings')
 })

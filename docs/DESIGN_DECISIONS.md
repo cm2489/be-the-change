@@ -487,6 +487,22 @@ Gate: lint + build + Playwright 11/11.
 
 ---
 
+## Screen: Landing (`/`) — broadsheet hero headline (creative-director ceiling) — LOCKED (2026-06-08)
+
+First **ceiling** pass via the `creative-director` skill, run *after* the floor was clean (the whole-UI `/critique` cleared, the 4-item floor shipped as #59–#62). Mode 1 read the landing as disciplined and on-canon — the load-bearing rules were **restraint**, the **reserved serif** (display weight held back for moments that matter), and the **type scale** (every step a sanctioned token). Those are exactly the rules worth breaking *here*, because the landing is the one **brand-register** surface where the design IS the product.
+
+**The break shipped (1 of 3 proposed — exaggeration):** the hero `<h1>` jumps the type scale to a **broadsheet headline** — `text-broadsheet` = `clamp(2.75rem, 8vw, 6rem)` / `lineHeight 1.03`, well past the `display` (56px) ceiling. Paired with **more air** above/below the hero (`pt-24 pb-16`, up from `pt-16 pb-10`).
+- **The rule it breaks:** the type scale (every size is a token; nothing exceeds `display`). The scale exists so sizes read as *authored*, not arbitrary — an off-scale size usually looks accidental.
+- **Why it escapes the failure mode:** it doesn't look accidental because (a) it's the **single** largest element on the one page that's pure brand, (b) it's a fluid `clamp()` so it's *composed* to the viewport rather than a fixed magic number, and (c) it's promoted to a **named token** (`fontSize.broadsheet`) — a sanctioned scale step, not a one-off `text-[...]`. The exaggeration becomes the point: editorial confidence, the broadsheet-front-page voice the brand wants.
+
+**Rejected (the other two CD proposals, both rendered as mockups + re-read by the CD):**
+- **Dateline rules** (flanking `h-px w-10` hairlines around the eyebrow) — too quiet; the CD's own re-read called it a whisper that didn't earn its complexity.
+- **Honest waste alone** (huge empty hero, `pt-36 pb-28`, no headline change) — air without the headline is just a gap; the air only works *as support* for the bigger type, so it folded into the shipped break at a calmer `pt-24 pb-16`.
+
+**Token added:** `fontSize.broadsheet: ['clamp(2.75rem, 8vw, 6rem)', { lineHeight: '1.03' }]` (registered in `cn()`'s tailwind-merge font-size group) — the one sanctioned scale-break, reserved for a top-of-page brand hero. Not for app/product surfaces. Gate: lint + build + Playwright 11/11.
+
+---
+
 ## System: App nav — mobile top masthead (mirrors desktop), "Issues" dropped — LOCKED (2026-06-08)
 
 The mobile nav was a white **bottom** tab bar (`bg-card`, icon+label, `Home · Issues · My Reps · Your Impact`) that matched nothing else in the app — and **Settings was unreachable on a phone** (it lived only in the desktop masthead's top-right, which is `hidden lg:flex`). Replaced with a **top masthead that mirrors the desktop ink band.**

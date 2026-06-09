@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     description: 'Make your voice heard. One call at a time.',
     type: 'website',
   },
-  manifest: '/manifest.json',
+  manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

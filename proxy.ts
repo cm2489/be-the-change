@@ -39,7 +39,7 @@ export async function proxy(req: NextRequest) {
     path.startsWith('/_next') ||
     path.startsWith('/icons') ||
     path === '/sw.js' ||
-    path === '/manifest.json'
+    path === '/manifest.webmanifest'
   ) {
     return res
   }

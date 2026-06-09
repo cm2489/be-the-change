@@ -71,6 +71,7 @@ const config: Config = {
         mono: ['13px', { lineHeight: '1.35', letterSpacing: '0' }],
         control: ['13px', { lineHeight: '1' }], // controls (buttons/inputs): 13px, no tracking — pairs with the 8px control radius
         caption: ['12px', { lineHeight: '1.4' }], // non-uppercase 12px caption (sublines, helper text) — distinct from `meta` (12px UPPERCASE + tracked)
+        broadsheet: ['clamp(2.75rem, 8vw, 6rem)', { lineHeight: '1.03' }], // top-of-scale hero headline (creative-director "broadsheet" exaggeration) — the one sanctioned scale-break
       },
       borderRadius: {
         sm: '4px',

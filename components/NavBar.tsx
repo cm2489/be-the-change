@@ -2,15 +2,18 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, ClipboardList, Users, Activity, Settings } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import { OravanWordmark } from '@/components/brand/OravanWordmark'
 import { cn } from '@/lib/utils'
 
+// Shared section links, rendered identically on both mastheads (desktop band +
+// mobile band). "Issues" was dropped once the dashboard became the feed — Home
+// now opens the feed, and "See all" still bridges to /bills. Settings is not a
+// section link: it lives in the top-right utility slot of both mastheads.
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Home', icon: Home },
-  { href: '/bills', label: 'Issues', icon: ClipboardList },
-  { href: '/representatives', label: 'My Reps', icon: Users },
-  { href: '/impact', label: 'Your Impact', icon: Activity },
+  { href: '/dashboard', label: 'Home' },
+  { href: '/representatives', label: 'My Reps' },
+  { href: '/impact', label: 'Your Impact' },
 ]
 
 export function NavBar({ userName }: { userName?: string }) {
@@ -67,25 +70,54 @@ export function NavBar({ userName }: { userName?: string }) {
         </div>
       </header>
 
-      {/* Mobile bottom nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-divider z-50 safe-area-pb">
-        <div className="flex">
-          {NAV_ITEMS.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={isActive(item.href) ? 'page' : undefined}
-              className={cn(
-                'flex-1 flex flex-col items-center justify-center py-3 text-meta font-medium transition-colors',
-                isActive(item.href) ? 'text-ink' : 'text-ink-70',
-              )}
-            >
-              <item.icon className="h-5 w-5 mb-0.5" />
-              {item.label}
-            </Link>
-          ))}
+      {/* Mobile masthead — the desktop ink band, moved to the top of the screen
+          and stacked to fit: wordmark + Settings gear on the brand row, the
+          section nav with the same signal-underline active state below. Settings
+          sits in the top-right utility slot exactly as on desktop (reachable
+          without a bottom tab). Sticky so it stays put as the feed scrolls. */}
+      <header className="lg:hidden sticky top-0 z-40 bg-ink">
+        <div className="flex items-center justify-between h-14 px-4">
+          <Link href="/dashboard" aria-label="Oravan — home">
+            <OravanWordmark className="h-6 text-paper" />
+          </Link>
+          <Link
+            href="/settings"
+            aria-label="Settings"
+            aria-current={isActive('/settings') ? 'page' : undefined}
+            className={cn(
+              'flex items-center transition-colors duration-micro',
+              isActive('/settings') ? 'text-paper' : 'text-paper/60 hover:text-paper',
+            )}
+          >
+            <Settings className="h-5 w-5" />
+          </Link>
         </div>
-      </nav>
+
+        <nav className="flex items-stretch gap-6 h-11 px-4 border-t border-paper/10">
+          {NAV_ITEMS.map(item => {
+            const active = isActive(item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'relative flex items-center text-small font-medium transition-colors duration-micro',
+                  active ? 'text-paper' : 'text-paper/60 hover:text-paper',
+                )}
+              >
+                {item.label}
+                {active && (
+                  <span
+                    className="absolute inset-x-0 -bottom-px h-0.5 rounded-pill bg-signal"
+                    aria-hidden
+                  />
+                )}
+              </Link>
+            )
+          })}
+        </nav>
+      </header>
     </>
   )
 }

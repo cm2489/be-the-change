@@ -551,3 +551,15 @@ A new landing component (`components/call-walkthrough/`) drops an auto-advancing
 - ZIP chip in the masthead left as an optional future add (needs the user's ZIP wired).
 
 Note: this reverses the *feed* half of the earlier "Stack 1" too — `/bills` returns as the distinct "Feed" tab; Home and Feed are separate destinations (the category-feed redesign will land on the Feed tab). Gate: lint + build + vitest 28 + Playwright 14.
+
+---
+
+## Screen: Feed (`/bills`) — urgency bands + topic chip filter + prompt states — LOCKED (2026-06-09)
+
+The feed stays **one flat `urgency_score`-sorted list** (NOT category sections — that direction was rejected). Three things were layered on top of the existing decode-led card + RPCs, all additive:
+
+- **Urgency bands.** A pure `bandOf(status, introduced)` (`lib/feed/urgencyBands.ts`) derives a band from the *same* `deriveDisplayStatus` the card shows (so band and card never disagree): `floor_vote → imminent`, `passed_chamber/conference/markup → coming`, `committee/introduced → committee`, `signed/vetoed → resolved`. `groupByBand()` buckets the loaded list in `BAND_ORDER`, drops empty bands. A serif `UrgencyBandHeader` (label + count · note) precedes each. Load-more appends, then regroups.
+- **Topic chip filter rail** (`TopicFilterRail`, client). Sticky under the masthead, the user's interest categories as chips; client-side filter on the loaded set (`issue_tags.includes`). Active chip is **ink, never orange** (the one signal-orange per screen stays the active bottom tab). "All topics" with ≥2 interests; a dashed "Add" → /onboarding with exactly 1.
+- **Prompt states**, branched on `interestCount` in `bills/page.tsx` (now passes `interestCount` + selected `{id,label}[]`): **0** → keep the default feed (banded) + an inline "Personalize your feed" nudge, *no blocking pick screen*; **1** → single chip + dashed Add + a docked `AddInterestsBar`; **≥2** → "All topics" + chips, no bar.
+
+Deliberate deviations: idle chip label uses `ink-70` (DESIGN.md scopes `ink-50` to large/disabled; 12px needs AA — the #62 sweep); `groupByBand`/`bandOf` import congress relatively (vitest doesn't resolve `@/`); no em dashes in the new copy. Untouched per spec: `BillCard` (v4), the feed RPCs, Load-more, nav, `/dashboard`. (The handoff's "lost in a revert" framing was incorrect — git history showed no prior band/rail code; built fresh to spec.) Gate: lint + build + vitest 36 + Playwright 17 (3 new feed tests).

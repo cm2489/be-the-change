@@ -1020,3 +1020,28 @@ A second callable-event type layered **ALONGSIDE** the bill feed (additive, not 
 - 2026-05-23 — Batch 1 merged (PR #22): slate→token / size→type-scale / emoji→lucide sweep across 12 surfaces (slate 192→3, raw-size 131→46) + next/font + Input/Card primitives. Delisted `layout.tsx` from consolidation-followup (swept; now 31 slate), added the 18px-body gap to `type-scale-extension`, and logged `landing-features-grid-emoji` (V2/brand-lock) and `landing-copy-out-of-scope-features` (SCOPE — state/local + gamification still advertised on the landing). STATUS.md refreshed.
 - 2026-05-22 — Landing stats overstating scope fixed (`fix/landing-stats-federal-scope`): removed the "state & local" / "50 states" claims, leaving a 3-stat federal-true strip.
 - 2026-05-22 — Email verification consciously deferred to pre-launch (docs-only; no code shipped). Added the `## Feature 1` section: `email-verification-deferred` (BLOCK before public beta — "Confirm email" is OFF so `auth.users.email_confirmed_at` is true-for-all and `profiles.email_verified_at` is true-for-none; no proof-of-ownership exists), plus `email-verified-at-dead-column` and `signup-check-email-dead-branch` (DEBT gate-traps). `FEATURES.md` §1 annotated as deferred. Toggle state verified empirically via the public `auth.signUp` path (the `admin.createUser` path gives a false reading).
+
+---
+
+## Feature 3 — Bill feed (post-#68 follow-ups)
+
+### feed-server-side-category-filter
+
+**Priority:** V2
+**Where in code:** `components/BillsFeed.tsx` (the `activeCategory` client filter + `fetchPage`), the `get_personalized_feed` / `get_default_feed` RPCs, `app/(app)/bills/page.tsx`.
+
+**Situation:** The topic chip rail (PR #68) filters **client-side on the loaded set only**. Filter to a topic whose bills mostly live on later pages and you see just the few matches in the loaded ~30; once `done` is true the user gets "You've reached the end" with only 1–2 bills for that topic even though more exist server-side. (Surfaced by an agent review of #68.)
+
+**Fix (v2):** add `p_category text DEFAULT NULL` to the feed RPC(s) with `AND (p_category IS NULL OR p_category = ANY(b.issue_tags))` — a signature change, so DROP+CREATE + re-GRANT in a new `supabase/migrations/` file (same pattern as the ai_headline migration). `BillsFeed.fetchPage` then passes `p_category` and **resets `bills`/offset/`done` on filter change** (Load-more uses `bills.length` as the offset, so server-side filtering must re-page from 0). `page.tsx` changes only if you want SSR to honor a `?topic=` URL param. The client filter + empty-after-filter copy then get removed.
+
+### feed-band-filter-polish
+
+**Priority:** DEBT
+**Where in code:** `lib/feed/urgencyBands.ts`, `components/BillsFeed.tsx`, `components/feed/TopicFilterRail.tsx`.
+
+**Situation:** Low-severity polish from the #68 agent review:
+- **Comment accuracy.** `urgencyBands.ts` + `BillsFeed.tsx` call the feed "pre-sorted by urgency / one urgency-sorted list." Inaccurate: (a) the **personalized** RPC sorts by a *blended* score (`matched_tags_ratio*0.4 + urgency_score*0.6`), not raw urgency; (b) band order isn't monotonic in urgency — a `signed` bill (base 0.3 → `resolved` band, rendered last) outranks an `introduced` bill (base 0.2 → `committee` band, rendered above) in raw urgency, so banding reorders across that boundary. Fix = correct the comments (bands impose a canonical *stage* order).
+- **Empty-state copy.** "No bills in this topic yet. Try 'All topics' or load more." shows "load more" even when `done` is already true. Guard: only suggest load-more when `!done`.
+- **a11y.** The chip-rail scroller has no group semantics — add `role="group" aria-label="Filter bills by topic"`; the dashed "Add" `Link` needs an `aria-label` to distinguish it from filter chips.
+- **scrollTo guard.** `handleFilter` calls `window.scrollTo({top:0})` even when re-tapping the already-active chip — guard with `if (value !== activeCategory)`.
+- **1-interest escape.** With exactly 1 interest there's no "All topics" chip, so if the client filter ever yields empty (tag/RPC mismatch) the user can't clear it — either skip the client filter for the 1-interest case (the RPC already scoped it) or always render an escape chip.

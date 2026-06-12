@@ -7,29 +7,32 @@ This file is read by Claude Code at the start of every session. Its rules overri
 ## Project Identity
 
 **Name:** Oravan
-**What it is:** A pro-democracy civic engagement web app that reduces friction between citizens and their elected federal representatives.
-**Who uses it:** U.S. voters who want to engage with the federal legislative process but don't know how.
-**Current phase:** Pre-MVP, solo-built, targeting a donor-ready MVP in 6–8 weeks.
+**What it is:** Agent-native civic action infrastructure — a monetized remote MCP server + HTTP API that lets AI assistants and apps look up federal representatives, decode legislation, draft call scripts, track bills, and log civic actions. The consumer web app is the free **reference client**, not the product.
+**Who uses it:** AI assistants/agents (via MCP), developers and orgs embedding civic action (via API key), and — through the reference client — U.S. voters.
+**Current phase:** Post-pivot (2026-06-11), solo-built, **no employees, no sales motion, ~4 hrs/week steady-state ops**. Target: live + listed in MCP registries by Aug/Sep 2026 (midterm window).
+**Strategy doc:** `docs/PIVOT.md` — read it before any scope or product reasoning.
 
-## MVP Scope (read this before adding anything)
+## Scope (read this before adding anything)
 
-**In scope:**
-1. User accounts with political profile (values, issue priorities, ZIP code)
-2. Lookup of user's federal representatives (House rep + 2 Senators) by address
-3. AI-generated call script personalized to user's profile + current bill
-4. List of bills currently active in Congress, filterable by user's issue priorities
-5. 1-click calling via `tel:` link (mobile) or display of phone number (desktop)
-6. Web push notifications for priority bill alerts
-7. Personal activity tracking (bills followed, calls made)
+**In scope (MCP v1 — full criteria in `FEATURES.md`):**
+1. Steady-state data pipeline (sync cron + sync-time AI summaries/headlines/tags)
+2. MCP server core tools: `search_bills`, `decode_bill`, `lookup_representatives`, `draft_call_script`
+3. Tracking + updates (`track_bill`, `get_updates`, paid webhooks)
+4. Upcoming-activity calendar (committee hearings/markups; no vote-date prediction)
+5. Rep accountability pack (profiles + roll-call votes — facts only, no scorecards)
+6. Developer portal: self-serve API keys, metering, Stripe usage-based billing
+7. OAuth user-context tools (Phase 2)
+8. Registry distribution + docs
 
-**Explicitly OUT of scope for MVP (do not add, do not suggest):**
-- State-level bills or state representatives (no LegiScan, no state APIs)
-- Payments, subscriptions, or Stripe integration of any kind
-- Social features (friend graphs, leaderboards, challenges, public profiles)
-- Twilio-based call connection (MVP uses `tel:` links only)
-- Email outreach to reps (phone only)
-- Text message / SMS features
-- Native mobile app (web PWA only)
+**Explicitly OUT of scope (do not add, do not suggest):**
+- Sales-led anything (demos, custom contracts) — self-serve or it doesn't exist
+- State-level bills or state representatives (v2; no LegiScan, no state APIs)
+- **Consumer payments of any kind** — citizens never pay; Stripe is for API billing only
+- Multi-channel message blasts (email-to-rep, SMS) — call scripts + talking points only
+- Scorecards/grades/ratings of legislators
+- Web push notifications (superseded by webhooks/agent updates — do not resurrect)
+- Social features, native mobile apps, Twilio call connection (unchanged bans)
+- x402/crypto payments (deferred until Stripe is live and someone asks)
 
 If a user request would expand scope, pause and ask for confirmation before implementing.
 
@@ -65,15 +68,21 @@ This project uses bleeding-edge Next.js. Your training data probably predates so
 
 ### AI Script Generation
 - Use Anthropic SDK (`@anthropic-ai/sdk`) with Claude models.
-- Every script generation must be cached per `(user_id, bill_id, stance)` tuple — do not regenerate on every request. This is a hard cost control, not a performance nice-to-have.
-- Include a mandatory user review step in the UI before the "call" button activates. Never auto-dial with unreviewed AI content.
+- Every script generation must be cached per `(caller, bill_id, stance)` tuple — user_id in the web app, API key / OAuth identity over MCP. Do not regenerate on every request. This is a hard cost control, not a performance nice-to-have.
+- Human review before use is non-negotiable: in the web app, the review step gates the "call" button; over MCP, every `draft_call_script` response must carry the disclaimer so the client surfaces it. Never auto-dial with unreviewed AI content.
 - Every generated script must include a disclaimer: "AI-drafted. Review and edit before use."
-- Log all generations (anonymized user, bill, prompt hash, output hash, timestamp) to a `script_generations` table for audit + cost tracking.
+- Log all generations (anonymized caller, bill, prompt hash, output hash, timestamp) to a `script_generations` table for audit + cost tracking.
 
-### Push Notifications
-- Use `web-push` with VAPID keys (already in env).
-- Hard limit: max 2 pushes per user per day, enforced server-side.
-- No political content in the notification body itself — only neutral prompts like "A bill you follow has an upcoming vote."
+### MCP Server + Billing — CRITICAL
+- The MCP server lives in this app: `app/api/[transport]/route.ts` via Vercel's `mcp-handler` (Streamable HTTP). Do not stand up a separate service.
+- MCP tools are thin wrappers over existing `lib/` and server-action code — never duplicate business logic into tool handlers.
+- **Every keyed tool call must be metered.** A tool that bills wrong is a launch blocker, same severity as an RLS hole.
+- Tier limits (calls/mo, tracked bills, webhooks) are enforced server-side, never client-side.
+- Stripe is sanctioned for **API billing only** (Billing Meters + Checkout + Customer Portal + Tax). No consumer paywalls. `STRIPE_*` env vars land in the F6 PR, not before.
+- Phase 2 auth: MCP OAuth 2.1 via `withMcpAuth`, wired to the existing Supabase auth — no parallel identity system.
+
+### Push Notifications — SUPERSEDED
+- Web push is dead (pivot 2026-06-11): superseded by paid webhooks + agent-native `get_updates`. Do not build on `web-push`/VAPID. The `push_subscriptions`/`notifications_sent` tables stay until a cleanup migration retires them.
 
 ## Coding Conventions
 
@@ -90,7 +99,7 @@ This project uses bleeding-edge Next.js. Your training data probably predates so
 At the start of every coding session, Claude should:
 
 1. Read this file (`CLAUDE.md`)
-2. Read `FEATURES.md` to understand current MVP scope and explicitly-deferred work
+2. Read `FEATURES.md` to understand current scope and explicitly-deferred work; read `docs/PIVOT.md` if the task touches product direction, monetization, or the MCP surface
 3. Read `ARCHITECTURE.md` if the task touches system design, integrations, or data flow
 4. Read `SCHEMA.md` if the task touches the database in any way
 5. Review recent `git log` (last 5 commits) to understand current state
@@ -113,7 +122,7 @@ The front-end / design phase has its own operating doc: **`docs/DESIGN_PLAYBOOK.
 ## Hard "Do Not Do" Rules
 
 - Do not silently add new env vars. Any new env var requires explicit discussion.
-- Do not add new external services (Stripe, Twilio, Segment, PostHog, etc.) without explicit permission.
+- Do not add new external services (Twilio, Segment, PostHog, etc.) without explicit permission. Exception: **Stripe is pre-approved for API billing (F6)** by the 2026-06-11 pivot decision — but only in the F6 PR, only for API billing.
 - Do not "refactor" files that weren't part of the task. Stay in scope.
 - Do not delete tests to make a build pass. If a test is broken, explain why and propose a fix.
 - Do not disable TypeScript errors with `@ts-ignore` or `@ts-expect-error` without a comment explaining the specific reason and a plan to remove.

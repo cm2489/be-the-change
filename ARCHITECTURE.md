@@ -2,6 +2,8 @@
 
 How the system fits together. When Claude or any engineer needs to understand integration boundaries, start here.
 
+**Since the 2026-06-11 pivot (`docs/PIVOT.md`), the product is the MCP server + API; the web app is the reference client.** Sections below describing web-app flows remain accurate for that client.
+
 ---
 
 ## Stack Overview
@@ -9,14 +11,16 @@ How the system fits together. When Claude or any engineer needs to understand in
 | Layer | Technology | Version | Notes |
 |---|---|---|---|
 | Framework | Next.js | 16.2.4 | App Router, `proxy.ts` (not `middleware.ts`), Node.js runtime |
+| MCP Server | `mcp-handler` (Vercel) | — | Remote MCP, Streamable HTTP, at `app/api/[transport]/route.ts` (F2) |
 | UI Library | React | 19 | Server Components default |
 | Styling | Tailwind CSS | v3 only | Do not mix v4 packages |
 | Language | TypeScript | 5.8+ | Strict mode |
-| Auth / DB / Storage | Supabase | — | Use `@supabase/ssr` only. `@supabase/auth-helpers-nextjs` is deprecated. |
-| AI | Anthropic SDK | 0.39+ | Claude models for script generation |
+| Auth / DB / Storage | Supabase | — | Use `@supabase/ssr` only. `@supabase/auth-helpers-nextjs` is deprecated. MCP Phase 2 auth = OAuth 2.1 (`withMcpAuth`) on the same Supabase identities. |
+| AI | Anthropic SDK | 0.39+ | Claude models for script generation + sync-time summaries/headlines |
+| Billing | Stripe | — | F6 only: Billing Meters + Checkout + Customer Portal + Tax. API billing only — no consumer payments. |
 | Email | Resend | 4.5+ | Transactional only (password reset, welcome) |
-| Push Notifications | `web-push` | 3.6+ | VAPID-based Web Push Protocol |
-| Hosting | Vercel | — | Auto-deploy from `main` branch |
+| Push Notifications | ~~`web-push`~~ | — | SUPERSEDED by webhooks/agent updates (pivot 2026-06-11). Do not build on. |
+| Hosting | Vercel | — | Auto-deploy from `main` branch; Fluid compute handles MCP traffic |
 | Cron Jobs | Vercel Cron | — | Secured by `CRON_SECRET` header |
 
 ## External APIs
@@ -107,15 +111,38 @@ User clicks "Call Now" (mobile: opens tel: link; desktop: reveals phone number)
   → Update user dashboard stats
 ```
 
-### Flow 6: Push Notification Delivery
+### Flow 6: ~~Push Notification Delivery~~ (SUPERSEDED — see Flow 8)
+Web push was superseded by webhooks + agent-native updates in the 2026-06-11 pivot. Never built; do not build.
+
+### Flow 7: MCP Tool Call (metered)
 ```
-Cron or event trigger → /api/push/send (internal, CRON_SECRET protected)
-  → Query eligible notifications (users following bills with pending actions)
-  → For each:
-    → Check per-user daily rate limit (max 2/day)
-    → Check user's local time (no pushes 9pm–8am)
-    → Send via web-push library
-    → Log to `notifications_sent` table
+Agent / MCP client → POST /api/[transport] (Streamable HTTP)
+  → mcp-handler routes to tool (search_bills, decode_bill, lookup_representatives,
+    draft_call_script, track_bill, get_updates, get_upcoming_activity, get_rep_profile, ...)
+  → Metering middleware:
+    → Resolve caller: anonymous (rate-limited free tier) | API key (Supabase lookup) | OAuth user
+    → Check entitlements (tier limits: calls/mo, tracked bills) — server-side, hard fail
+    → Record usage event → Stripe Billing Meter (keyed callers)
+  → Tool handler wraps existing lib/ code → reads Supabase (never Congress.gov live)
+  → draft_call_script: check script_generations cache → generate on miss → log → return with disclaimer
+```
+
+### Flow 8: Tracked-Bill Updates + Webhooks (replaces push)
+```
+Nightly sync cron (Flow 3) → diffs bill status / bill_actions
+  → For each changed bill with trackers:
+    → Write update events (consumed by get_updates(since) polls)
+    → For paid tiers with a webhook URL:
+      → Signed POST (HMAC), retry with backoff, log delivery status
+```
+
+### Flow 9: Billing Lifecycle (zero-touch)
+```
+Developer → /developers page → signup → API key issued (hashed, RLS row)
+  → Stripe Checkout (tier selection) → webhook → entitlements row updated in Supabase
+  → Usage events stream to Stripe Billing Meters (from Flow 7 middleware)
+  → Stripe invoices/charges automatically; Customer Portal for self-serve changes; Stripe Tax for compliance
+  → Webhook on payment failure / cancellation → entitlements downgraded to Free
 ```
 
 ## Authentication & Authorization Model
@@ -136,10 +163,11 @@ See `.env.local.example` for the canonical list. MVP-required variables:
 - `GOOGLE_CIVIC_API_KEY` (Divisions endpoint only)
 - `CONGRESS_API_KEY`
 - `RESEND_API_KEY`
-- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`
 - `CRON_SECRET`
 
-Variables that should NOT be present until v2: `STRIPE_*`, `LEGISCAN_API_KEY`, `TWILIO_*`.
+Arriving with F6 (that PR, not before): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
+
+Variables that should NOT be present: `LEGISCAN_API_KEY` (v2), `TWILIO_*` (never), `*VAPID*` (web push superseded — remove from env when convenient).
 
 ## Deployment
 

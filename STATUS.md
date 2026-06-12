@@ -1,6 +1,9 @@
 # STATUS — Oravan
 
-**Updated:** 2026-06-10
+**Updated:** 2026-06-11
+
+## ⚡ DIRECTION — PIVOT (2026-06-11)
+**Oravan is now agent-native civic action infrastructure: a monetized MCP server + API.** The consumer web app becomes the free reference client. Decided after a competitor/market research session (B2C civic apps don't monetize; B2B incumbents are sales-led; the agent-action layer is empty). Full strategy, tool surface, monetization pipeline, ops model, and honest revenue expectations: **`docs/PIVOT.md`**. Scope authority rewritten: `FEATURES.md` (F1–F8). `CLAUDE.md` + `ARCHITECTURE.md` amended (Stripe sanctioned for API billing only; web push formally superseded by webhooks/agent updates). Everything below this section predates the pivot and stands as history; the consumer "feature status" list is now the reference client's state, not the roadmap.
 
 ## Last shipped
 - **Session 2026-06-08→10 — landing ceiling + nav + feed redesign (PRs #57–#68) — all merged + LIVE.** A cohesion → ceiling → redesign arc on top of the spine:
@@ -48,11 +51,9 @@ The Decoded hero now renders **real plain-language translations on 480/482 bills
 **Design:** the **spine ceiling shipped and is LIVE** (PRs #55/#56) — the app shell is a top **ink masthead** (left sidebar removed), every surface is on the warm **tonal ladder** (`ink` masthead → `paper` page → `paper-mid` cards → white only as the inner "answer"), and the feed card is **decode-is-the-card**. `/bills/[id]` + landing remain floor+ceiling complete. All recorded in `docs/DESIGN_DECISIONS.md → System: Spine ceiling`; `PRODUCT.md`/`DESIGN.md` restored/regenerated (gitignored) as Impeccable context. **Update (this session):** the **`creative-director` ceiling ran on the landing** (#63 broadsheet hero); the **button `control` token + `cn`/twMerge fix landed** (#58); the AA `ink-50`→`ink-70` sweep landed app-wide (#62); loading skeletons landed (#61); nav is the documented mobile **bottom-tab bar** (#67). **Owed next on design:** brand identity (logo/favicon/full identity — wordmark is wired); optional per-screen creative-director ceilings beyond the landing; small a11y/polish in `docs/deferred.md#feed-band-filter-polish`. Broader a11y stays v2.
 
 ## Next action (single)
-This session's arc (landing ceiling, nav restore, feed redesign — #57–#68) is shipped + live, branches pruned, docs current. **Next is Colby's call — none urgent:**
-- **Feed v2** — the server-side `p_category` filter so the topic chip rail filters across paged-in bills, not just the loaded set (resolves the sparse-topic + Load-more dead-end). `docs/deferred.md#feed-server-side-category-filter`; cheap polish in `#feed-band-filter-polish`.
-- **Steady-state `ai_summary`/`ai_headline` pipeline** — new synced bills land blank → Decoded degrade state; coupled to re-arming the disabled sync cron.
-- **Brand identity** — logo/favicon/full identity still open (the Oravan wordmark is wired).
-- **Launch gates (sequence LAST):** email verification (`#email-verification-deferred`), `noindex` removal, a separate test DB (`#e2e-tests-seed-live-prod`).
+**Build step 1 of the pivot: the steady-state data pipeline (F1)** — re-arm the disabled sync cron + sync-time `ai_summary`/`ai_headline`/retag for new bills. It was already the top deferred item and is now the prerequisite for the entire MCP product (a stale corpus kills it). Then F2 (MCP server core) → F3–F5 (tracking/calendar/rep tools) → F6 (keys + metering + Stripe) → F8 (registries), per `docs/PIVOT.md` §9. Target: live + listed by Aug/Sep 2026 for the midterm window.
+
+**Parked by the pivot (do not resume without re-deciding):** Feed v2 server-side category filter, brand-identity expansion, further consumer design ceilings. **Launch gates that still apply to the reference client:** email verification before any public push, `noindex` removal, separate test DB (`#e2e-tests-seed-live-prod`).
 
 **Sequenced out — not near-term (by decision, 2026-06-05):**
 - **Feature 6 — Web push:** **DEFERRED to post-MVP — no longer a V1/MVP item or a "next action" candidate.** Schema exists (`push_subscriptions`, `notifications_sent`) but nothing's built; coupled to re-arming the sync cron. `docs/deferred.md#web-push-deferred-post-mvp`.
